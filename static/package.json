@@ -1,0 +1,16 @@
+{
+	"scripts": {
+		"build": "kaliber-static",
+		"//": "only needed for library development",
+		"install-library": "rm -R `yarn cache dir`/npm-kaliber-build* ; yarn upgrade file:../library --dev",
+		"watch": "npm-watch"
+	},
+	"//": "only needed for library development",
+	"devDependencies": {
+		"kaliber-build": "file:../library",
+		"npm-watch": "^0.1.8"
+	},
+	"watch": {
+		"install-library": "../library/"
+	}
+}

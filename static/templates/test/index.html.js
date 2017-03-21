@@ -1,0 +1,3 @@
+export default (
+	<html><head></head><body>Test</body></html>
+)
