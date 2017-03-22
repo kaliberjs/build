@@ -27,7 +27,6 @@ try {
 		output: { filename: '[name]', path: target, libraryTarget: 'commonjs2' },
 		externals: ['react'],
 		resolve: { extensions: ['.js', '.html.js'] },
-		devtool: 'source-map', // required for babel-loader to generate source maps
 		module: {
 			rules: [
 				{
@@ -43,20 +42,33 @@ try {
 		},
 		plugins: [
 			new webpack.ProvidePlugin({ React: 'react' }),
+			enableSourceMaps(),
 			reactTemplatePlugin()
 		]
 	})
 
 	compiler.run((err, stats) => {
-	if (err) {
-		console.error(err.stack || err)
-		if (err.details) console.error(err.details)
-		return
-	}
+		if (err) {
+			console.error(err.stack || err)
+			if (err.details) console.error(err.details)
+			return
+		}
 
 		console.log(stats.toString({ colors: true }))
 	})
 } catch (e) { console.error(e.message) }
+
+function enableSourceMaps() {
+	return {
+		apply: compiler => {
+			compiler.plugin("compilation", compilation => {
+				compilation.plugin("build-module", module => {
+					module.useSourceMap = true
+				})	
+			})
+		}
+	}
+}
 
 function reactTemplatePlugin() {
 	return {
@@ -73,7 +85,6 @@ function reactTemplatePlugin() {
 			if (templates[name]) {
 				const asset = assets[name]
 				delete assets[name]
-				delete assets[name + '.map']
 
 				const { result: html, error } = evalWithSourceMap(asset.source(), asset.map())
 
