@@ -1,12 +1,17 @@
 import head from './partials/head'
-import styles from './index.css'
+import Test from './partials/Test?universal'
+import styles from './index.html.js.css'
+
+console.log("============")
+console.log(Test)
 
 export default (
 	<html>
-		{  head("Some title") }
+		{ head("Some title") }
 		<body>
-			Test
-			<span class={styles.test}>Something</span>
+			<p className={styles.test2}>Test</p>
+			<span className={styles.test}>Something</span>
+      <Test soep='kip' />
 		</body>
 	</html>
 )

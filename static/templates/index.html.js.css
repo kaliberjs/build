@@ -1,0 +1,5 @@
+@import './test/test.css';
+
+.test {
+  color: green;
+}
