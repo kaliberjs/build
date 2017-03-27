@@ -2,9 +2,9 @@ import head from './partials/head'
 import Test from './partials/Test?universal'
 import styles from './index.html.js.css'
 
-export default (
+export default ({ title }) => (
   <html>
-    { head("Some title") }
+    { head(title) }
     <body>
       <div className={styles.background} />
       <p className={styles.test2}>Test</p>

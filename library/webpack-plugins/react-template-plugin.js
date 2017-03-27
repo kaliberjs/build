@@ -1,6 +1,6 @@
-const { SourceMapConsumer } = require('source-map')
-const ReactDOMServer = require('react-dom/server')
 const { RawSource } = require('webpack-sources')
+const { evalWithSourceMap } = require('../lib/node-utils')
+const { renderWith } = require('../lib/template-utils')
 
 module.exports = function reactTemplatePlugin(templates) {
 
@@ -10,60 +10,45 @@ module.exports = function reactTemplatePlugin(templates) {
 
         // render templates to html
         compilation.plugin('optimize-assets', (assets, done) => {
+          const renders = []
+          
           for (const name in assets) {
             if (!templates[name]) continue
             const asset = assets[name]
             delete assets[name]
             
+            const source = asset.source()
             const map = asset.map()
-            const { result: html, error } = evalWithSourceMap(asset.source(), map)
-
-            if (error) compilation.errors.push(error)
-            if (html) {
-              const { result, error } = withSourceMappedError(map, () => ReactDOMServer.renderToStaticMarkup(html))
-
-              if (error) compilation.errors.push(error)
-              if (result) assets[name + '.html'] = new RawSource(result)
-            }
+            renders.push(
+              evalWithSourceMap(source, map)
+                .then(template => template ? template : Promise.reject(new Error(`${name} did not export a template`)))
+                .then(template => typeof template === 'function'
+                  ? createDynamicTemplate(source, map)
+                  : createStaticTemplate(map, template)
+                )
+                .then(([ext, result]) => { assets[name + ext] = new RawSource(result) })
+                .catch(e => { compilation.errors.push(e.message) })
+            )
           }
-          done()
+
+          Promise.all(renders).then(_ => done())
         })
       })
     }
   }
 }
 
-function evalWithSourceMap(source, map) {
-  return withSourceMappedError(map, () => {
-    const module = { exports: {} }
-    const result = eval(source)
-    return module.exports 
-  })
+function createStaticTemplate(map, template) {
+  return renderWith(map)(template).then(html => ['.html', html])
 }
 
-function withSourceMappedError(map, fn) {
-  return withRawErrorStack(() => {
-    try { return { result: fn() } } 
-    catch (e) { return { error: e + '\n' + toMappedStack(map, e.stack) } }
-  })
-}
-
-function withRawErrorStack(fn) {
-  const $prepareStackTrace = Error.prepareStackTrace
-  Error.prepareStackTrace = (error, stack) => stack
-  try { return fn() } finally { Error.prepareStackTrace = $prepareStackTrace }
-}
-
-function toMappedStack(map, stack) {
-  const sourceMap = new SourceMapConsumer(map)
-  return stack
-    .map(frame => {
-      if (frame.isEval()) {
-        const generated = { line: frame.getLineNumber(), column: frame.getColumnNumber() - 1 }
-        const { source, line, column } = sourceMap.originalPositionFor(generated)
-        if (source && !source.startsWith('webpack/')) return `    at ${source}:${line}:${column + 1}`
-      }
-    })
-    .filter(Boolean)
-    .join('\n')
+function createDynamicTemplate(source, map) {
+  return [
+    '.html.js',
+    `|const { createRenderFunction } = require('kaliber-build/lib/template-utils')
+     |const source = ${JSON.stringify(source)}
+     |const map = ${JSON.stringify(map)}
+     |module.exports = createRenderFunction(source, map)
+     |`.split(/^[ \t]*\|/m).join('')
+  ]
 }
