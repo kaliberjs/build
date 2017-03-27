@@ -3,3 +3,9 @@
 .test {
   color: green;
 }
+
+.background {
+  background-image: url('./eecolor.png');
+  width: 100px;
+  height: 100px;
+}

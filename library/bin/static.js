@@ -57,6 +57,7 @@ try {
           test: /\.css$/,
           loaders: ['json-loader', 'css-loader']
         },
+
         {
           test: /(\.html\.js|\.js)$/,
           loaders: [
@@ -70,6 +71,31 @@ try {
             },
             {
               loader:'react-universal-support'
+            }
+          ]
+        },
+
+        {
+          test: /\.(jpe?g|png|gif|svg)$/,
+          loaders: [
+            {
+              loader: 'url-loader',
+              options: { limit: 5000 }
+            },
+            {
+              loader: 'image-webpack-loader',
+              options: {
+                // bypassOnDebug: true,
+                // gifsicle: {}, // https://github.com/imagemin/imagemin-gifsicle#options
+                // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
+                // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
+                // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
+                // svgo: {} //
+              }
+            },
+            {
+              loader: 'image-maxsize-webpack-loader',
+              options: { useImageMagick: true }
             }
           ]
         }

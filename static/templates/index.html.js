@@ -6,12 +6,13 @@ console.log("============")
 console.log(Test)
 
 export default (
-	<html>
-		{ head("Some title") }
-		<body>
-			<p className={styles.test2}>Test</p>
-			<span className={styles.test}>Something</span>
+  <html>
+    { head("Some title") }
+    <body>
+      <div className={styles.background} />
+      <p className={styles.test2}>Test</p>
+      <span className={styles.test}>Something</span>
       <Test soep='kip' />
-		</body>
-	</html>
+    </body>
+  </html>
 )

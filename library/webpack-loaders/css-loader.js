@@ -2,10 +2,15 @@ const { relative } = require('path')
 const postcss = require('postcss')
 
 const plugins = [
-  // postcss-import is advised to be the first
-  ['postcss-import', ({ onImport }) => ({ onImport, /* path: rootDirectories, */ glob: true })],
-  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: url => onUrl(url) })],
-	['postcss-modules', ({ onExport }) => ({ getJSON: (_, json) => { onExport(json) } })]
+  // these plugis need to run on each file individual file
+  // look at the source of postcss-modules to see that it effectively runs all modules twice
+  ['postcss-plugin-composition', ({ onImport, onExport }) => [
+    // postcss-import is advised to be the first
+    require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true }),
+    require('postcss-modules')({ getJSON: (_, json) => { onExport(json) } })
+  ]],
+  // these plugins need to run on final result
+  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: url => onUrl(url) })]
 ]
 
 const pluginCreators = plugins.map(([name, config]) => {
@@ -22,11 +27,7 @@ module.exports = function(source, map) {
   const handlers = {
     onImport: imports => { imports.forEach(i => self.addDependency(i)) },
     onExport: locals  => { exports = locals },
-    onUrl   : url     => new Promise((res, rej) => {
-      // this is probably not good enough, resolve would (I think) not execute the loader and return the result (we probably need this.exec)
-      if (isDependency(url)) self.resolve(self.context, url, (err, result) => err ? rej(err) : res(result))
-      else resolve(url)
-    })
+    onUrl   : url     => isDependency(url) ? loadModule(url).then(executeModuleAt(url)) : Promise.resolve(url)
   }
 
   const plugins = pluginCreators.map(create => create(handlers))
@@ -46,15 +47,28 @@ module.exports = function(source, map) {
     })
     .catch(e => { callback(e) })
 
-  function throwErrorForWarnings(warnings) {
-    if (warnings.length) throw new Error(warnings
-      .sort(({ line: a = 0 }, { line: b = 0}) => a - b)
-      .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
-    )
+  function loadModule(url) {
+    return new Promise((resolve, reject) => {
+      self.loadModule(url, (err, source) => { if (err) reject(err); else resolve(source) })
+    })
+  }
 
-    function fileAndLine({ line }) {
-      return filename + ((line || '') && (':' + line)) + '\n\n'
+  function executeModuleAt(url) {
+    return source => {
+      const completeSource = `const __webpack_public_path__ = '${self.options.output.publicPath || ''}'\n` + source
+      return self.exec(completeSource, url)
     }
+  }
+}
+
+function throwErrorForWarnings(warnings) {
+  if (warnings.length) throw new Error(warnings
+    .sort(({ line: a = 0 }, { line: b = 0}) => a - b)
+    .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
+  )
+
+  function fileAndLine({ line }) {
+    return filename + ((line || '') && (':' + line)) + '\n\n'
   }
 }
 
