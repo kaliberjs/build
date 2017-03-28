@@ -1,6 +1,7 @@
 {
 	"scripts": {
 		"build": "kaliber-static",
+		"serve": "PORT=8000 kaliber-serve",
 		"//": "only needed for library development",
 		"install-library": "rm -R `yarn cache dir`/npm-kaliber-build* ; yarn upgrade file:../library --dev",
 		"watch": "npm-watch"

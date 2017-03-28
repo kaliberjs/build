@@ -7,9 +7,17 @@ module.exports = {
 }
 
 function createRenderFunction(source, map) {
-  return props => evalWithSourceMap(source, map)
-    .then(createTemplateWith(map, props))
-    .then(renderWith(map)) 
+  const template = evalWithSourceMap(source, map)
+  
+  render.routes = template.then(({ routes }) => routes)
+
+  return render
+
+  function render(props) {
+    return template
+      .then(createTemplateWith(map, props))
+      .then(renderWith(map))
+  }
 }
 
 function createTemplateWith(map, props) {
@@ -20,6 +28,6 @@ function createTemplateWith(map, props) {
 
 function renderWith(map) {
   return template => withSourceMappedError(map, () => 
-    ReactDOMServer.renderToStaticMarkup(template)
+    '<!DOCTYPE html>\n' + ReactDOMServer.renderToStaticMarkup(template)
   )
 }

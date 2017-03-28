@@ -20,7 +20,7 @@ function ReactUniversalSupport(source, map) {
         return
       }
       const callback = this.async()
-      const serverCode = createServerCode({ importPath, scriptSrc: filename, id })
+      const serverCode = createServerCode({ importPath, scriptSrc: '/' + filename, id })
       this.addEntry('./' + filename + universalClientMarker, filename, err => callback(err, serverCode))
     } else if (this.resourceQuery === universalClientMarker) {
       return createClientCode({ importPath, id })
