@@ -2,7 +2,8 @@
 	"version": "0.1",
 	"name": "kaliber-build",
 	"bin": {
-		"kaliber-static": "bin/static.js",
+		"kaliber-build": "bin/build.js",
+		"kaliber-watch": "bin/watch.js",
 		"kaliber-serve": "bin/serve.js"
 	},
 	"dependencies": {
