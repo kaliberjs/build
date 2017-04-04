@@ -12,6 +12,7 @@ const reactTemplatePlugin = require('../webpack-plugins/react-template-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
+const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
 
 module.exports = function build({ watch }) {
 
@@ -62,12 +63,9 @@ module.exports = function build({ watch }) {
                 loader: 'babel-loader',
                 options: {
                   babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-                  presets: ['es2015', 'react'],
-                  plugins: ['add-module-exports', 'transform-class-properties']
+                  presets: [['es2015', { modules: false }], 'react'],
+                  plugins: ['transform-class-properties']
                 }
-              },
-              {
-                loader:'react-universal-support'
               }
             ]
           },
@@ -104,7 +102,8 @@ module.exports = function build({ watch }) {
         sourceMapPlugin(),
         reactTemplatePlugin(templates),
         reactUniversalPlugin(),
-        mergeCssPlugin()
+        mergeCssPlugin(),
+        hotModuleReplacementPlugin()
       ]
     })
 

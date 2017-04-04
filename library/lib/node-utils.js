@@ -9,7 +9,7 @@ function evalWithSourceMap(source, map) {
   return withSourceMappedError(map, () => {
     const module = { exports: {} }
     const result = eval(source)
-    return module.exports 
+    return module.exports.default || module.exports
   })
 }
 

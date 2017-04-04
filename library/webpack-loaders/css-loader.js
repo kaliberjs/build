@@ -18,7 +18,7 @@ const pluginCreators = plugins.map(([name, config]) => {
   return handlers => createPlugin(typeof(config) === 'function' ? config(handlers) : config)
 })
 
-module.exports = function(source, map) {
+module.exports = function CssLoader(source, map) {
 
   const self = this
   const callback = this.async()

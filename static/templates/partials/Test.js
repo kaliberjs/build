@@ -15,6 +15,10 @@ export default class Test extends Component {
   }
 
   componentDidMount() {
-    setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
+    this.interval = setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval)
   }
 }
