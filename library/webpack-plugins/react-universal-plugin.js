@@ -70,7 +70,6 @@ module.exports = function reactUniversalPlugin() {
             if (entryModule.universalClient) {
               modules.forEach(({ assets }) => {
                 for (const name in assets) {
-                  console.log('deleting ' + name)
                   if (!(/\.js(\.map)?$/).test(name)) delete assets[name]
                 }
               })

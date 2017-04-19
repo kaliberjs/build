@@ -2,18 +2,19 @@ const { RawSource } = require('webpack-sources')
 const { evalWithSourceMap } = require('../lib/node-utils')
 const { renderWith } = require('../lib/template-utils')
 
-module.exports = function reactTemplatePlugin(templates) {
+module.exports = function reactTemplatePlugin(entries) {
 
   return {
     apply: compiler => {
       compiler.plugin('compilation', compilation => {
 
-        // render templates to html
+        // render templates to html -- we should probably do this earlier, before the uglifier / babili kicks in
         compilation.plugin('optimize-assets', (assets, done) => {
           const renders = []
           
           for (const name in assets) {
-            if (!templates[name]) continue
+            const entry = entries[name]
+            if (!entry || !entry.endsWith('.html.js')) continue
             const asset = assets[name]
             delete assets[name]
             

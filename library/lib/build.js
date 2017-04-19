@@ -19,13 +19,11 @@ module.exports = function build({ watch }) {
   const target = path.resolve(process.cwd(), 'target')
   fs.removeSync(target)
 
-  const templateDir = path.resolve(process.cwd(), 'templates')
+  const srcDir = path.resolve(process.cwd(), 'src')
 
-  const templates = gatherTemplates()
-
-  try {
-    const compiler = webpack({
-      entry: templates,
+  function createCompiler(entries) {
+    return webpack({
+      entry: entries,
       output: { 
         filename: '[name]', 
         path: target, 
@@ -48,7 +46,7 @@ module.exports = function build({ watch }) {
       resolveLoader: {
         modules: [path.resolve(__dirname, '../webpack-loaders'), "node_modules"]
       },
-      context: templateDir,
+      context: srcDir,
       module: {
         rules: [
           {
@@ -100,15 +98,17 @@ module.exports = function build({ watch }) {
         watchContextPlugin(),
         new webpack.ProvidePlugin({ React: 'react', Component: ['react', 'Component'] }),
         sourceMapPlugin(),
-        reactTemplatePlugin(templates),
+        reactTemplatePlugin(entries),
         reactUniversalPlugin(),
         mergeCssPlugin(),
-        hotModuleReplacementPlugin()
-      ]
+        watch && hotModuleReplacementPlugin()
+      ].filter(Boolean)
     })
+  }
 
+  try {
     if (watch) startWatching(compilationComplete)
-    else compiler.run(compilationComplete)
+    else runOnce(compilationComplete)
 
     function compilationComplete(err, stats) {
       if (err) {
@@ -120,36 +120,40 @@ module.exports = function build({ watch }) {
       console.log(stats.toString({ colors: true }))
     }
 
+    function runOnce() {
+      const compiler = createCompiler(gatherEntries())
+      compiler.run(compilationComplete)
+    }
+
     function startWatching(callback) {
       let watching
-      start()
+      let entries
+      start(gatherEntries())
       
-      function start() {
+      function start(newEntries) {
+        entries = newEntries
+        const compiler = createCompiler(entries)
         watching = compiler.watch({}, onWatchTriggered)
       }
 
       function onWatchTriggered(err, stats) {
         callback(err, stats)
 
-        const newTemplates = gatherTemplates()
-        const [oldKeys, newKeys] = [Object.keys(templates), Object.keys(newTemplates)]
-        const templatesChanged = !oldKeys.every(x => newKeys.includes(x)) || !newKeys.every(x => oldKeys.includes(x))
+        const newEntries = gatherEntries()
+        const [oldKeys, newKeys] = [Object.keys(entries), Object.keys(newEntries)]
+        const entriesChanged = !oldKeys.every(x => newKeys.includes(x)) || !newKeys.every(x => oldKeys.includes(x))
 
-        if (templatesChanged) {
-          console.log('Templates changed, restarting watch')
-          watching.close(() => {
-            oldKeys.forEach(key => { delete templates[key] })
-            newKeys.forEach(key => { templates[key] = newTemplates[key] })
-            start()
-          })
+        if (entriesChanged) {
+          console.log('Entries changed, restarting watch')
+          watching.close(() => { start(newEntries) })
         }
         console.log('\nWaiting for file changes...\n')
       }
     }
   } catch (e) { console.error(e.message) }
 
-  function gatherTemplates() {
-    return walkSync(templateDir, { globs: ['**/*.html.js'] }).reduce(
+  function gatherEntries() {
+    return walkSync(srcDir, { globs: ['**/*.html.js'] }).reduce(
       (result, template) => (
         result[template.replace('.html.js', '')] = './' + template, result),
       {}
