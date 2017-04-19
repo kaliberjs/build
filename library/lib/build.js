@@ -153,7 +153,7 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    return walkSync(srcDir, { globs: ['**/*.html.js'] }).reduce(
+    return walkSync(srcDir, { globs: ['**/*.html.js', '**/*.entry.js', '**/*.entry.css'] }).reduce(
       (result, template) => (
         result[template.replace('.html.js', '')] = './' + template, result),
       {}
