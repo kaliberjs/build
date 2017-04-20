@@ -12,7 +12,7 @@ module.exports = postcss.plugin(
       styles.walkDecls(decl => {
         const [match, before, old, after] = urlPattern.exec(decl.value) || []
         if (match) {
-          const result = Promise.resolve(replace(old)).then((replacement = old) => {
+          const result = Promise.resolve(replace(old, decl.source.input.file)).then((replacement = old) => {
             decl.value = before + replacement + after
           })
           results.push(result)

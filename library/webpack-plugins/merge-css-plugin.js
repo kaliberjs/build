@@ -27,7 +27,7 @@ module.exports = function mergeCssPlugin() {
         // merge css assets
         compilation.plugin('additional-chunk-assets', () => {
           chunkCssAssets.forEach(([chunkName, cssAssets]) => {
-            if (cssAssets.length) compilation.assets[chunkName + '.css'] = new ConcatSource(...cssAssets)
+            if (cssAssets.length) compilation.assets[chunkName.replace('.css', '') + '.css'] = new ConcatSource(...cssAssets)
           })
         })
       })

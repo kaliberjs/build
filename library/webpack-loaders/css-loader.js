@@ -1,4 +1,4 @@
-const { relative } = require('path')
+const { relative, resolve, dirname } = require('path')
 const postcss = require('postcss')
 
 const plugins = [
@@ -10,7 +10,7 @@ const plugins = [
     require('postcss-modules')({ getJSON: (_, json) => { onExport(json) } })
   ]],
   // these plugins need to run on final result
-  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: url => onUrl(url) })]
+  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
 ]
 
 const pluginCreators = plugins.map(([name, config]) => {
@@ -27,7 +27,12 @@ module.exports = function CssLoader(source, map) {
   const handlers = {
     onImport: imports => { imports.forEach(i => self.addDependency(i)) },
     onExport: locals  => { exports = locals },
-    onUrl   : url     => isDependency(url) ? loadModule(url).then(executeModuleAt(url)) : Promise.resolve(url)
+    onUrl   : (url, file) => {
+      if (isDependency(url)) {
+        const resolved = resolve(dirname(file), url)
+        return loadModule(resolved).then(executeModuleAt(resolved))
+      } else return Promise.resolve(url)
+    }
   }
 
   const plugins = pluginCreators.map(create => create(handlers))
@@ -55,7 +60,7 @@ module.exports = function CssLoader(source, map) {
 
   function executeModuleAt(url) {
     return source => {
-      const completeSource = `const __webpack_public_path__ = '${self.options.output.publicPath || ''}'\n` + source
+      const completeSource = `const __webpack_public_path__ = '${self.options.output.publicPath || '/'}'\n` + source
       return self.exec(completeSource, url)
     }
   }

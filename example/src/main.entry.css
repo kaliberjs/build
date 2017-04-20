@@ -1,3 +1,5 @@
+@import './test/test.css';
+
 .main {
   background-color: hotpink;
 }

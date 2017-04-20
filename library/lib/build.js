@@ -48,7 +48,9 @@ module.exports = function build({ watch }) {
       },
       context: srcDir,
       module: {
-        rules: [
+        // noParse: https://webpack.js.org/configuration/module/#module-noparse
+        rules: [{ oneOf: [
+
           {
             test: /\.css$/,
             loaders: ['json-loader', 'css-loader']
@@ -83,7 +85,7 @@ module.exports = function build({ watch }) {
                   // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
                   // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
                   // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
-                  // svgo: {} //
+                  // svgo: {} // https://github.com/imagemin/imagemin-svgo#options
                 }
               },
               {
@@ -91,8 +93,13 @@ module.exports = function build({ watch }) {
                 options: { useImageMagick: true }
               }
             ]
+          },
+
+          {
+            loader: 'file-loader'
           }
-        ]
+
+        ]}]
       },
       plugins: [
         watchContextPlugin(),
