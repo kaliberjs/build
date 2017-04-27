@@ -52,6 +52,16 @@ module.exports = function build({ watch }) {
         rules: [{ oneOf: [
 
           {
+            test: [/\.entry\.css$/ /*, new RegExp('^' + path.resolve(srcDir, 'public')) */],
+            oneOf: [
+              {
+                test: /\.css$/,
+                loaders: ['to-json-file-loader', 'css-loader']
+              }
+            ]
+          },
+
+          {
             test: /\.css$/,
             loaders: ['json-loader', 'css-loader']
           },
