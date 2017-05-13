@@ -1,5 +1,5 @@
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin')
-const SingleEntryDependency = require("webpack/lib/dependencies/SingleEntryDependency")
+const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency')
 const { relative } = require('path')
 
 function createDeferred() {
@@ -18,7 +18,7 @@ function createDeferred() {
 // works only when entry is an object
 module.exports = function reactUniversalPlugin() {
 
-  // keep a record of additional entries for additional compuler runs (watch)
+  // keep a record of additional entries for additional compiler runs (watch)
   const additionalEntries = []
 
   return {

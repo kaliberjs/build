@@ -13,6 +13,46 @@ const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin'
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
+const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
+
+const babelLoader = {
+  loader: 'babel-loader',
+  options: {
+    babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
+    presets: [['es2015', { modules: false }], 'react'],
+    plugins: ['transform-class-properties']
+  }
+}
+
+const cssLoader = {
+  loader: 'css-loader'
+}
+
+const imageLoader = {
+  loader: 'image-webpack-loader',
+  options: {
+    // bypassOnDebug: true,
+    // gifsicle: {}, // https://github.com/imagemin/imagemin-gifsicle#options
+    // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
+    // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
+    // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
+    // svgo: {} // https://github.com/imagemin/imagemin-svgo#options
+  }
+}
+
+const imageSizeLoader = {
+  loader: 'image-maxsize-webpack-loader',
+  options: { useImageMagick: true }
+}
+
+const keepNameFileLoader = {
+  loader: 'file-loader',
+  options: { name: '[path][name].[ext]' }
+}
+
+const toJsonFileLoader = {
+  loader: 'to-json-file-loader'
+}
 
 module.exports = function build({ watch }) {
 
@@ -20,6 +60,8 @@ module.exports = function build({ watch }) {
   fs.removeSync(target)
 
   const srcDir = path.resolve(process.cwd(), 'src')
+
+  const publicDir = path.resolve(srcDir, 'public')
 
   function createCompiler(entries) {
     return webpack({
@@ -52,32 +94,37 @@ module.exports = function build({ watch }) {
         rules: [{ oneOf: [
 
           {
-            test: [/\.entry\.css$/ /*, new RegExp('^' + path.resolve(srcDir, 'public')) */],
+            test: [new RegExp('^' + publicDir)],
             oneOf: [
               {
                 test: /\.css$/,
-                loaders: ['to-json-file-loader', 'css-loader']
+                loaders: [toJsonFileLoader, cssLoader]
+              },
+
+              {
+                test: /\.(jpe?g|png|gif|svg)$/,
+                loaders: [keepNameFileLoader, imageLoader, imageSizeLoader]
+              },
+
+              {
+                loaders: [keepNameFileLoader]
               }
             ]
+          },
+
+          {
+            test: /\.entry\.css$/,
+            loaders: [toJsonFileLoader, cssLoader]
           },
 
           {
             test: /\.css$/,
-            loaders: ['json-loader', 'css-loader']
+            loaders: ['json-loader', cssLoader]
           },
 
           {
             test: /(\.html\.js|\.js)$/,
-            loaders: [
-              {
-                loader: 'babel-loader',
-                options: {
-                  babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-                  presets: [['es2015', { modules: false }], 'react'],
-                  plugins: ['transform-class-properties']
-                }
-              }
-            ]
+            loaders: [babelLoader]
           },
 
           {
@@ -87,21 +134,8 @@ module.exports = function build({ watch }) {
                 loader: 'url-loader',
                 options: { limit: 5000 }
               },
-              {
-                loader: 'image-webpack-loader',
-                options: {
-                  // bypassOnDebug: true,
-                  // gifsicle: {}, // https://github.com/imagemin/imagemin-gifsicle#options
-                  // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
-                  // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
-                  // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
-                  // svgo: {} // https://github.com/imagemin/imagemin-svgo#options
-                }
-              },
-              {
-                loader: 'image-maxsize-webpack-loader',
-                options: { useImageMagick: true }
-              }
+              imageLoader,
+              imageSizeLoader
             ]
           },
 
@@ -118,7 +152,8 @@ module.exports = function build({ watch }) {
         reactTemplatePlugin(entries),
         reactUniversalPlugin(),
         mergeCssPlugin(),
-        watch && hotModuleReplacementPlugin()
+        watch && hotModuleReplacementPlugin(),
+        loadDirectoryPlugin(publicDir)
       ].filter(Boolean)
     })
   }
@@ -171,8 +206,8 @@ module.exports = function build({ watch }) {
 
   function gatherEntries() {
     return walkSync(srcDir, { globs: ['**/*.html.js', '**/*.entry.js', '**/*.entry.css'] }).reduce(
-      (result, template) => (
-        result[template.replace('.html.js', '')] = './' + template, result),
+      (result, entry) => (
+        result[entry.replace('.html.js', '')] = './' + entry, result),
       {}
     )
   }

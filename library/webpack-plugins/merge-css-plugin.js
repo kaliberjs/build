@@ -11,6 +11,9 @@ module.exports = function mergeCssPlugin() {
           const assetsToRemove = []
 
           compilation.chunks.forEach(chunk => {
+            // this should be an option
+            if (chunk.name === 'public_entry') return
+
             const currentChunkCssAssets = []
             chunkCssAssets.push([chunk.name, currentChunkCssAssets])
             chunk.modules.forEach(({ assets = {}, request }) => {
