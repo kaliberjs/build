@@ -4,12 +4,12 @@
 		"watch": "kaliber-watch",
 		"serve": "PORT=8000 kaliber-serve",
 		"//": "only needed for library development",
-		"install-library": "rm -R `yarn cache dir`/npm-kaliber-build* ; yarn upgrade file:../library --dev",
+		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
 		"watch-library": "npm-watch"
 	},
 	"//": "only needed for library development",
 	"devDependencies": {
-		"kaliber-build": "file:../library",
+		"@kaliber/build": "file:../library",
 		"npm-watch": "^0.1.8"
 	},
 	"watch": {
