@@ -7,7 +7,7 @@ const { accessSync } = require('fs')
 
 const app = express()
 
-const target = resolve(__dirname, '../../../target')
+const target = resolve(process.cwd(), 'target')
 const index = resolve(target, 'index.html.js')
 const notFound = resolve(target, '404.html')
 const internalServerError = resolve(target, '500.html')
@@ -19,7 +19,6 @@ app.use((req, res, next) => {
   if (!fileExists(index)) return next()
 
   if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve(index)]
-
   const template = require(index)
 
   const routes = template.routes

@@ -46,7 +46,7 @@ function createStaticTemplate(map, template) {
 function createDynamicTemplate(source, map) {
   return [
     '.html.js',
-    `|const { createRenderFunction } = require('kaliber-build/lib/template-utils')
+    `|const { createRenderFunction } = require('@kaliber/build/lib/template-utils')
      |const source = ${JSON.stringify(source)}
      |const map = ${JSON.stringify(map)}
      |module.exports = createRenderFunction(source, map)
