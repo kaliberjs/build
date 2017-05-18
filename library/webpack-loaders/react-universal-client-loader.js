@@ -22,7 +22,7 @@ function createClientCode({ importPath, id, port }) {
 
   function renderHotAccept() {
     return `|if (module.hot) {
-            |  require('kaliber-build/lib/hot-module-replacement-client').default(${port})
+            |  require('@kaliber/build/lib/hot-module-replacement-client').default(${port})
             |  module.hot.accept('./${importPath}', () => { render(<Component {...props} />, element) })
             |}
             |`.split(/^[ \t]*\|/m).join('')
