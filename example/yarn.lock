@@ -3,7 +3,7 @@
 
 
 "@kaliber/build@file:../library":
-  version "0.0.0"
+  version "0.0.1"
   dependencies:
     babel-core "^6.24.0"
     babel-loader "^6.4.1"
