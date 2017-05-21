@@ -1,5 +1,5 @@
 {
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"name": "@kaliber/build",
 	"description": "Zero configuration, opinionated webpack / react build setup",
 	"bin": {
@@ -34,8 +34,19 @@
 		"webpack": "^2.2.1",
 		"ws": "^2.2.2"
 	},
-	"keywords": ["webpack", "build", "react", "universal", "source-map"],
-	"repository": { "type": "git", "url": "https://github.com/kaliberjs/build.git" },
+	"keywords": [
+		"webpack",
+		"build",
+		"react",
+		"universal",
+		"source-map"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/kaliberjs/build.git"
+	},
 	"license": "MIT",
-	"bugs": { "url": "https://github.com/kaliberjs/build/issues" }
+	"bugs": {
+		"url": "https://github.com/kaliberjs/build/issues"
+	}
 }
