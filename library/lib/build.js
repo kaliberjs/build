@@ -84,7 +84,10 @@ module.exports = function build({ watch }) {
           commonjs2: 'react-dom/server'
         }
       },
-      resolve: { extensions: ['.js', '.html.js'] },
+      resolve: {
+        extensions: ['.js', '.html.js'],
+        modules: [srcDir, "node_modules"]
+      },
       resolveLoader: {
         modules: [path.resolve(__dirname, '../webpack-loaders'), "node_modules"]
       },

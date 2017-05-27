@@ -1,4 +1,6 @@
 import styles from './head.css'
+import x from 'test/test.entry'
+import y from 'test/test.css'
 
 export default function(title) {
 	return (

@@ -1,12 +1,12 @@
-const { relative, resolve, dirname } = require('path')
+const { relative, dirname } = require('path')
 const postcss = require('postcss')
 
 const plugins = [
   // these plugis need to run on each file individual file
   // look at the source of postcss-modules to see that it effectively runs all modules twice
-  ['postcss-plugin-composition', ({ onImport, onExport }) => [
+  ['postcss-plugin-composition', ({ onImport, onExport, resolve }) => [
     // postcss-import is advised to be the first
-    require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true }),
+    require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
     require('postcss-modules')({ getJSON: (_, json) => { onExport(json) } })
   ]],
   // these plugins need to run on final result
@@ -26,11 +26,12 @@ module.exports = function CssLoader(source, map) {
   let exports = {}
   const handlers = {
     onImport: imports => { imports.forEach(i => self.addDependency(i)) },
+    resolve: (id, basedir, importOptions) => resolve(basedir, id),
     onExport: locals  => { exports = locals },
     onUrl   : (url, file) => {
       if (isDependency(url)) {
-        const resolved = resolve(dirname(file), url)
-        return loadModule(resolved).then(executeModuleAt(resolved))
+        return resolve(dirname(file), url)
+          .then(resolved => loadModule(resolved).then(executeModuleAt(resolved)))
       } else return Promise.resolve(url)
     }
   }
@@ -51,6 +52,12 @@ module.exports = function CssLoader(source, map) {
       callback(null, exports)
     })
     .catch(e => { callback(e) })
+
+  function resolve(context, request) {
+    return new Promise((resolve, reject) => {
+      self.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
+    })
+  }
 
   function loadModule(url) {
     return new Promise((resolve, reject) => {
