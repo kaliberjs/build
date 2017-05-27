@@ -153,7 +153,7 @@ module.exports = function build({ watch }) {
         reactUniversalPlugin(),
         mergeCssPlugin(),
         watch && hotModuleReplacementPlugin(),
-        loadDirectoryPlugin(publicDir)
+        fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
       ].filter(Boolean)
     })
   }
