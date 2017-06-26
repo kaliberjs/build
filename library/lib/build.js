@@ -116,6 +116,11 @@ module.exports = function build({ watch }) {
           },
 
           {
+            test: /\.json$/,
+            loaders: []
+          },
+
+          {
             test: /\.entry\.css$/,
             loaders: [toJsonFileLoader, cssLoader]
           },
