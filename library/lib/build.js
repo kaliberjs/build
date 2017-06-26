@@ -73,14 +73,17 @@ module.exports = function build({ watch }) {
       },
       externals: {
         react: {
+          commonjs: 'react',
           commonjs2: 'react',
           root: 'React'
         }, 
         'react-dom': {
+          commonjs: 'react-dom',
           commonjs2: 'react-dom',
           root: 'ReactDOM'
         }, 
         'react-dom/server': {
+          commonjs: 'react-dom/server',
           commonjs2: 'react-dom/server'
         }
       },

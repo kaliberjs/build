@@ -43,7 +43,7 @@ module.exports = function reactUniversalPlugin() {
         // loaders and add the module marked with `?universal-client` as entry. When a module marked with
         // `?universal-client` has been resolved, add the `react-universal-client-loader` to it's loaders.
         normalModuleFactory.plugin('after-resolve', (data, done) => {
-          const { loaders, resourceResolveData: { query, path }} = data
+          const { loaders, resourceResolveData: { query, path } } = data
           if (query === '?universal') {
             loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-server-loader') })
 
