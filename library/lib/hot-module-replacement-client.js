@@ -8,6 +8,9 @@ export default port => {
   ws.onmessage = event => {
     switch (event.data) {
       case 'done':
+        document.querySelectorAll('link[rel="stylesheet"]')
+          .forEach(el => el.setAttribute('href', el.getAttribute('href').replace(/\?.*/, '') + `?v=${Date.now()}` ))
+
         module.hot.check(false)
           .then(updatedModules => {
             if (!updatedModules) { /* no updates */ }
