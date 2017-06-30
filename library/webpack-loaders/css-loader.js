@@ -56,7 +56,7 @@ module.exports = function CssLoader(source, map) {
   function resolve(context, request) {
     return new Promise((resolve, reject) => {
       self.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
-    }).catch(e => { callback(e) })
+    }).catch(e => { callback(e) }) // this should not be required, by it seems postcss-plugin-composition does not pass along 'warnings' (more commonly known as 'errors')
   }
 
   function loadModule(url) {

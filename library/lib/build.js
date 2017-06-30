@@ -14,6 +14,7 @@ const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
 const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
+const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -89,7 +90,8 @@ module.exports = function build({ watch }) {
       },
       resolve: {
         extensions: ['.js', '.html.js'],
-        modules: [srcDir, "node_modules"]
+        modules: [srcDir, 'node_modules'],
+        plugins: [absolutePathResolverPlugin(srcDir)]
       },
       resolveLoader: {
         modules: [path.resolve(__dirname, '../webpack-loaders'), "node_modules"]
