@@ -5,7 +5,7 @@ module.exports = function mergeCssPlugin() {
     apply: compiler => {
       compiler.plugin('compilation', compilation => {
         const chunkCssAssets = []
-        
+
         // extract css assets
         compilation.plugin('before-module-assets', () => {
           const assetsToRemove = []
@@ -18,8 +18,8 @@ module.exports = function mergeCssPlugin() {
             chunkCssAssets.push([chunk.name, currentChunkCssAssets])
             chunk.modules.forEach(({ assets = {}, request }) => {
               Object.keys(assets).filter(x => x.endsWith('.css')).forEach(x => {
-                currentChunkCssAssets.push(assets[x]) 
-                assetsToRemove.push(() => { delete assets[x] }) 
+                currentChunkCssAssets.push(assets[x])
+                assetsToRemove.push(() => { delete assets[x] })
               })
             })
           })

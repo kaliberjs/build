@@ -63,14 +63,14 @@ module.exports = function reactUniversalPlugin() {
           module.universalClient = module.userRequest.endsWith('?universal-client')
         })
 
-        // remove redundant assets from client chunk 
-        compilation.plugin('optimize-chunks', chunks => {
-          chunks.forEach((chunk) => {
-            const { entryModule, modules, name } = chunk
+        // remove redundant assets introduced by client chunk
+        compilation.plugin('after-optimize-chunk-assets', chunks => {
+          chunks.forEach(chunk => {
+            const { entryModule, files, name } = chunk
             if (entryModule.universalClient) {
-              modules.forEach(({ assets }) => {
-                for (const name in assets) {
-                  if (!(/\.js(\.map)?$/).test(name)) delete assets[name]
+              Object.keys(compilation.assets).forEach(assetName => {
+                if (assetName != name && assetName.startsWith(name)) {
+                  delete compilation.assets[assetName]
                 }
               })
             }
