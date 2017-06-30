@@ -56,7 +56,7 @@ module.exports = function CssLoader(source, map) {
   function resolve(context, request) {
     return new Promise((resolve, reject) => {
       self.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
-    })
+    }).catch(e => { callback(e) })
   }
 
   function loadModule(url) {
