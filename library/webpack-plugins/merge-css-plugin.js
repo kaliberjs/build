@@ -9,8 +9,6 @@ module.exports = function mergeCssPlugin() {
         // extract css assets
         compilation.plugin('before-module-assets', () => {
 
-          console.log('before module assets')
-
           compilation.chunks.forEach(chunk => {
             // this should be an option
             if (chunk.name === 'public_entry') return
@@ -25,20 +23,26 @@ module.exports = function mergeCssPlugin() {
           })
         })
 
-        // merge css assets
+        // remove assets that will be merged
         compilation.plugin('before-chunk-assets', () => {
-
           const assetsToRemove = []
+          chunkCssAssets.forEach(([chunkName, cssAssets]) => {
+            const actualCssAssets = cssAssets.map(x => compilation.assets[x])
+            assetsToRemove.push(...cssAssets)
+            cssAssets.length = 0
+            cssAssets.push(...actualCssAssets)
+          })
+          assetsToRemove.forEach(x => { delete compilation.assets[x] })
+        })
 
+        // merge css assets
+        compilation.plugin('additional-chunk-assets', (chunks) => {
           chunkCssAssets.forEach(([chunkName, cssAssets]) => {
             if (cssAssets.length) {
               const newChunkName = chunkName + (chunkName.endsWith('.css') ? '' : '.css')
-              compilation.assets[newChunkName] = new ConcatSource(...cssAssets.map(x => compilation.assets[x]))
-              assetsToRemove.push(...cssAssets)
+              compilation.assets[newChunkName] = new ConcatSource(...cssAssets)
             }
           })
-
-          assetsToRemove.forEach(x => { delete compilation.assets[x] })
         })
       })
     }
