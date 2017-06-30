@@ -1,9 +1,10 @@
+/* partials/test.css */
 .test {
 
 }
 
 @font-face {
-  font-family: 'Open Sans';
+  font-family: 'Open Sans (test)';
   font-style: normal;
   font-weight: 300;
   src: local('Open Sans Light'), local('OpenSans-Light'), url('./font.woff2') format('woff2');
