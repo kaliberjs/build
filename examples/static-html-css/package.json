@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "serve": "PORT=8000 kaliber-serve",
+    "watch": "kaliber-watch",
+    "build": "kaliber-build"
+  },
+  "devDependencies": {
+    "@kaliber/build": "^0.0.0"
+  }
+}
