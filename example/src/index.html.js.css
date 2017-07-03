@@ -1,7 +1,8 @@
 @import './test/test.css';
+@import 'theme.css';
 
 .test {
-  color: green;
+  color: var(--color-green);
 }
 
 .background {

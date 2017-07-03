@@ -26,6 +26,7 @@
 		"json-loader": "^0.5.4",
 		"loader-utils": "^1.1.0",
 		"postcss": "^5.2.16",
+		"postcss-cssnext": "^2.11.0",
 		"postcss-import": "^9.1.0",
 		"postcss-modules": "^0.6.4",
 		"postcss-plugin-composition": "^0.1.1",
