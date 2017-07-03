@@ -26,6 +26,7 @@ function main ({ location, data }) {
         </p>
         <span className={styles.test}>Something</span>
         <Test soep='kip' />
+        <div className={styles.multipleBackground}></div>
       </body>
     </html>
   )
