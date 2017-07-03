@@ -24,7 +24,7 @@ export default port => {
               }
             }).then(renewedModules => {
                 const ignoredModules = updatedModules.filter(x => !renewedModules.includes(x))
-                if (ignoredModules.length) console.warning('Ignored modules: ' + ignoredModules.join(', '))
+                if (ignoredModules.length) console.warn('Ignored modules: ' + ignoredModules.join(', '))
               })
               .catch(err => {
                 console.error('Error during hot reload apply')
@@ -37,7 +37,7 @@ export default port => {
           })
         break;
       case 'failed':
-        console.warning('Compilation failed')
+        console.warn('Compilation failed')
         break;
     }
   }
