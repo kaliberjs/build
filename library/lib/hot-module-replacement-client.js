@@ -9,7 +9,15 @@ export default port => {
     switch (event.data) {
       case 'done':
         document.querySelectorAll('link[rel="stylesheet"]')
-          .forEach(el => el.setAttribute('href', el.getAttribute('href').replace(/\?.*/, '') + `?v=${Date.now()}` ))
+          .forEach(el => {
+            const href = el.getAttribute('href')
+            if (!href.startsWith('http')) {
+              // This might cause problems in the future when we need to add styles with
+              // a query string. We'll fix it when we have a use case
+              const replacement = href.replace(/\?.*/, '') + `?v=${Date.now()}`
+              el.setAttribute('href', replacement)
+            }
+          })
 
         module.hot.check(false)
           .then(updatedModules => {
