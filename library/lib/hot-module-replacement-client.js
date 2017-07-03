@@ -5,8 +5,10 @@ export default port => {
   const ws = new WebSocket('ws://localhost:' + port)
 
   ws.onopen = _ => { console.log('Waiting for signals') }
-  ws.onmessage = event => {
-    switch (event.data) {
+  ws.onmessage = ({ data }) => {
+    const { type, hash } = JSON.parse(data)
+
+    switch (type) {
       case 'done':
         document.querySelectorAll('link[rel="stylesheet"]')
           .forEach(el => {
@@ -19,6 +21,7 @@ export default port => {
             }
           })
 
+        if (!hash || __webpack_hash__ === hash) return
         module.hot.check(false)
           .then(updatedModules => {
             if (!updatedModules) { /* no updates */ }

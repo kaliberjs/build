@@ -24,8 +24,8 @@ module.exports = function hotModuleReplacementPlugin() {
         })
       })
 
-      compiler.plugin('done', stats => { send('done') })
-      compiler.plugin('failed', err => { send('failed') })
+      compiler.plugin('done', stats => { send({ type: 'done', hash: stats.hash }) })
+      compiler.plugin('failed', err => { send({ type: 'failed' }) })
     }
   }
 }
@@ -52,7 +52,7 @@ function startWebSocketServer(port) {
   return {
     send: message => {
       wss.clients.forEach(client => {
-        if (client.readyState === ws.OPEN) client.send(message)
+        if (client.readyState === ws.OPEN) client.send(JSON.stringify(message))
       })
     }
   }
