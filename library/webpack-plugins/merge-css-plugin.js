@@ -15,7 +15,8 @@ module.exports = function mergeCssPlugin() {
 
             const currentChunkCssAssets = []
             chunkCssAssets.push([chunk.name, currentChunkCssAssets])
-            chunk.modules.forEach(({ assets = {}, request }) => {
+            const modules = chunk.getModules().sort(({ index: a }, { index: b }) => a - b)
+            modules.forEach(({ assets = {}, request }) => {
               Object.keys(assets).filter(x => x.endsWith('.css')).forEach(x => {
                 currentChunkCssAssets.push(x)
               })
