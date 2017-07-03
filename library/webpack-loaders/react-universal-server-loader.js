@@ -18,7 +18,7 @@ function createServerCode({ importPath, scriptSrc, id }) {
           |  return (
           |    <div>
           |      <div id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }}></div>
-          |      <script src='${scriptSrc}'></script>
+          |      <script defer src='${scriptSrc}'></script>
           |    </div>
           |  )
           |}
