@@ -1,6 +1,11 @@
 /* partials/test.css */
-.test {
+@import 'theme.css';
 
+.test {
+  color: white;
+  background: var(--color-green);
+  padding: calc(30px - 25px);
+  display: flex;
 }
 
 @font-face {
@@ -10,3 +15,4 @@
   src: local('Open Sans Light'), local('OpenSans-Light'), url('./font.woff2') format('woff2');
   unicode-range: U+0370-03FF;
 }
+

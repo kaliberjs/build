@@ -12,7 +12,7 @@ export default class Test extends Component {
     return (
       <div>
         {this.props.soep}
-        {this.state.counter}
+        <span className={styles.test}>{this.state.counter}</span>
         <Test2 />
       </div>
     )
