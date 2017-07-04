@@ -6,8 +6,8 @@ module.exports = {
   renderWith
 }
 
-function createRenderFunction(source, map) {
-  const template = evalWithSourceMap(source, map)
+function createRenderFunction(source, createMap) {
+  const template = evalWithSourceMap(source, createMap)
   
   render.routes = template.then(({ routes }) => routes)
 
@@ -15,19 +15,19 @@ function createRenderFunction(source, map) {
 
   function render(props) {
     return template
-      .then(createTemplateWith(map, props))
-      .then(renderWith(map))
+      .then(createTemplateWith(createMap, props))
+      .then(renderWith(createMap))
   }
 }
 
-function createTemplateWith(map, props) {
-  return template => withSourceMappedError(map, () => 
+function createTemplateWith(createMap, props) {
+  return template => withSourceMappedError(createMap, () =>
     template(props)
   )
 }
 
-function renderWith(map) {
-  return template => withSourceMappedError(map, () => 
+function renderWith(createMap) {
+  return template => withSourceMappedError(createMap, () =>
     '<!DOCTYPE html>\n' + ReactDOMServer.renderToStaticMarkup(template)
   )
 }

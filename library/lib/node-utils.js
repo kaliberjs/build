@@ -5,18 +5,18 @@ module.exports = {
   withSourceMappedError
 }
 
-function evalWithSourceMap(source, map) {
-  return withSourceMappedError(map, () => {
+function evalWithSourceMap(source, createMap) {
+  return withSourceMappedError(createMap, () => {
     const module = { exports: {} }
     const result = eval(source)
     return module.exports.default || module.exports
   })
 }
 
-function withSourceMappedError(map, fn) {
+function withSourceMappedError(createMap, fn) {
   return withRawErrorStack(() => {
     try { return Promise.resolve(fn()) }
-    catch (e) { return Promise.reject(new Error(e + '\n' + toMappedStack(map, e.stack))) }
+    catch (e) { return Promise.reject(new Error(e + '\n' + toMappedStack(createMap, e.stack))) }
   })
 }
 
@@ -26,8 +26,8 @@ function withRawErrorStack(fn) {
   try { return fn() } finally { Error.prepareStackTrace = $prepareStackTrace }
 }
 
-function toMappedStack(map, stack) {
-  const sourceMap = new SourceMapConsumer(map)
+function toMappedStack(createMap, stack) {
+  const sourceMap = new SourceMapConsumer(createMap())
   return stack
     .map(frame => {
       if (frame.isEval()) {
