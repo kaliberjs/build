@@ -110,7 +110,15 @@ module.exports = function build({ watch }) {
               },
 
               {
-                test: /\.(jpe?g|png|gif|svg)$/,
+                test: /\.svg$/,
+                loaders: [
+                  keepNameFileLoader,
+                  imageLoader
+                ]
+              },
+
+              {
+                test: /\.(jpe?g|png|gif)$/,
                 loaders: [keepNameFileLoader, imageLoader, imageSizeLoader]
               },
 
@@ -141,7 +149,18 @@ module.exports = function build({ watch }) {
           },
 
           {
-            test: /\.(jpe?g|png|gif|svg)$/,
+            test: /\.svg$/,
+            loaders: [
+              {
+                loader: 'url-loader',
+                options: { limit: 5000 }
+              },
+              imageLoader
+            ]
+          },
+
+          {
+            test: /\.(jpe?g|png|gif)$/,
             loaders: [
               {
                 loader: 'url-loader',

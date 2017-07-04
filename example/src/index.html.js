@@ -2,6 +2,7 @@ import 'global.css'
 import head from './partials/head'
 import Test from './partials/Test?universal'
 import styles from './index.html.js.css'
+import publicSvg from 'public/public.svg'
 
 main.routes = {
   match: ({ pathname }) => pathname === '/'
@@ -27,7 +28,9 @@ function main ({ location, data }) {
         </p>
         <span className={styles.test}>Something</span>
         <Test soep='kip' />
-        <div className={styles.multipleBackground}></div>
+        <div className={styles.multipleBackground}>multiple backgrounds</div>
+        <div className={styles.svgBackground}>svg background</div>
+        <img src={publicSvg} /> public svg ({publicSvg})
       </body>
     </html>
   )

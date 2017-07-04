@@ -18,3 +18,11 @@
   width: 600px;
   height: 100px;
 }
+
+.svgBackground {
+  background: url('red.svg');
+  background-repeat: no-repeat, no-repeat;
+  background-position: top left, top right;
+  width: 600px;
+  height: 100px;
+}
