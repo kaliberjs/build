@@ -5,7 +5,7 @@ import styles from './index.html.js.css'
 
 main.routes = {
   match: ({ pathname }) => pathname === '/'
-    ? Promise.resolve({ status: 200, data: 'root' }) 
+    ? Promise.resolve({ status: 200, data: 'root' })
     : pathname === '/error'
     ? Promise.reject(new Error('fake error'))
     : Promise.resolve({ status: 400, data: 'missing' })

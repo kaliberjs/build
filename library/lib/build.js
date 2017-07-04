@@ -67,22 +67,22 @@ module.exports = function build({ watch }) {
   function createCompiler(entries) {
     return webpack({
       entry: entries,
-      output: { 
-        filename: '[name]', 
-        path: target, 
-        libraryTarget: 'umd2' //'commonjs2' 
+      output: {
+        filename: '[name]',
+        path: target,
+        libraryTarget: 'umd2' //'commonjs2'
       },
       externals: {
         react: {
           commonjs: 'react',
           commonjs2: 'react',
           root: 'React'
-        }, 
+        },
         'react-dom': {
           commonjs: 'react-dom',
           commonjs2: 'react-dom',
           root: 'ReactDOM'
-        }, 
+        },
         'react-dom/server': {
           commonjs: 'react-dom/server',
           commonjs2: 'react-dom/server'
@@ -160,7 +160,13 @@ module.exports = function build({ watch }) {
       },
       plugins: [
         watchContextPlugin(),
-        new webpack.ProvidePlugin({ React: 'react', Component: ['react', 'Component'] }),
+        new webpack.DefinePlugin({
+          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+        }),
+        new webpack.ProvidePlugin({
+          React: 'react',
+          Component: ['react', 'Component']
+        }),
         sourceMapPlugin(),
         reactTemplatePlugin(entries),
         reactUniversalPlugin(),
@@ -194,7 +200,7 @@ module.exports = function build({ watch }) {
       let watching
       let entries
       start(gatherEntries())
-      
+
       function start(newEntries) {
         entries = newEntries
         const compiler = createCompiler(entries)
