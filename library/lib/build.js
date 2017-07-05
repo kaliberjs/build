@@ -70,6 +70,7 @@ module.exports = function build({ watch }) {
       output: {
         filename: '[name]',
         path: target,
+        publicPath: '/',
         libraryTarget: 'umd2' //'commonjs2'
       },
       externals: {
