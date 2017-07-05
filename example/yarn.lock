@@ -3,7 +3,7 @@
 
 
 "@kaliber/build@file:../library":
-  version "0.0.15"
+  version "0.0.16"
   dependencies:
     ansi-regex "^3.0.0"
     babel-core "^6.24.0"
