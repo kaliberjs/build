@@ -21,7 +21,7 @@ const babelLoader = {
   options: {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: [['es2015', { modules: false }], 'react'],
-    plugins: ['transform-decorators-legacy', 'transform-class-properties', 'transform-object-rest-spread']
+    plugins: ['syntax-dynamic-import', 'transform-decorators-legacy', 'transform-class-properties', 'transform-object-rest-spread']
   }
 }
 
