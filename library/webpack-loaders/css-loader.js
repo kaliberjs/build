@@ -7,11 +7,11 @@ const plugins = [
   ['postcss-plugin-composition', ({ onImport, onExport, resolve }) => [
     // postcss-import is advised to be the first
     require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
-    require('postcss-cssnext')(),
     require('postcss-modules')({ getJSON: (_, json) => { onExport(json) } })
   ]],
   // these plugins need to run on final result
   ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
+  ['postcss-cssnext'],
 ]
 
 const pluginCreators = plugins.map(([name, config]) => {
