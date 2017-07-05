@@ -69,6 +69,7 @@ module.exports = function build({ watch }) {
       entry: entries,
       output: {
         filename: '[name]',
+        chunkFilename: '[name].bundle.js',
         path: target,
         libraryTarget: 'umd2' //'commonjs2'
       },

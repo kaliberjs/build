@@ -67,7 +67,7 @@ module.exports = function reactUniversalPlugin() {
         compilation.plugin('after-optimize-chunk-assets', chunks => {
           chunks.forEach(chunk => {
             const { entryModule, files, name } = chunk
-            if (entryModule.universalClient) {
+            if (entryModule && entryModule.universalClient) {
               Object.keys(compilation.assets).forEach(assetName => {
                 if (assetName != name && assetName.startsWith(name)) {
                   delete compilation.assets[assetName]

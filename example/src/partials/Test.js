@@ -23,6 +23,8 @@ export default class Test extends Component {
     console.log(json)
     console.log(new (getDecorator())().x)
     this.interval = setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
+
+    System.import(/* webpackChunkName: "dynamicImportChunk" */ './dynamicImportTest').then(mod => console.log('import?', mod()))
   }
 
   componentWillUnmount() {
