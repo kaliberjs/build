@@ -75,16 +75,16 @@ module.exports = function CssLoader(source, map) {
       return self.exec(completeSource, url)
     }
   }
-}
 
-function throwErrorForWarnings(warnings) {
-  if (warnings.length) throw new Error(warnings
-    .sort(({ line: a = 0 }, { line: b = 0}) => a - b)
-    .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
-  )
+  function throwErrorForWarnings(warnings) {
+    if (warnings.length) throw new Error(warnings
+      .sort(({ line: a = 0 }, { line: b = 0}) => a - b)
+      .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
+    )
 
-  function fileAndLine({ line }) {
-    return filename + ((line || '') && (':' + line)) + '\n\n'
+    function fileAndLine({ line }) {
+      return filename + ((line || '') && (':' + line)) + '\n\n'
+    }
   }
 }
 
