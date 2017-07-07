@@ -6,6 +6,10 @@
   background: var(--color-green);
   padding: calc(30px - 25px);
   display: flex;
+
+  @media (--breakpoint) {
+    background-color: #BADA55;
+  }
 }
 
 @font-face {
