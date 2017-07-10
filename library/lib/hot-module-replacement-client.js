@@ -10,16 +10,15 @@ export default port => {
 
     switch (type) {
       case 'done':
-        document.querySelectorAll('link[rel="stylesheet"]')
-          .forEach(el => {
-            const href = el.getAttribute('href')
-            if (!href.startsWith('http')) {
-              // This might cause problems in the future when we need to add styles with
-              // a query string. We'll fix it when we have a use case
-              const replacement = href.replace(/\?.*/, '') + `?v=${Date.now()}`
-              el.setAttribute('href', replacement)
-            }
-          })
+        [].forEach.call(document.querySelectorAll('link[rel="stylesheet"]'), el => {
+          const href = el.getAttribute('href')
+          if (!href.startsWith('http')) {
+            // This might cause problems in the future when we need to add styles with
+            // a query string. We'll fix it when we have a use case
+            const replacement = href.replace(/\?.*/, '') + `?v=${Date.now()}`
+            el.setAttribute('href', replacement)
+          }
+        })
 
         if (!hash || __webpack_hash__ === hash) return
         module.hot.check(false)
