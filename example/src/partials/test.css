@@ -1,6 +1,12 @@
 /* partials/test.css */
 @import 'theme.css';
 
+:root {
+  --test-apply: {
+    border: 1px solid black;
+  }
+}
+
 .test {
   color: white;
   background: var(--color-green);
@@ -9,6 +15,7 @@
 
   @media (--breakpoint) {
     background-color: #BADA55;
+    @apply --test-apply;
   }
 }
 

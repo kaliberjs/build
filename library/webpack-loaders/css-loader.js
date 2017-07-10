@@ -7,6 +7,7 @@ const plugins = [
   ['postcss-plugin-composition', ({ onImport, onExport, resolve }) => [
     // postcss-import is advised to be the first
     require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
+    require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
     require('postcss-modules')({
       getJSON: (_, json) => { onExport(json) },
       generateScopedName: process.env.NODE_ENV === 'production' ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
