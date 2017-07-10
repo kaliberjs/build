@@ -6,7 +6,11 @@ const extra = { x: 'x' }
 
 export default class Test extends Component {
 
-  state = { counter: 0, ...extra }
+  state = {
+    counter: 0,
+    asyncValue: null,
+    ...extra
+  }
 
   render() {
     return (
@@ -14,6 +18,7 @@ export default class Test extends Component {
         {this.props.soep}
         <span className={styles.test}>{this.state.counter}</span>
         <Test2 />
+        <p>asyncValue: {this.state.asyncValue}</p>
       </div>
     )
   }
@@ -22,11 +27,17 @@ export default class Test extends Component {
     console.log(this.state)
     console.log(json)
     console.log(new (getDecorator())().x)
+    this.asyncFunction()
     this.interval = setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
   }
 
   componentWillUnmount() {
     clearInterval(this.interval)
+  }
+
+  async asyncFunction () {
+    const asyncValue = await new Promise(resolve => setTimeout(() => resolve('Resolved!'), 1000))
+    this.setState({ asyncValue })
   }
 }
 

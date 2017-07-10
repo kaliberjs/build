@@ -1,3 +1,4 @@
+require('babel-polyfill')
 const { RawSource } = require('webpack-sources')
 const { evalWithSourceMap } = require('../lib/node-utils')
 const { renderWith } = require('../lib/template-utils')
@@ -11,13 +12,15 @@ module.exports = function reactTemplatePlugin(entries) {
         // render templates to html -- we should probably do this earlier, before the uglifier / babili kicks in
         compilation.plugin('optimize-assets', (assets, done) => {
           const renders = []
-          
+
+
           for (const name in assets) {
             const entry = entries[name]
             if (!entry || !entry.endsWith('.html.js')) continue
             const asset = assets[name]
+
             delete assets[name]
-            
+
             const source = asset.source()
             const createMap = () => asset.map()
             renders.push(
