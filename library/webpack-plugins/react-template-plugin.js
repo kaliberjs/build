@@ -1,4 +1,3 @@
-require('babel-polyfill')
 const { RawSource } = require('webpack-sources')
 const { evalWithSourceMap } = require('../lib/node-utils')
 const { renderWith } = require('../lib/template-utils')
@@ -49,7 +48,8 @@ function createStaticTemplate(template, createMap) {
 function createDynamicTemplate(source, createMap) {
   return [
     '.html.js',
-    `|const { createRenderFunction } = require('@kaliber/build/lib/template-utils')
+    `|require('babel-polyfill')
+     |const { createRenderFunction } = require('@kaliber/build/lib/template-utils')
      |const source = ${JSON.stringify(source)}
      |const createMap = () => (${JSON.stringify(createMap())})
      |module.exports = createRenderFunction(source, createMap)

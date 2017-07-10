@@ -2,6 +2,8 @@ console.log('-------------------------------------------------------------------
 console.log('`DeprecationWarning: loaderUtils.parseQuery()` will be solved when babel-loader 7 is released.')
 console.log('----------------------------------------------------------------------------------------------')
 
+require('babel-polyfill')
+
 const path = require('path')
 const webpack = require('webpack')
 const fs = require('fs-extra')
