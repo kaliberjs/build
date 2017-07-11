@@ -48,8 +48,7 @@ function createStaticTemplate(template, createMap) {
 function createDynamicTemplate(source, createMap) {
   return [
     '.html.js',
-    `|require('babel-polyfill')
-     |const { createRenderFunction } = require('@kaliber/build/lib/template-utils')
+    `|const { createRenderFunction } = require('@kaliber/build/lib/template-utils')
      |const source = ${JSON.stringify(source)}
      |const createMap = () => (${JSON.stringify(createMap())})
      |module.exports = createRenderFunction(source, createMap)

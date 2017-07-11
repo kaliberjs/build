@@ -13,7 +13,7 @@ export default function(title) {
       <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.css' rel='stylesheet' type='text/css' />
       <script defer src={`https://unpkg.com/react@15.6.1/dist/react${isProduction ? '.min' : ''}.js`} />
       <script defer src={`https://unpkg.com/react-dom@15.6.1/dist/react-dom${isProduction ? '.min' : ''}.js`} />
-      <script defer src='https://unpkg.com/babel-polyfill@6.23.0/dist/polyfill.min.js' />
+      <script defer src={`https://unpkg.com/babel-polyfill@6.23.0/dist/polyfill${isProduction ? '.min' : ''}.js`} />
     </head>
   )
 }

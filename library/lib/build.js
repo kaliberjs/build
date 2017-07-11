@@ -2,8 +2,6 @@ console.log('-------------------------------------------------------------------
 console.log('`DeprecationWarning: loaderUtils.parseQuery()` will be solved when babel-loader 7 is released.')
 console.log('----------------------------------------------------------------------------------------------')
 
-require('babel-polyfill')
-
 const path = require('path')
 const webpack = require('webpack')
 const fs = require('fs-extra')
@@ -23,7 +21,17 @@ const babelLoader = {
   options: {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: [['es2015', { modules: false }], 'react'],
-    plugins: ['transform-decorators-legacy', 'transform-class-properties', 'transform-object-rest-spread', 'transform-async-to-generator']
+    plugins: [
+      'transform-decorators-legacy',
+      'transform-class-properties',
+      'transform-object-rest-spread',
+      'transform-async-to-generator',
+      ['transform-runtime', {
+        'helpers': false,
+        'polyfill': false,
+        'regenerator': true
+      }]
+    ]
   }
 }
 
