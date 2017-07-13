@@ -3,7 +3,7 @@
 
 
 "@kaliber/build@file:../library":
-  version "0.0.22"
+  version "0.0.23"
   dependencies:
     ansi-regex "^3.0.0"
     babel-core "^6.25.0"
@@ -27,7 +27,7 @@
     postcss "^6.0.6"
     postcss-apply "^0.8.0"
     postcss-cssnext "^3.0.2"
-    postcss-import "^10.0.0"
+    postcss-import "^9.1.0"
     postcss-modules "^0.8.0"
     postcss-plugin-composition "^0.1.1"
     react "^15.6.1"
@@ -108,6 +108,10 @@ ansi-styles@^3.1.0:
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-3.1.0.tgz#09c202d5c917ec23188caa5c9cb9179cd9547750"
   dependencies:
     color-convert "^1.0.0"
+
+any-promise@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/any-promise/-/any-promise-0.1.0.tgz#830b680aa7e56f33451d4b049f3bd8044498ee27"
 
 anymatch@^1.3.0:
   version "1.3.0"
@@ -3873,13 +3877,14 @@ postcss-image-set-polyfill@^0.3.5:
     postcss "^6.0.1"
     postcss-media-query-parser "^0.2.3"
 
-postcss-import@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/postcss-import/-/postcss-import-10.0.0.tgz#4c85c97b099136cc5ea0240dc1dfdbfde4e2ebbe"
+postcss-import@^9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/postcss-import/-/postcss-import-9.1.0.tgz#95fe9876a1e79af49fbdc3589f01fe5aa7cc1e80"
   dependencies:
     object-assign "^4.0.1"
-    postcss "^6.0.1"
+    postcss "^5.0.14"
     postcss-value-parser "^3.2.3"
+    promise-each "^2.2.0"
     read-cache "^1.0.0"
     resolve "^1.1.7"
 
@@ -4005,7 +4010,7 @@ postcss@6.0.1:
     source-map "^0.5.6"
     supports-color "^3.2.3"
 
-postcss@^5.2.0:
+postcss@^5.0.14, postcss@^5.2.0:
   version "5.2.17"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-5.2.17.tgz#cf4f597b864d65c8a492b2eabe9d706c879c388b"
   dependencies:
@@ -4041,6 +4046,12 @@ process-nextick-args@~1.0.6:
 process@^0.11.0:
   version "0.11.10"
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
+
+promise-each@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/promise-each/-/promise-each-2.2.0.tgz#3353174eff2694481037e04e01f77aa0fb6d1b60"
+  dependencies:
+    any-promise "^0.1.0"
 
 promise@^7.1.1:
   version "7.3.1"
