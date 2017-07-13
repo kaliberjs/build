@@ -19,7 +19,7 @@ function main ({ location, data }) {
     <html>
       { head('Rendered on server') }
       <body>
-        <div className={styles.background} />
+        <div className={styles.background + ' help-it-is-broken'} />
         <p className={styles.test2}>
           Test
           { JSON.stringify(location) }

@@ -1,4 +1,5 @@
 @import './test/test.css';
+@import './test/help-it-is-broken.css';
 @import 'theme.css';
 
 .test {
