@@ -1,6 +1,6 @@
 {
 	"scripts": {
-		"build": "kaliber-build",
+		"build": "NODE_ENV=production kaliber-build",
 		"watch": "kaliber-watch",
 		"serve": "PORT=8000 kaliber-serve",
 		"//": "only needed for library development",
