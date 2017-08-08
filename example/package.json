@@ -1,8 +1,9 @@
 {
 	"scripts": {
 		"build": "NODE_ENV=production kaliber-build",
-		"watch": "kaliber-watch",
-		"serve": "PORT=8000 kaliber-serve",
+		"watch": "CONFIG_ENV=dev kaliber-watch",
+		"serve": "kaliber-serve",
+		"serve-dev": "PORT=8000 kaliber-serve",
 		"//": "only needed for library development",
 		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
 		"watch-library": "npm-watch"

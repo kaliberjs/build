@@ -19,6 +19,9 @@ export default class Test extends Component {
         <span className={styles.test}>{this.state.counter}</span>
         <Test2 />
         <p>asyncValue: {this.state.asyncValue}</p>
+        <br />
+        <p>Client config:</p>
+        <pre>{JSON.stringify(this.props.clientConfig, null, 2)}</pre>
       </div>
     )
   }

@@ -30,6 +30,7 @@ yarn add @kaliber/build
 - Source map support
 - Hot module replacement support
 - Image support
+- Environment specific configuration
 
 ## Conventions
 
@@ -45,6 +46,7 @@ Ruby popularized 'convention over configuration', this library has a set of conv
   - `dynamic` - Considered `dynamic` when a function is exported, results in `*.html.js`
 - `npm run *` - Expecting these commands to be called from the directory that contains `src` and `target`
 - `*.css` - CSS is allways compiled with module support, for each standalone CSS files a `.json` file is generated containing the class names.
+- `config/*.js` - see [kaliberjs/config](https://github.com/kaliberjs/config) for documentation
 
 ## Known issues
 
@@ -111,6 +113,31 @@ export default (
 ```
 
 Note that universal rendering will change the html structure slightly (wrap an extra `div`), this can probably be changed when React 16 is released with array support.
+
+## Usage with environment-specific configuration
+
+```
+import config from '@kaliber/config' // import environment-specific configuration
+import head from './partials/head'
+import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
+
+export default (
+  <html>
+    { head(config.title) }
+    <body>
+      <Test prop='value' configForClient={config.client} />
+    </body>
+  </html>
+)
+```
+
+❗ Be careful with importing config in universal components (or its children): all configuration will appear in the client-bundle.
+
+If the configuration contains secrets which may not be exposed to the world, you could pass client-specific configuration to the universal components via the props:
+```
+  <Test prop='value' configForClient={config.client} />
+```
+You can make use [React context](https://facebook.github.io/react/docs/context.html) to easily access the configuration deeper in your react-application.
 
 ## Motivation
 

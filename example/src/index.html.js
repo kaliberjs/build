@@ -3,6 +3,7 @@ import head from './partials/head'
 import Test from './partials/Test?universal'
 import styles from './index.html.js.css'
 import publicSvg from 'public/public.svg'
+import config from '@kaliber/config'
 
 main.routes = {
   match: ({ pathname }, request) => pathname === '/'
@@ -29,7 +30,7 @@ function main ({ location, data }) {
           message: { data.message }
         </p>
         <span className={styles.test}>Something</span>
-        <Test soep='kip' />
+        <Test soep='kip' clientConfig={config.client} />
         <div className={styles.multipleBackground}>multiple backgrounds</div>
         <div className={styles.svgBackground}>svg background</div>
         <img src={publicSvg} /> public svg ({publicSvg})
