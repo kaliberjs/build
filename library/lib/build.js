@@ -113,7 +113,7 @@ module.exports = function build({ watch }) {
         rules: [{ oneOf: [
 
           {
-            test: /@kaliber\/config$/,
+            test: /@kaliber\/config/,
             loaders: ['exec-loader']
           },
           {
