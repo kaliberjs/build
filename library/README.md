@@ -76,7 +76,7 @@ import head from './partials/head'
 import styles from './index.html.css'
 
 main.routes = {
-  match: location => Promise.resolve({ status: ..., data: ... })
+  match: (location, req) => Promise.resolve({ status: ..., data: ... })
 }
 
 export default main

@@ -25,7 +25,7 @@ app.use((req, res, next) => {
   const location = parsePath(req.url)
 
   Promise.resolve(routes)
-    .then(routes => routes && routes.match(location) || { status: 200, data: null })
+    .then(routes => routes && routes.match(location, req) || { status: 200, data: null })
     .then(({ status, data }) => template({ location, data }).then(html => [status, html]))
     .then(([ status, html ]) => res.status(status).send(html))
     .catch(e => {
@@ -43,5 +43,5 @@ app.use((req, res, next) => {
 app.listen(port, () => console.log(`Server listening at port ${port}`))
 
 function fileExists(path) {
-  try { return (accessSync(path), true) } catch (_) { return false } 
+  try { return (accessSync(path), true) } catch (_) { return false }
 }

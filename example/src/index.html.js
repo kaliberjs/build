@@ -5,11 +5,11 @@ import styles from './index.html.js.css'
 import publicSvg from 'public/public.svg'
 
 main.routes = {
-  match: ({ pathname }) => pathname === '/'
-    ? Promise.resolve({ status: 200, data: 'root' })
+  match: ({ pathname }, request) => pathname === '/'
+    ? Promise.resolve({ status: 200, data: { message: 'root', hostname: request.hostname } })
     : pathname === '/error'
     ? Promise.reject(new Error('fake error'))
-    : Promise.resolve({ status: 400, data: 'missing' })
+    : Promise.resolve({ status: 400, data: { message: 'missing' } })
 }
 
 export default main
@@ -24,7 +24,9 @@ function main ({ location, data }) {
           Test
           { JSON.stringify(location) }
           <br />
-          { data }
+          request hostname: { JSON.stringify(data.hostname, null, 2) }
+          <br />
+          message: { data.message }
         </p>
         <span className={styles.test}>Something</span>
         <Test soep='kip' />
