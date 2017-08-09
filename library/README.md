@@ -137,7 +137,7 @@ If the configuration contains secrets which may not be exposed to the world, you
 ```
   <Test prop='value' configForClient={config.client} />
 ```
-You can make use [React context](https://facebook.github.io/react/docs/context.html) to easily access the configuration deeper in your react-application.
+You could use [React context](https://facebook.github.io/react/docs/context.html) to easily access the configuration deeper in your react-application.
 
 ## Motivation
 
