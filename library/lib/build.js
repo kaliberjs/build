@@ -15,6 +15,7 @@ const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
 const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
+const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -193,6 +194,7 @@ module.exports = function build({ watch }) {
         ]}]
       },
       plugins: [
+        new CaseSensitivePathsPlugin(),
         watchContextPlugin(),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
