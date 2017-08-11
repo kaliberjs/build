@@ -16,11 +16,7 @@ const internalServerError = resolve(target, '500.html')
 
 const port = process.env.PORT
 
-if (serveMiddleware) {
-  // Apply middleware defined in application configuration
-  app.use(...[].concat(serveMiddleware))
-}
-
+serveMiddleware && app.use(serveMiddleware)
 app.use(express.static(target))
 app.use((req, res, next) => {
   if (!fileExists(index)) return next()
