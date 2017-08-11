@@ -1757,12 +1757,6 @@ exec-buffer@^3.0.0:
     rimraf "^2.5.4"
     tempfile "^1.0.0"
 
-exec-loader@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/exec-loader/-/exec-loader-3.0.0.tgz#cfaee3a07866afa836448f74774479bcebb65fab"
-  dependencies:
-    loader-utils "^1.1.0"
-
 exec-series@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/exec-series/-/exec-series-1.0.3.tgz#6d257a9beac482a872c7783bc8615839fc77143a"

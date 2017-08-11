@@ -115,7 +115,7 @@ module.exports = function build({ watch }) {
 
           {
             test: /@kaliber\/config/,
-            loaders: ['exec-loader']
+            loaders: ['config-loader']
           },
           {
             test: [new RegExp('^' + publicDir)],
