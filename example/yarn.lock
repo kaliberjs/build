@@ -3,7 +3,7 @@
 
 
 "@kaliber/build@file:../library":
-  version "0.0.29"
+  version "0.0.30"
   dependencies:
     "@kaliber/config" "^0.0.1"
     ansi-regex "^3.0.0"
