@@ -5,6 +5,8 @@ const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 const { accessSync } = require('fs')
 
+const { kaliber: { serveMiddleware } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+
 const app = express()
 
 const target = resolve(process.cwd(), 'target')
@@ -14,6 +16,7 @@ const internalServerError = resolve(target, '500.html')
 
 const port = process.env.PORT
 
+serveMiddleware && app.use(serveMiddleware)
 app.use(express.static(target))
 app.use((req, res, next) => {
   if (!fileExists(index)) return next()
