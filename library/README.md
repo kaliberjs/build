@@ -139,6 +139,28 @@ If the configuration contains secrets which may not be exposed to the world, you
 ```
 You could use [React context](https://facebook.github.io/react/docs/context.html) to easily access the configuration deeper in your react-application.
 
+## Kaliber configuration
+The configuration-files can be used to configure kaliber/build features.
+The following features are configurable:
+- `kaliber-serve` with custom middleware
+
+### `kaliber-serve` with custom middleware
+For example with a basic-auth filter:
+```js
+// config/{CONFIG_ENV}.js
+
+const basicAuth = require('express-basic-auth')
+
+module.exports = {
+  kaliber: {
+    serveMiddleware: basicAuth({ ... }),
+    
+    // or
+    serveMiddleware: ['/protected-path', basicAuth({ ... })]
+  }
+}
+```
+
 ## Motivation
 
 At Kaliber we have created a lot of different projects over the years, each using a different set of technologies that seemed more suitable for the task. This library is an attempt to reduce the number of technologies required to build a website. We have created this library with three use cases in mind:

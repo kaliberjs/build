@@ -5,6 +5,8 @@ const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 const { accessSync } = require('fs')
 
+const { kaliber: { serveMiddleware } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+
 const app = express()
 
 const target = resolve(process.cwd(), 'target')
@@ -13,6 +15,11 @@ const notFound = resolve(target, '404.html')
 const internalServerError = resolve(target, '500.html')
 
 const port = process.env.PORT
+
+if (serveMiddleware) {
+  // Apply middleware defined in application configuration
+  app.use(...[].concat(serveMiddleware))
+}
 
 app.use(express.static(target))
 app.use((req, res, next) => {
