@@ -1,5 +1,3 @@
-const loaderUtils = require('loader-utils')
-
 module.exports = function ConfigLoader (source) {
   const supportedConfigPhases = ['dev', 'tst', 'acc', 'prd']
 
