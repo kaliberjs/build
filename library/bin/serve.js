@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+const compression = require('compression')
 const express = require('express')
+const helmet = require('helmet')
+const { accessSync } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
-const { accessSync } = require('fs')
 
 const { kaliber: { serveMiddleware } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
 
@@ -16,6 +18,8 @@ const internalServerError = resolve(target, '500.html')
 
 const port = process.env.PORT
 
+app.use(helmet())
+app.use(compression())
 serveMiddleware && app.use(serveMiddleware)
 app.use(express.static(target))
 app.use((req, res, next) => {
