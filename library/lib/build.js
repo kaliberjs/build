@@ -18,6 +18,7 @@ const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
 module.exports = function build({ watch }) {
+  const isProduction = process.env.NODE_ENV === 'production'
 
   const babelLoader = {
     loader: 'babel-loader',
@@ -41,7 +42,7 @@ module.exports = function build({ watch }) {
   const cssLoader = {
     loader: 'css-loader',
     options: {
-      minimize: !watch
+      minimize: isProduction
     }
   }
 
@@ -197,16 +198,8 @@ module.exports = function build({ watch }) {
         ]}]
       },
       plugins: [
-        ...watch ? [] : [
-          new webpack.LoaderOptionsPlugin({
-            minimize: true,
-            debug: false
-          }),
-          new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true
-          })
-        ],
-
+        isProduction && new webpack.LoaderOptionsPlugin({ minimize: true, debug: false }),
+        isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
         new CaseSensitivePathsPlugin(),
         watchContextPlugin(),
         new webpack.DefinePlugin({
