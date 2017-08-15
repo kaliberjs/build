@@ -1,29 +1,29 @@
-const { relative, dirname } = require('path')
+  const { relative, dirname } = require('path')
 const loaderUtils = require('loader-utils')
 const postcss = require('postcss')
 
 const plugins = [
   // these plugis need to run on each file individual file
   // look at the source of postcss-modules to see that it effectively runs all modules twice
-  ['postcss-plugin-composition', ({ onImport, onExport, resolve }, options) => [
+  ['postcss-plugin-composition', ({ loaderOptions, handlers: { onImport, onExport, resolve } }) => [
     // postcss-import is advised to be the first
     require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
     require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
     require('postcss-modules')({
       getJSON: (_, json) => { onExport(json) },
-      generateScopedName: options.minimize ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
+      generateScopedName: loaderOptions.minimize ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
     }),
   ]],
   // these plugins need to run on final result
-  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
+  ['../postcss-plugins/postcss-url-replace', ({ handlers: { onUrl } }) => ({ replace: (url, file) => onUrl(url, file) })],
   ['postcss-cssnext'],
-  ['cssnano', {}, options => options.minimize]
+  ['cssnano', {}, loaderOptions => loaderOptions.minimize]
 ]
 
 const pluginCreators = plugins.map(([ name, config, includePlugin ]) => {
   const createPlugin = require(name)
-  return (handlers, options) => (includePlugin ? includePlugin(options) : true)
-    ? createPlugin(typeof(config) === 'function' ? config(handlers, options) : config)
+  return ({ handlers, loaderOptions }) => (includePlugin ? includePlugin(loaderOptions) : true)
+    ? createPlugin(typeof(config) === 'function' ? config({ handlers, loaderOptions }) : config)
     : null
 })
 
@@ -45,7 +45,7 @@ module.exports = function CssLoader(source, map) {
     }
   }
 
-  const plugins = pluginCreators.map(create => create(handlers, loaderOptions)).filter(_ => _)
+  const plugins = pluginCreators.map(create => create({ handlers, loaderOptions })).filter(Boolean)
   const filename = relative(this.options.context, this.resourcePath)
   const options = {
     from: this.resourcePath,
