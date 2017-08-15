@@ -3,7 +3,7 @@
 const compression = require('compression')
 const express = require('express')
 const helmet = require('helmet')
-const { accessSync } = require('fs')
+const { access } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 
@@ -17,15 +17,29 @@ const notFound = resolve(target, '404.html')
 const internalServerError = resolve(target, '500.html')
 
 const port = process.env.PORT
+const isProduction = process.env.NODE_ENV === 'production'
 
 app.use(helmet())
 app.use(compression())
 serveMiddleware && app.use(serveMiddleware)
 app.use(express.static(target))
-app.use((req, res, next) => {
-  if (!fileExists(index)) return next()
+app.use((req, res, next) => fileExists(index)
+  .then(() => serveIndex(req, res, next))
+  .catch(() => next())
+)
+app.use((req, res, next) => fileExists(notFound)
+  .then(() => res.status(404).sendFile(notFound))
+  .catch(() => next())
+)
 
-  if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve(index)]
+app.listen(port, () => console.log(`Server listening at port ${port}`))
+
+function fileExists(path) {
+  return new Promise((resolve, reject) => access(path, err => err ? reject() : resolve()))
+}
+
+function serveIndex (req, res, next) {
+  if (!isProduction) delete require.cache[require.resolve(index)]
   const template = require(index)
 
   const routes = template.routes
@@ -38,17 +52,8 @@ app.use((req, res, next) => {
     .catch(e => {
       console.error(e)
       const response = res.status(500)
-      if (!fileExists(internalServerError)) response.send('Internal Server Error')
-      else response.sendFile(internalServerError)
+      fileExists(internalServerError)
+        .then(() => response.sendFile(internalServerError))
+        .catch(() => response.send('Internal Server Error'))
     })
-})
-app.use((req, res, next) => {
-  if (!fileExists(notFound)) return next()
-  res.status(404).sendFile(notFound)
-})
-
-app.listen(port, () => console.log(`Server listening at port ${port}`))
-
-function fileExists(path) {
-  try { return (accessSync(path), true) } catch (_) { return false }
 }
