@@ -17,60 +17,58 @@ const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
+const isProduction = process.env.NODE_ENV === 'production'
+
+const babelLoader = {
+  loader: 'babel-loader',
+  options: {
+    babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
+    presets: [['es2015', { modules: false }], 'react'],
+    plugins: [
+      'transform-decorators-legacy',
+      'transform-class-properties',
+      'transform-object-rest-spread',
+      'transform-async-to-generator',
+      ['transform-runtime', {
+        'helpers': false,
+        'polyfill': false,
+        'regenerator': true
+      }]
+    ]
+  }
+}
+
+const cssLoader = {
+  loader: 'css-loader'
+}
+
+const imageLoader = {
+  loader: 'image-webpack-loader',
+  options: {
+    // bypassOnDebug: true,
+    // gifsicle: {}, // https://github.com/imagemin/imagemin-gifsicle#options
+    // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
+    // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
+    // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
+    // svgo: {} // https://github.com/imagemin/imagemin-svgo#options
+  }
+}
+
+const imageSizeLoader = {
+  loader: 'image-maxsize-webpack-loader',
+  options: { useImageMagick: true }
+}
+
+const keepNameFileLoader = {
+  loader: 'file-loader',
+  options: { name: '[path][name].[ext]' }
+}
+
+const toJsonFileLoader = {
+  loader: 'to-json-file-loader'
+}
+
 module.exports = function build({ watch }) {
-  const isProduction = process.env.NODE_ENV === 'production'
-
-  const babelLoader = {
-    loader: 'babel-loader',
-    options: {
-      babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-      presets: [['es2015', { modules: false }], 'react'],
-      plugins: [
-        'transform-decorators-legacy',
-        'transform-class-properties',
-        'transform-object-rest-spread',
-        'transform-async-to-generator',
-        ['transform-runtime', {
-          'helpers': false,
-          'polyfill': false,
-          'regenerator': true
-        }]
-      ]
-    }
-  }
-
-  const cssLoader = {
-    loader: 'css-loader',
-    options: {
-      minimize: isProduction
-    }
-  }
-
-  const imageLoader = {
-    loader: 'image-webpack-loader',
-    options: {
-      // bypassOnDebug: true,
-      // gifsicle: {}, // https://github.com/imagemin/imagemin-gifsicle#options
-      // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
-      // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
-      // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
-      // svgo: {} // https://github.com/imagemin/imagemin-svgo#options
-    }
-  }
-
-  const imageSizeLoader = {
-    loader: 'image-maxsize-webpack-loader',
-    options: { useImageMagick: true }
-  }
-
-  const keepNameFileLoader = {
-    loader: 'file-loader',
-    options: { name: '[path][name].[ext]' }
-  }
-
-  const toJsonFileLoader = {
-    loader: 'to-json-file-loader'
-  }
 
   const target = path.resolve(process.cwd(), 'target')
   fs.removeSync(target)
@@ -211,7 +209,7 @@ module.exports = function build({ watch }) {
         }),
         sourceMapPlugin(),
         reactTemplatePlugin(entries),
-        reactUniversalPlugin({ enableCacheBusting: watch }),
+        reactUniversalPlugin(),
         mergeCssPlugin(),
         watch && hotModuleReplacementPlugin(),
         fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)

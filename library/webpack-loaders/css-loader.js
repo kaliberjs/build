@@ -1,34 +1,33 @@
-  const { relative, dirname } = require('path')
-const loaderUtils = require('loader-utils')
+const { relative, dirname } = require('path')
 const postcss = require('postcss')
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 const plugins = [
   // these plugis need to run on each file individual file
   // look at the source of postcss-modules to see that it effectively runs all modules twice
-  ['postcss-plugin-composition', ({ loaderOptions, handlers: { onImport, onExport, resolve } }) => [
+  ['postcss-plugin-composition', ({ onImport, onExport, resolve }) => [
     // postcss-import is advised to be the first
     require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
     require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
     require('postcss-modules')({
       getJSON: (_, json) => { onExport(json) },
-      generateScopedName: loaderOptions.minimize ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
-    }),
+      generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
+    })
   ]],
   // these plugins need to run on final result
-  ['../postcss-plugins/postcss-url-replace', ({ handlers: { onUrl } }) => ({ replace: (url, file) => onUrl(url, file) })],
+  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
   ['postcss-cssnext'],
-  ['cssnano', {}, loaderOptions => loaderOptions.minimize]
+  isProduction && ['cssnano']
 ]
 
-const pluginCreators = plugins.map(([ name, config, includePlugin ]) => {
+const pluginCreators = plugins.filter(Boolean).map(([name, config]) => {
   const createPlugin = require(name)
-  return ({ handlers, loaderOptions }) => (includePlugin ? includePlugin(loaderOptions) : true)
-    ? createPlugin(typeof(config) === 'function' ? config({ handlers, loaderOptions }) : config)
-    : null
+  return handlers => createPlugin(typeof(config) === 'function' ? config(handlers) : config)
 })
 
 module.exports = function CssLoader(source, map) {
-  const loaderOptions = loaderUtils.getOptions(this)
+
   const self = this
   const callback = this.async()
 
@@ -45,7 +44,7 @@ module.exports = function CssLoader(source, map) {
     }
   }
 
-  const plugins = pluginCreators.map(create => create({ handlers, loaderOptions })).filter(Boolean)
+  const plugins = pluginCreators.map(create => create(handlers))
   const filename = relative(this.options.context, this.resourcePath)
   const options = {
     from: this.resourcePath,

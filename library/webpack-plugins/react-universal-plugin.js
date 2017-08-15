@@ -16,7 +16,7 @@ function createDeferred() {
 }
 
 // works only when entry is an object
-module.exports = function reactUniversalPlugin ({ enableCacheBusting }) {
+module.exports = function reactUniversalPlugin () {
 
   // keep a record of additional entries for additional compiler runs (watch)
   const additionalEntries = []
@@ -45,10 +45,7 @@ module.exports = function reactUniversalPlugin ({ enableCacheBusting }) {
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, resourceResolveData: { query, path } } = data
           if (query === '?universal') {
-            loaders.push({
-              loader: require.resolve('../webpack-loaders/react-universal-server-loader'),
-              options: { enableCacheBusting }
-            })
+            loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-server-loader') })
 
             const name = relative(compiler.context, path)
             const dep = SingleEntryPlugin.createDependency('./' + name + '?universal-client', name)
