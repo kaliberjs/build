@@ -196,7 +196,6 @@ module.exports = function build({ watch }) {
         ]}]
       },
       plugins: [
-        isProduction && new webpack.LoaderOptionsPlugin({ minimize: true, debug: false }),
         isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
         new CaseSensitivePathsPlugin(),
         watchContextPlugin(),
