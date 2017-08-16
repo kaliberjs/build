@@ -23,19 +23,45 @@ app.use(helmet())
 app.use(compression())
 serveMiddleware && app.use(serveMiddleware)
 app.use(express.static(target))
-app.use((req, res, next) => fileExists(index)
-  .then(() => serveIndex(req, res, next))
-  .catch(() => next())
-)
-app.use((req, res, next) => fileExists(notFound)
-  .then(() => res.status(404).sendFile(notFound))
-  .catch(() => next())
-)
+
+app.use((req, res, next) => {
+  fileExists(index)
+    .then(fileFound => fileFound ? serveIndex(req, res, next) : next())
+    .catch(next)
+})
+
+app.use((req, res, next) => {
+  fileExists(notFound)
+    .then(fileFound => fileFound ? res.status(404).sendFile(notFound) : next())
+    .catch(next)
+})
+
+app.use((err, req, res, next) => {
+  if (!err) return next()
+
+  console.error(err)
+  const response = res.status(500)
+  fileExists(internalServerError)
+    .then(() => response.sendFile(internalServerError))
+    .catch(next)
+})
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))
 
-function fileExists(path) {
-  return new Promise((resolve, reject) => access(path, err => err ? reject() : resolve()))
+function fileExists (path) {
+  return isProduction
+    ? (!fileExists.cache || fileExists.cache[path] === undefined)
+      ? accessFile(path).then(fileFound => (addPathToCache(path, fileFound), fileFound))
+      : Promise.resolve(fileExists.cache[path])
+    : accessFile(path)
+
+  function accessFile (path) {
+    return new Promise(resolve => access(path, err => resolve(!err)))
+  }
+
+  function addPathToCache (path, fileFound) {
+    fileExists.cache = Object.assign({}, fileExists.cache, { [path]: fileFound })
+  }
 }
 
 function serveIndex (req, res, next) {
@@ -45,15 +71,8 @@ function serveIndex (req, res, next) {
   const routes = template.routes
   const location = parsePath(req.url)
 
-  Promise.resolve(routes)
+  return Promise.resolve(routes)
     .then(routes => routes && routes.match(location, req) || { status: 200, data: null })
     .then(({ status, data }) => template({ location, data }).then(html => [status, html]))
     .then(([ status, html ]) => res.status(status).send(html))
-    .catch(e => {
-      console.error(e)
-      const response = res.status(500)
-      fileExists(internalServerError)
-        .then(() => response.sendFile(internalServerError))
-        .catch(() => response.send('Internal Server Error'))
-    })
 }
