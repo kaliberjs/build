@@ -17,6 +17,8 @@ const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 const babelLoader = {
   loader: 'babel-loader',
   options: {
@@ -194,6 +196,7 @@ module.exports = function build({ watch }) {
         ]}]
       },
       plugins: [
+        isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
         new CaseSensitivePathsPlugin(),
         watchContextPlugin(),
         new webpack.DefinePlugin({

@@ -16,7 +16,7 @@ function createDeferred() {
 }
 
 // works only when entry is an object
-module.exports = function reactUniversalPlugin() {
+module.exports = function reactUniversalPlugin () {
 
   // keep a record of additional entries for additional compiler runs (watch)
   const additionalEntries = []

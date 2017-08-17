@@ -1,6 +1,8 @@
 const { relative, dirname } = require('path')
 const postcss = require('postcss')
 
+const isProduction = process.env.NODE_ENV === 'production'
+
 const plugins = [
   // these plugis need to run on each file individual file
   // look at the source of postcss-modules to see that it effectively runs all modules twice
@@ -10,15 +12,16 @@ const plugins = [
     require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
     require('postcss-modules')({
       getJSON: (_, json) => { onExport(json) },
-      generateScopedName: process.env.NODE_ENV === 'production' ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
+      generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
     })
   ]],
   // these plugins need to run on final result
   ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
   ['postcss-cssnext'],
+  isProduction && ['cssnano']
 ]
 
-const pluginCreators = plugins.map(([name, config]) => {
+const pluginCreators = plugins.filter(Boolean).map(([name, config]) => {
   const createPlugin = require(name)
   return handlers => createPlugin(typeof(config) === 'function' ? config(handlers) : config)
 })
