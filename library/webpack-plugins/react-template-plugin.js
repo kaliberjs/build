@@ -16,6 +16,7 @@ module.exports = function reactTemplatePlugin(entries) {
           for (const name in assets) {
             const entry = entries[name]
             if (!entry || !entry.endsWith('.html.js')) continue
+
             const asset = assets[name]
 
             delete assets[name]
@@ -30,7 +31,7 @@ module.exports = function reactTemplatePlugin(entries) {
                   : createStaticTemplate(template, createMap)
                 )
                 .then(([ext, result]) => { assets[name + ext] = new RawSource(result) })
-                .catch(e => { compilation.errors.push(e.message) })
+                .catch(e => { compilation.errors.push(`React template plugin: ${e.message}`) })
             )
           }
 

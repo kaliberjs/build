@@ -1,11 +1,16 @@
 console.log('----------------------------------------------------------------------------------------------')
 console.log('`DeprecationWarning: loaderUtils.parseQuery()` will be solved when babel-loader 7 is released.')
+console.log('Ok, that was wishful thinking, a lot of plugins still use that method                         ')
 console.log('----------------------------------------------------------------------------------------------')
+
+// we might be able to steal some ideas from https://github.com/tomchentw/unused-files-webpack-plugin/blob/master/src/index.js
+// to copy unused files (after passing through the 'public' loaders) to target dir)
 
 const path = require('path')
 const webpack = require('webpack')
 const fs = require('fs-extra')
 const walkSync = require('walk-sync')
+const nodeExternals = require('webpack-node-externals')
 
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
 const reactTemplatePlugin = require('../webpack-plugins/react-template-plugin')
@@ -14,6 +19,8 @@ const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
 const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
+const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
+const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
@@ -80,81 +87,63 @@ module.exports = function build({ watch }) {
   function createCompiler(entries) {
     return webpack({
       entry: entries,
+      target: 'node',
       output: {
         filename: '[name]',
         path: target,
         publicPath: '/',
-        libraryTarget: 'umd2' //'commonjs2'
+        libraryTarget: 'commonjs2'//'umd2' //'commonjs2'
       },
-      externals: {
-        react: {
-          commonjs: 'react',
-          commonjs2: 'react',
-          root: 'React'
-        },
-        'react-dom': {
-          commonjs: 'react-dom',
-          commonjs2: 'react-dom',
-          root: 'ReactDOM'
-        },
-        'react-dom/server': {
-          commonjs: 'react-dom/server',
-          commonjs2: 'react-dom/server'
-        }
-      },
+      externals: nodeExternals({ whitelist: ['@kaliber/config'] }),
       resolve: {
-        extensions: ['.js', '.html.js'],
+        extensions: ['.js'],//, '.html.js'],
         modules: [srcDir, 'node_modules'],
         plugins: [absolutePathResolverPlugin(srcDir)]
       },
       resolveLoader: {
-        modules: [path.resolve(__dirname, '../webpack-loaders'), "node_modules"]
+        modules: [path.resolve(__dirname, '../webpack-loaders'), 'node_modules']
       },
       context: srcDir,
       module: {
         // noParse: https://webpack.js.org/configuration/module/#module-noparse
         rules: [{ oneOf: [
 
-          {
-            test: /@kaliber\/config/,
-            loaders: ['config-loader']
-          },
-          {
-            test: [new RegExp('^' + publicDir)],
-            oneOf: [
-              {
-                test: /\.css$/,
-                loaders: [toJsonFileLoader, cssLoader]
-              },
+          // {
+          //   test: [new RegExp('^' + publicDir)],
+          //   oneOf: [
+          //     {
+          //       test: /\.css$/,
+          //       loaders: [toJsonFileLoader, cssLoader]
+          //     },
 
-              {
-                test: /\.svg$/,
-                loaders: [
-                  keepNameFileLoader,
-                  imageLoader
-                ]
-              },
+          //     {
+          //       test: /\.svg$/,
+          //       loaders: [
+          //         keepNameFileLoader,
+          //         imageLoader
+          //       ]
+          //     },
 
-              {
-                test: /\.(jpe?g|png|gif)$/,
-                loaders: [keepNameFileLoader, imageLoader, imageSizeLoader]
-              },
+          //     {
+          //       test: /\.(jpe?g|png|gif)$/,
+          //       loaders: [keepNameFileLoader, imageLoader, imageSizeLoader]
+          //     },
 
-              {
-                loaders: [keepNameFileLoader]
-              }
-            ]
-          },
+          //     {
+          //       loaders: [keepNameFileLoader]
+          //     }
+          //   ]
+          // },
 
           {
             test: /\.json$/,
             loaders: []
           },
 
-          {
-            test: /\.entry\.css$/,
-            loaders: [toJsonFileLoader, cssLoader]
-          },
+          // {
+          //   test: /\.entry\.css$/,
+          //   loaders: [toJsonFileLoader, cssLoader]
+          // },
 
           {
             test: /\.css$/,
@@ -163,7 +152,12 @@ module.exports = function build({ watch }) {
 
           {
             test: /(\.html\.js|\.js)$/,
-            loaders: [babelLoader]
+            loaders: [babelLoader],
+            exclude: /node_modules/
+          },
+
+          {
+            test: /\.js$/
           },
 
           {
@@ -195,24 +189,34 @@ module.exports = function build({ watch }) {
 
         ]}]
       },
+      // server and compilation process plugins
       plugins: [
-        isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
-        new CaseSensitivePathsPlugin(),
-        watchContextPlugin(),
-        new webpack.DefinePlugin({
-          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
-        }),
-        new webpack.ProvidePlugin({
-          React: 'react',
-          Component: ['react', 'Component']
-        }),
-        sourceMapPlugin(),
-        reactTemplatePlugin(entries),
-        reactUniversalPlugin(),
-        mergeCssPlugin(),
-        watch && hotModuleReplacementPlugin(),
-        fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
-      ].filter(Boolean)
+        targetBasedPluginsPlugin({
+          all: [
+            new CaseSensitivePathsPlugin(),
+            new webpack.DefinePlugin({
+              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+            }),
+            new webpack.ProvidePlugin({
+              React: 'react',
+              Component: ['react', 'Component']
+            }),
+          ],
+          node: [
+            sourceMapPlugin(),
+            configLoaderPlugin(),
+            watchContextPlugin(),
+            reactTemplatePlugin(entries),
+            reactUniversalPlugin(),
+            mergeCssPlugin(),
+            // fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
+          ],
+          web: [
+            //isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
+            // watch && hotModuleReplacementPlugin(),
+          ]
+        })
+      ].filter(Boolean),
     })
   }
 
@@ -263,7 +267,9 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    return walkSync(srcDir, { globs: ['**/*.html.js', '**/*.entry.js', '**/*.entry.css'] }).reduce(
+    return walkSync(srcDir, { globs: ['**/*.html.js', 
+      //'**/*.entry.js', '**/*.entry.css'
+      ] }).reduce(
       (result, entry) => (
         result[entry.replace('.html.js', '')] = './' + entry, result),
       {}
