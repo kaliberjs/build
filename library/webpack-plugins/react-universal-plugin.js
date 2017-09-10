@@ -1,9 +1,6 @@
 const Compiler = require('webpack/lib/Compiler')
 const NodeEnvironmentPlugin = require('webpack/lib/node/NodeEnvironmentPlugin')
-const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency')
-const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
-const { ResolverFactory } = require("enhanced-resolve")
 const { relative } = require('path')
 
 /*
@@ -18,24 +15,10 @@ module.exports = function reactUniversalPlugin () {
 
   return {
     apply: compiler => {
-      let originalEntries
-      // keep a record of additional entries for additional compiler runs (watch)
-      const clientEntries = []
-
-      const webCompiler = createWebCompiler(compiler, () => clientEntries)
-
-      // claim and record the entries in the `entry` if it's object shaped
-      compiler.plugin("entry-option", (context, entry) => {
-        if(typeof entry === "object" && !Array.isArray(entry)) {
-          originalEntries = Object.keys(entry).map(name => SingleEntryPlugin.createDependency(entry[name], name))
-          return true
-        }
-      })
+      // keep a record of client entries for additional compiler runs (watch)
+      const clientEntries = {}
 
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
-
-        // make sure the SingleEntryDependency has a factory
-        compilation.dependencyFactories.set(SingleEntryDependency, normalModuleFactory)
 
         // When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
         // loaders and add the module marked with `?universal-client` as client entry.
@@ -45,36 +28,52 @@ module.exports = function reactUniversalPlugin () {
             loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-server-loader') })
 
             const name = relative(compiler.context, path)
-            const dep = SingleEntryPlugin.createDependency('./' + name + '?universal-client', name)
-            const duplicate = clientEntries.find(({ loc, request }) => loc === dep.loc && request === dep.request)
-            if (!duplicate) clientEntries.push(dep)
-
+            if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
           }
+
           done(null, data)
         })
       })
 
+      const webCompiler = createWebCompiler(compiler, () => clientEntries)
+
       // `make` all `originalEntries` and add `clientEntries` when they have been recorded
-      compiler.plugin('make', (compilation, done) => {
+      compiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
 
-        Promise.all(originalEntries.map(addEntry(compilation, compiler.context)))
-          .then(compileClientEntries)
-          .then(_ => { done() })
-          .catch(e => { done(e) })
+        // setting parentCompilation can easily break on future webpack versions as it's an implementation detail
+        //
+        // Compiler.createChildComponent proved to be unusable. A safer option might be to implement
+        // Compuler.runAsChild as well, in that case however we should override the Compiler.isChild
+        // function for the webCompiler. For now this is easier
+        webCompiler.parentCompilation = compilation
+        webCompiler.runAsChild(done)
+      })
 
-        function compileClientEntries() {
-          return new Promise((resolve, reject) => {
-            // setting parentCompilation can easily break on future webpack versions as it's an implementation detail
-            //
-            // Compiler.createChildComponent proved to be unusable. A safer option might be to implement
-            // Compuler.runAsChild as well, in that case however we should override the Compiler.isChild
-            // function for the webCompiler. For now this is easier
-            webCompiler.parentCompilation = compilation
-            webCompiler.runAsChild((err, chunks, compilation) => {
-              err ? reject(err) : resolve()
+      webCompiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+        // push the client loader when appropriate
+        normalModuleFactory.plugin('after-resolve', (data, done) => {
+          const { loaders, resourceResolveData: { query } } = data
+          if (query === '?universal-client') {
+            loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
+          }
+
+          done(null, data)
+        })
+
+        // remove redundant assets introduced by client chunk
+        compilation.plugin('after-optimize-chunk-assets', chunks => {
+          chunks.forEach(chunk => {
+            const { name } = chunk
+            Object.keys(compilation.assets).forEach(assetName => {
+              if (assetName != name) delete compilation.assets[assetName]
             })
           })
-        }
+        })
+      })
+
+      webCompiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
+        createEntries(clientEntries)
+        done()
       })
     }
   }
@@ -95,46 +94,7 @@ function createWebCompiler(compiler, getEntries) {
   options.resolve.aliasFields = ["browser"]
   options.resolve.mainFields = ["browser", "module", "main"]
   
-  const webCompiler = createChildCompiler(compiler, options, 'react-universal-plugin-client-compiler')
-
-  webCompiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
-
-    // make sure the SingleEntryDependency has a factory
-    compilation.dependencyFactories.set(SingleEntryDependency, normalModuleFactory)
-    
-    // push the client loader when appropriate
-    normalModuleFactory.plugin('after-resolve', (data, done) => {
-      const { loaders, resourceResolveData: { query } } = data
-      if (query === '?universal-client') {
-        loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
-      }
-      done(null, data)
-    })
-
-    // remove redundant assets introduced by client chunk
-    compilation.plugin('after-optimize-chunk-assets', chunks => {
-      chunks.forEach(chunk => {
-        const { name } = chunk
-        Object.keys(compilation.assets).forEach(assetName => {
-          if (assetName != name) delete compilation.assets[assetName]
-        })
-      })
-    })
-  })
-
-  webCompiler.plugin('make', (compilation, done) => {
-    Promise.all(getEntries().map(addEntry(compilation, webCompiler.context)))
-      .then(_ => { done() })
-      .catch(e => { done(e) })
-  })
-
-  return webCompiler
-}
-
-function addEntry(compilation, context) {
-  return entry => new Promise((resolve, reject) => {
-    compilation.addEntry(context, entry, entry.loc, err => err ? reject(err) : resolve())
-  })
+  return createChildCompiler(compiler, options, 'react-universal-plugin-client-compiler')
 }
 
 function createChildCompiler(compiler, options, compilerName) {

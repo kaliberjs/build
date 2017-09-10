@@ -21,6 +21,7 @@ const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replac
 const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
+const makeAdditionalEntries = require('../webpack-plugins/make-additional-entries-plugin')
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
@@ -193,6 +194,7 @@ module.exports = function build({ watch }) {
       plugins: [
         targetBasedPluginsPlugin({
           all: [
+            makeAdditionalEntries(),
             new CaseSensitivePathsPlugin(),
             new webpack.DefinePlugin({
               'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
