@@ -203,7 +203,7 @@ module.exports = function build({ watch }) {
               React: 'react',
               Component: ['react', 'Component']
             }),
-          ],
+          ].filter(Boolean),
           node: [
             sourceMapPlugin(),
             configLoaderPlugin(),
@@ -212,13 +212,13 @@ module.exports = function build({ watch }) {
             reactUniversalPlugin(),
             mergeCssPlugin(),
             // fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
-          ],
+          ].filter(Boolean),
           web: [
             //isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
-            // watch && hotModuleReplacementPlugin(),
-          ]
+            watch && hotModuleReplacementPlugin()
+          ].filter(Boolean)
         })
-      ].filter(Boolean),
+      ],
     })
   }
 

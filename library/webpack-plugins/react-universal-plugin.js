@@ -1,5 +1,6 @@
 const Compiler = require('webpack/lib/Compiler')
 const NodeEnvironmentPlugin = require('webpack/lib/node/NodeEnvironmentPlugin')
+const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { relative } = require('path')
 
@@ -18,6 +19,15 @@ module.exports = function reactUniversalPlugin () {
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
 
+      const webCompiler = createWebCompiler(compiler, () => clientEntries)
+      let lastWebCompilationStats = null
+
+      compiler.plugin('before-compile', (params, done) => {
+        webCompiler.fileTimestamps = compiler.fileTimestamps
+        webCompiler.contextTimestamps = compiler.contextTimestamps
+        done()
+      })
+
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
 
         // When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
@@ -35,22 +45,41 @@ module.exports = function reactUniversalPlugin () {
         })
       })
 
-      const webCompiler = createWebCompiler(compiler, () => clientEntries)
-
       // `make` all `originalEntries` and add `clientEntries` when they have been recorded
       compiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
 
-        // setting parentCompilation can easily break on future webpack versions as it's an implementation detail
-        //
-        // Compiler.createChildComponent proved to be unusable. A safer option might be to implement
-        // Compuler.runAsChild as well, in that case however we should override the Compiler.isChild
-        // function for the webCompiler. For now this is easier
-        webCompiler.parentCompilation = compilation
-        webCompiler.runAsChild(done)
+        const startTime = Date.now()
+
+        webCompiler.compile((err, webCompilation) => {
+          if (err) {
+            webCompiler.applyPlugins("failed", err)
+            return done(err)
+          }
+
+          compilation.children.push(webCompilation)
+          Object.keys(webCompilation.assets).forEach(name => {
+            compilation.assets[name] = webCompilation.assets[name]
+          })
+
+          const stats = new Stats(webCompilation)
+          stats.startTime = startTime
+          stats.endTime = Date.now()
+
+          lastWebCompilationStats = stats
+
+          done()
+        })
+      })
+
+      compiler.plugin('after-emit', (compilation, done) => {
+        webCompiler.applyPlugins('done', lastWebCompilationStats)
+        lastWebCompilationStats = null
+        done()
       })
 
       webCompiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
         // push the client loader when appropriate
+        // {{ QUESTION }}: is this plugin added more than once?
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, resourceResolveData: { query } } = data
           if (query === '?universal-client') {
@@ -65,7 +94,9 @@ module.exports = function reactUniversalPlugin () {
           chunks.forEach(chunk => {
             const { name } = chunk
             Object.keys(compilation.assets).forEach(assetName => {
-              if (assetName != name) delete compilation.assets[assetName]
+              if (assetName != name && !assetName.includes('hot-update')) {
+                delete compilation.assets[assetName]
+              }
             })
           })
         })
@@ -83,6 +114,7 @@ function createWebCompiler(compiler, getEntries) {
 
   // Massage the options to become a web configuration
   const options = Object.assign({}, compiler.options)
+  options.name = 'react-universal-plugin-client-compiler'
   options.target = 'web'
   options.entry = undefined
   options.externals = undefined
@@ -94,34 +126,25 @@ function createWebCompiler(compiler, getEntries) {
   options.resolve.aliasFields = ["browser"]
   options.resolve.mainFields = ["browser", "module", "main"]
   
-  return createChildCompiler(compiler, options, 'react-universal-plugin-client-compiler')
+  return createChildCompiler(compiler, options)
 }
 
-function createChildCompiler(compiler, options, compilerName) {
+function createChildCompiler(compiler, options) {
   const childCompiler = new Compiler()
-  childCompiler.name = compilerName
 
-  // from webpack.js
+  /* from webpack.js */
   childCompiler.context = options.context
   childCompiler.options = options
-  new NodeEnvironmentPlugin().apply(childCompiler)
+
+  // instead of using the NodeEnvironmentPlugin
+  childCompiler.inputFileSystem = compiler.inputFileSystem
+  childCompiler.outputFileSystem = compiler.outputFileSystem
+  childCompiler.watchFileSystem = compiler.watchFileSystem
+
   childCompiler.apply.apply(childCompiler, options.plugins)
   childCompiler.applyPlugins('environment')
   childCompiler.applyPlugins('after-environment')
   childCompiler.options = new WebpackOptionsApply().process(options, childCompiler)
-
-  // from Compiler.createChildCompiler
-  //   mofied so we do not need an index and thus don't need to rely on the compilation
-  const relativeCompilerName = relative(compiler.context, compilerName)
-  if(!compiler.records[relativeCompilerName]) compiler.records[relativeCompilerName] = {}
-
-  childCompiler.records = compiler.records[relativeCompilerName]
-
-  if(compiler.cache) {
-    if(!compiler.cache.children) compiler.cache.children = {}
-    if(!compiler.cache.children[compilerName]) compiler.cache.children[compilerName] = {}
-    childCompiler.cache = compiler.cache.children[compilerName]
-  }
 
   return childCompiler
 }

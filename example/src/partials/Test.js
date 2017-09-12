@@ -29,7 +29,10 @@ export default class Test extends Component {
   }
 
   componentDidMount() {
-    const app = firebase.initializeApp(this.props.clientConfig.firebase)
+    let app
+    try { app = firebase.app() } catch (e) {
+      app = firebase.initializeApp(this.props.clientConfig.firebase)
+    }
     this.messageRef = app.database().ref('read-only').child('message')
     this.messageRef.on('value', snap => this.setState({ message: snap.val() }))
 
