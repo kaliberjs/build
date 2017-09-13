@@ -214,7 +214,7 @@ module.exports = function build({ watch }) {
             // fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
           ].filter(Boolean),
           web: [
-            //isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
+            isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
             watch && hotModuleReplacementPlugin()
           ].filter(Boolean)
         })
