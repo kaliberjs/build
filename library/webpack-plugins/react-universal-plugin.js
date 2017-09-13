@@ -51,30 +51,31 @@ module.exports = function reactUniversalPlugin () {
         const startTime = Date.now()
 
         webCompiler.compile((err, webCompilation) => {
+          if (err) return finish(err)
+
+          compilation.children.push(webCompilation)
+
+          webCompiler.emitAssets(webCompilation, err => {
+            if (err) return finish(err)
+
+            finish(null, webCompilation)
+          })
+        })
+
+        function finish(err, compilation) {
           if (err) {
-            webCompiler.applyPlugins("failed", err)
+            webCompiler.applyPlugins('failed', err)
             return done(err)
           }
 
-          compilation.children.push(webCompilation)
-          Object.keys(webCompilation.assets).forEach(name => {
-            compilation.assets[name] = webCompilation.assets[name]
-          })
-
-          const stats = new Stats(webCompilation)
+          const stats = new Stats(compilation)
           stats.startTime = startTime
           stats.endTime = Date.now()
 
-          lastWebCompilationStats = stats
+          webCompiler.applyPlugins('done', stats)
 
           done()
-        })
-      })
-
-      compiler.plugin('after-emit', (compilation, done) => {
-        webCompiler.applyPlugins('done', lastWebCompilationStats)
-        lastWebCompilationStats = null
-        done()
+        }
       })
 
       webCompiler.plugin('compilation', (compilation, { normalModuleFactory }) => {

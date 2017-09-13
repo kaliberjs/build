@@ -203,9 +203,9 @@ module.exports = function build({ watch }) {
               React: 'react',
               Component: ['react', 'Component']
             }),
+            sourceMapPlugin()
           ].filter(Boolean),
           node: [
-            sourceMapPlugin(),
             configLoaderPlugin(),
             watchContextPlugin(),
             reactTemplatePlugin(entries),
