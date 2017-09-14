@@ -2,7 +2,7 @@ const { RawSource } = require('webpack-sources')
 const { evalWithSourceMap } = require('../lib/node-utils')
 const { renderWith } = require('../lib/template-utils')
 
-module.exports = function reactTemplatePlugin(entries) {
+module.exports = function reactTemplatePlugin() {
 
   return {
     apply: compiler => {
@@ -14,7 +14,7 @@ module.exports = function reactTemplatePlugin(entries) {
 
 
           for (const name in assets) {
-            const entry = entries[name]
+            const entry = compiler.options.entry[name]
             if (!entry || !entry.endsWith('.html.js')) continue
 
             const asset = assets[name]

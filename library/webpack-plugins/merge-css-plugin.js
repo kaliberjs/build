@@ -10,7 +10,7 @@ module.exports = function mergeCssPlugin() {
         compilation.plugin('before-module-assets', () => {
 
           compilation.chunks.forEach(chunk => {
-            // this should be an option
+            // this should be an option, can be removed when we fix the public situation
             if (chunk.name === 'public_entry') return
 
             const currentChunkCssAssets = []

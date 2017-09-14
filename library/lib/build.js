@@ -1,8 +1,3 @@
-console.log('----------------------------------------------------------------------------------------------')
-console.log('`DeprecationWarning: loaderUtils.parseQuery()` will be solved when babel-loader 7 is released.')
-console.log('Ok, that was wishful thinking, a lot of plugins still use that method                         ')
-console.log('----------------------------------------------------------------------------------------------')
-
 // we might be able to steal some ideas from https://github.com/tomchentw/unused-files-webpack-plugin/blob/master/src/index.js
 // to copy unused files (after passing through the 'public' loaders) to target dir)
 
@@ -93,11 +88,11 @@ module.exports = function build({ watch }) {
         filename: '[name]',
         path: target,
         publicPath: '/',
-        libraryTarget: 'commonjs2'//'umd2' //'commonjs2'
+        libraryTarget: 'commonjs2'
       },
       externals: nodeExternals({ whitelist: ['@kaliber/config'] }),
       resolve: {
-        extensions: ['.js'],//, '.html.js'],
+        extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
         plugins: [absolutePathResolverPlugin(srcDir)]
       },
@@ -141,10 +136,10 @@ module.exports = function build({ watch }) {
             loaders: []
           },
 
-          // {
-          //   test: /\.entry\.css$/,
-          //   loaders: [toJsonFileLoader, cssLoader]
-          // },
+          {
+            test: /\.entry\.css$/,
+            loaders: [toJsonFileLoader, cssLoader]
+          },
 
           {
             test: /\.css$/,
@@ -208,7 +203,7 @@ module.exports = function build({ watch }) {
           node: [
             configLoaderPlugin(),
             watchContextPlugin(),
-            reactTemplatePlugin(entries),
+            reactTemplatePlugin(),
             reactUniversalPlugin(),
             mergeCssPlugin(),
             // fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
@@ -269,11 +264,8 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    return walkSync(srcDir, { globs: ['**/*.html.js', 
-      //'**/*.entry.js', '**/*.entry.css'
-      ] }).reduce(
-      (result, entry) => (
-        result[entry.replace('.html.js', '')] = './' + entry, result),
+    return walkSync(srcDir, { globs: ['**/*.html.js', '**/*.entry.js', '**/*.entry.css'] }).reduce(
+      (result, entry) => (result[entry.replace('.html.js', '')] = './' + entry, result),
       {}
     )
   }

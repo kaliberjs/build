@@ -28,6 +28,23 @@ module.exports = function reactUniversalPlugin () {
         done()
       })
 
+      compiler.plugin('claim-entries', entries => {
+        const [claimed, unclaimed] = Object.keys(entries).reduce(
+          ([claimed, unclaimed], name) => {
+            const entry = entries[name]
+            if (entry.endsWith('.entry.js')) claimed[name] = entry
+            else unclaimed[name] = entry
+
+            return [claimed, unclaimed]
+          },
+          [{}, {}]
+        )
+
+        Object.assign(clientEntries, claimed)
+
+        return unclaimed
+      })
+
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
 
         // When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
@@ -92,14 +109,13 @@ module.exports = function reactUniversalPlugin () {
 
         // remove redundant assets introduced by client chunk
         compilation.plugin('after-optimize-chunk-assets', chunks => {
-          chunks.forEach(chunk => {
-            const { name } = chunk
-            Object.keys(compilation.assets).forEach(assetName => {
-              if (assetName != name && !assetName.includes('hot-update')) {
+          const chunkNames = {}
+          chunks.forEach(({ name }) => { chunkNames[name] = true })
+          Object.keys(compilation.assets).forEach(assetName => {
+              if (!chunkNames[assetName] && !assetName.includes('hot-update')) {
                 delete compilation.assets[assetName]
               }
             })
-          })
         })
       })
 

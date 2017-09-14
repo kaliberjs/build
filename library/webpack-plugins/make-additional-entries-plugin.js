@@ -29,12 +29,15 @@ function makeAdditionalEntries() {
   return {
     apply: compiler => {
 
-      const originalEntries = {}
+      const entriesToMake = {}
 
-      // claim and record the entries in the `entry` if it's object shaped
-      compiler.plugin("entry-option", (context, entry) => {
-        if(typeof entry === "object" && !Array.isArray(entry)) {
-          Object.assign(originalEntries, entry)
+      // claim the entries in the `entry` if it's object shaped and allow
+      // other plugins to claim certain entries
+      // any leftover entries are added using this plugin
+      compiler.plugin("entry-option", (context, entries) => {
+        if(typeof entries === "object" && !Array.isArray(entries)) {
+          const originalEntries = Object.assign({}, entries)
+          Object.assign(entriesToMake, compiler.applyPluginsWaterfall('claim-entries', originalEntries))
           return true
         }
       })
@@ -46,7 +49,7 @@ function makeAdditionalEntries() {
 
       compiler.plugin('make', (compilation, done) => {
 
-        addEntries(originalEntries)
+        addEntries(entriesToMake)
           .then(makeAdditionalEntries)
           .then(addEntries)
           .then(_ => { done() })
