@@ -66,7 +66,6 @@ module.exports = function reactUniversalPlugin () {
       compiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
 
         const startTime = Date.now()
-
         webCompiler.compile((err, webCompilation) => {
           if (err) return finish(err)
 
@@ -120,8 +119,7 @@ module.exports = function reactUniversalPlugin () {
       })
 
       webCompiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
-        createEntries(clientEntries)
-        done()
+        createEntries(clientEntries, done)
       })
     }
   }
@@ -143,10 +141,10 @@ function createWebCompiler(compiler, getEntries) {
   options.resolve.aliasFields = ["browser"]
   options.resolve.mainFields = ["browser", "module", "main"]
   
-  return createChildCompiler(compiler, options)
+  return createCompiler(compiler, options)
 }
 
-function createChildCompiler(compiler, options) {
+function createCompiler(compiler, options) {
   const childCompiler = new Compiler()
 
   /* from webpack.js */

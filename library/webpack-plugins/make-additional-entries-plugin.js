@@ -15,9 +15,9 @@ module.exports = makeAdditionalEntries
   compiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
 
     // if you want to add new entries
-    createEntries({ name: path })
+    createEntries({ name: path }, done)
 
-    // when you are done
+    // If you don't want to create entries
     done()
 
     // when you need to signal an error
@@ -51,23 +51,21 @@ function makeAdditionalEntries() {
 
         addEntries(entriesToMake)
           .then(makeAdditionalEntries)
-          .then(addEntries)
           .then(_ => { done() })
           .catch(e => { done(e) })
 
         function makeAdditionalEntries() {
           return new Promise((resolve, reject) => {
-            const additionalEntries = {}
-            compiler.applyPluginsParallel(
+            compiler.applyPluginsAsyncSeries(
               'make-additional-entries',
               compilation,
-              entries => { Object.assign(additionalEntries, entries) },
-              err => { err ? reject(err) : resolve(additionalEntries) }
+              (entries, done) => { addEntries(entries || {}).then(_ => { done() }).catch(done) },
+              err => { err ? reject(err) : resolve() }
             )
           })
         }
 
-        function addEntries(entries = {}) {
+        function addEntries(entries) {
           return Promise.all(Object.keys(entries).map(name => addEntry(name, entries[name])))
         }
 
