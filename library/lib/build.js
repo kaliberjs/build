@@ -1,23 +1,22 @@
-// we might be able to steal some ideas from https://github.com/tomchentw/unused-files-webpack-plugin/blob/master/src/index.js
-// to copy unused files (after passing through the 'public' loaders) to target dir)
-
-const path = require('path')
-const webpack = require('webpack')
 const fs = require('fs-extra')
-const walkSync = require('walk-sync')
 const nodeExternals = require('webpack-node-externals')
+const path = require('path')
+const walkSync = require('walk-sync')
+const webpack = require('webpack')
 
+const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
+const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
+const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
+const makeAdditionalEntries = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
 const reactTemplatePlugin = require('../webpack-plugins/react-template-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
-const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
-const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
-const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
-const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
-const makeAdditionalEntries = require('../webpack-plugins/make-additional-entries-plugin')
+const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
+
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
+
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
@@ -78,8 +77,6 @@ module.exports = function build({ watch }) {
 
   const srcDir = path.resolve(process.cwd(), 'src')
 
-  const publicDir = path.resolve(srcDir, 'public')
-
   function createCompiler(entries) {
     return webpack({
       entry: entries,
@@ -103,33 +100,6 @@ module.exports = function build({ watch }) {
       module: {
         // noParse: https://webpack.js.org/configuration/module/#module-noparse
         rules: [{ oneOf: [
-
-          // {
-          //   test: [new RegExp('^' + publicDir)],
-          //   oneOf: [
-          //     {
-          //       test: /\.css$/,
-          //       loaders: [toJsonFileLoader, cssLoader]
-          //     },
-
-          //     {
-          //       test: /\.svg$/,
-          //       loaders: [
-          //         keepNameFileLoader,
-          //         imageLoader
-          //       ]
-          //     },
-
-          //     {
-          //       test: /\.(jpe?g|png|gif)$/,
-          //       loaders: [keepNameFileLoader, imageLoader, imageSizeLoader]
-          //     },
-
-          //     {
-          //       loaders: [keepNameFileLoader]
-          //     }
-          //   ]
-          // },
 
           {
             test: /\.json$/,
@@ -206,7 +176,7 @@ module.exports = function build({ watch }) {
             reactTemplatePlugin(),
             reactUniversalPlugin(),
             mergeCssPlugin(),
-            // fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
+            copyUnusedFilesPlugin()
           ].filter(Boolean),
           web: [
             isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
