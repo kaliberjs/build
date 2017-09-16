@@ -5,14 +5,14 @@ const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
-const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
-const makeAdditionalEntries = require('../webpack-plugins/make-additional-entries-plugin')
+const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
+const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
-const reactTemplatePlugin = require('../webpack-plugins/react-template-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
+const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
@@ -21,11 +21,32 @@ const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+const { kaliber: { templateRenderers } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+
 const babelLoader = {
   loader: 'babel-loader',
   options: {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: [['es2015', { modules: false }], 'react'],
+    plugins: [
+      'transform-decorators-legacy',
+      'transform-class-properties',
+      'transform-object-rest-spread',
+      'transform-async-to-generator',
+      ['transform-runtime', {
+        'helpers': false,
+        'polyfill': false,
+        'regenerator': true
+      }]
+    ]
+  }
+}
+
+const nodeBabelLoader = {
+  loader: 'babel-loader',
+  options: {
+    babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
+    presets: ['es2015', 'react'],
     plugins: [
       'transform-decorators-legacy',
       'transform-class-properties',
@@ -77,9 +98,10 @@ module.exports = function build({ watch }) {
 
   const srcDir = path.resolve(process.cwd(), 'src')
 
-  function createCompiler(entries) {
-    return webpack({
-      entry: entries,
+  // This needs to be a function, if this would be an object things might breack
+  // because webpack stores state in the options object :-(
+  function getOptions() {
+    return {
       target: 'node',
       output: {
         filename: '[name]',
@@ -159,7 +181,7 @@ module.exports = function build({ watch }) {
       plugins: [
         targetBasedPluginsPlugin({
           all: [
-            makeAdditionalEntries(),
+            makeAdditionalEntriesPlugin(),
             new CaseSensitivePathsPlugin(),
             new webpack.DefinePlugin({
               'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
@@ -173,8 +195,11 @@ module.exports = function build({ watch }) {
           node: [
             configLoaderPlugin(),
             watchContextPlugin(),
-            reactTemplatePlugin(),
-            reactUniversalPlugin(),
+            reactUniversalPlugin(),        // claims .entry.js
+            templatePlugin(Object.assign({ // does work on .*.js
+              html: '@kaliber/build/lib/html-react-renderer',
+              default: '@kaliber/build/lib/default-renderer'
+            }, templateRenderers)),
             mergeCssPlugin(),
             copyUnusedFilesPlugin()
           ].filter(Boolean),
@@ -184,12 +209,19 @@ module.exports = function build({ watch }) {
           ].filter(Boolean)
         })
       ],
-    })
+    }
   }
 
   try {
     if (watch) startWatching(compilationComplete)
     else runOnce(compilationComplete)
+
+    function createCompiler(entries) {
+      const options = getOptions()
+      options.entry = entries
+
+      return webpack(options)
+    }
 
     function compilationComplete(err, stats) {
       if (err) {
@@ -197,13 +229,18 @@ module.exports = function build({ watch }) {
         if (err.details) console.error(err.details)
         return
       }
-
-      console.log(stats.toString({ colors: true }))
+      console.log(stats.toString({
+        colors: true,
+        chunksSort: 'name',
+        assetsSort: 'name',
+        modulesSort: 'name',
+        excludeModules: (name, module) => !module.external
+      }))
     }
 
-    function runOnce() {
+    function runOnce(callback) {
       const compiler = createCompiler(gatherEntries())
-      compiler.run(compilationComplete)
+      compiler.run(callback)
     }
 
     function startWatching(callback) {
@@ -234,8 +271,15 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    return walkSync(srcDir, { globs: ['**/*.html.js', '**/*.entry.js', '**/*.entry.css'] }).reduce(
-      (result, entry) => (result[entry.replace('.html.js', '')] = './' + entry, result),
+    const templatePattern = /\.([^\.]+)\.js/
+
+    return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
+      (result, entry) => {
+        const [, type] = templatePattern.exec(entry) || []
+        const name = type === 'entry' ? entry : entry.replace(templatePattern, '')
+        result[name] = './' + entry
+        return result
+      },
       {}
     )
   }

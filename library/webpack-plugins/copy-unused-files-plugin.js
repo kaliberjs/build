@@ -39,7 +39,6 @@ function copyUnusedFilesPlugin() {
 
 function copy(source, target) {
   return new Promise((resolve, reject) => {
-    console.log('copy ' + source)
     fs.copy(source, target, err => { err ? reject(err) : resolve() })
   })
 }

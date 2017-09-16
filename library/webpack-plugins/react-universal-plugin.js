@@ -94,6 +94,8 @@ module.exports = function reactUniversalPlugin () {
         }
       })
 
+      const removedAssets = []
+
       webCompiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
         // push the client loader when appropriate
         // {{ QUESTION }}: is this plugin added more than once?
@@ -112,6 +114,7 @@ module.exports = function reactUniversalPlugin () {
           chunks.forEach(({ name }) => { chunkNames[name] = true })
           Object.keys(compilation.assets).forEach(assetName => {
               if (!chunkNames[assetName] && !assetName.includes('hot-update')) {
+                removedAssets.push(assetName)
                 delete compilation.assets[assetName]
               }
             })
@@ -120,6 +123,13 @@ module.exports = function reactUniversalPlugin () {
 
       webCompiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
         createEntries(clientEntries, done)
+      })
+
+      webCompiler.plugin('after-emit', (compilation, done) => {
+        removedAssets.forEach(asset => {
+          compilation.assets[asset] = { size: () => 0, emitted: false }
+        })
+        done()
       })
     }
   }

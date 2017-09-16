@@ -23,6 +23,12 @@ module.exports = makeAdditionalEntries
     // when you need to signal an error
     done(err)
   })
+
+  and
+
+  compiler.plugin('claim-entries', entries => {
+    return unclaimedEntries
+  })
 */
 
 function makeAdditionalEntries() {
