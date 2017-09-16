@@ -31,26 +31,30 @@ yarn add @kaliber/build
 - Hot module replacement support
 - Image support
 - Environment specific configuration
+- Template system
+- Copying of 'unused' files (❗ Do not put sensitive information in your `src` directory)
 
 ## Conventions
 
 Ruby popularized 'convention over configuration', this library has a set of conventions. If you disagree with a convention please open an issue so we can discuss it.
 
-- `src` - Source files live in the `src` directory
-- `target` - Compiled / processed files are stored in the `target` directory
-- `src/public` - Files in this directory do not need to be included in an entry (will not process `.js` files).
-- `**/*.entry.js` - Compiled as a separate `.js` entry
-- `**/*.entry.css` - Compiled as a separate `.css` entry
-- `**/*.html.js`
-  - `static` - Considered `static` when JSX is exported, results in `*.html`
-  - `dynamic` - Considered `dynamic` when a function is exported, results in `*.html.js`
-- `npm run *` - Expecting these commands to be called from the directory that contains `src` and `target`
-- `*.css` - CSS is allways compiled with module support, for each standalone CSS files a `.json` file is generated containing the class names.
-- `config/*.js` - see [kaliberjs/config](https://github.com/kaliberjs/config) for documentation
+- `src` - Source files live in the `src` directory.
+- `target` - Compiled / processed files are stored in the `target` directory.
+- `src/**/*.entry.js` - Compiled as a separate `.js` webpack entry.
+- `src/**/*.entry.css` - Compiled as a separate `.css` webpack entry, for each CSS file a `.json` file is generated containing the class names.
+- `src/**/*.{type}.js` - Compiled as webpack entry using a renderer associated with the type.
+  - `{type}` refers to the renderer that is used
+    - `html` - Expects JSX to be returned from the template
+    - `default` (when no renderer was registered) - If the template returns a string, the string is used. In other cases `JSON.stringify(...)`.
+    - `{custom}` - It is possible to register custom renderers, see below for details.
+  - `static` - Considered `static` when non-function value is exported, this value is passed to the renderer associated with the type.
+  - `dynamic` - Considered `dynamic` when a function is exported, results in `*.{type}.js` with a function that accepts a single argument.
+- `npm run *` - Expecting these commands to be called from the directory that contains `src` and `target`.
+- `config/*.js` - See [kaliberjs/config](https://github.com/kaliberjs/config) for documentation.
 
 ## Known issues
 
-Please check the list of open issues.
+Please check the list of [open issues](/kaliberjs/build/issues).
 
 ## Usage (static pages)
 
@@ -131,21 +135,29 @@ export default (
 )
 ```
 
-❗ Be careful with importing config in universal components (or its children): all configuration will appear in the client-bundle.
-
-If the configuration contains secrets which may not be exposed to the world, you could pass client-specific configuration to the universal components via the props:
+If you need the configuration in a client component, pass it in using the props:
 ```
   <Test prop='value' configForClient={config.client} />
 ```
+❗ Never pass the whole configuration to the client; it will be rendered in the html and may contain secrets.
+
 You could use [React context](https://facebook.github.io/react/docs/context.html) to easily access the configuration deeper in your react-application.
 
 ## Kaliber configuration
 The configuration-files can be used to configure kaliber/build features.
 The following features are configurable:
 - `kaliber-serve` with custom middleware
+- `kaliber-build` and `kaliber-watch` with custom renderers
 
 ### `kaliber-serve` with custom middleware
-For example with a basic-auth filter:
+
+The `kaliber.serveMiddleware` configuration is passed directly in the [`use`](http://expressjs.com/en/api.html#app.use) function of Express:
+
+```js
+app.use(config.kaliber.serveMiddleware)
+```
+
+Example with a basic-auth filter:
 ```js
 // config/{CONFIG_ENV}.js
 
@@ -159,6 +171,50 @@ module.exports = {
     serveMiddleware: ['/protected-path', basicAuth({ ... })]
   }
 }
+```
+
+### `kaliber-build` and `kaliber-watch` with custom renderers
+
+You can register specialized template types using the `kaliber.templateRenderers` configuration.
+
+Example with a mail template:
+```js
+// config/{CONFIG_ENV}.js
+
+module.exports = {
+  kaliber: {
+    mjml: '/mjml-renderer'
+  }
+}
+```
+
+```js
+// src/mjml-renderer.js
+import { mjml2html } from 'mjml'
+import htmlReactRenderer from '@kaliber/build/lib/html-react-renderer'
+
+export default function mjmlRenderer(template) {
+  const { html, errors } = mjml2html(htmlReactRenderer(template))
+
+  if (errors.length > 0) throw new Error(errors.map(e => e.formattedMessage).join('\n'))
+
+  return html
+}
+```
+
+The above configuration allows you to write mjml templates using JSX and process them through `mjml`. A file `mail.mjml.js` would be rendered into `mail.mjml`. An example of such a `mjml` template:
+
+```js
+export default (
+  <mjml>
+    <mj-head />
+    <mj-body>
+      <mj-container>
+        <mj-section>Text</mj-section>
+      </mj-container>
+    </mj-body>
+  </mjml>
+)
 ```
 
 ## Motivation
