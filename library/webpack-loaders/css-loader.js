@@ -15,9 +15,9 @@ const plugins = [
       generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
     })
   ]],
-  // these plugins need to run on final result
+  // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
   ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
-  ['postcss-cssnext'],
+  ['postcss-cssnext', { autoprefixer: false }],
   isProduction && ['cssnano']
 ]
 
