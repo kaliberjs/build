@@ -56,19 +56,21 @@ function templatePlugin(renderers) {
             delete assets[name]
 
             const { srcExt, targetExt, templateExt } = renderInfo
+            const outputName = name.replace(templatePattern, '')
 
             const source = asset.source()
+            // this is not the sourcemap we need
             const createMap = () => asset.map()
             // we need to check sourcemaps
             renders.push(
               evalWithSourceMap(source, createMap)
                 .then(({ template, renderer }) => template ? { template, renderer } : Promise.reject(new Error(`${name} did not export a template`)))
                 .then(({ template, renderer }) => typeof template === 'function'
-                  ? [[srcExt, createDynamicTemplate(name, templateExt, createMap)], [templateExt, asset]]
+                  ? [[srcExt, createDynamicTemplate(outputName, templateExt, createMap)], [templateExt, asset]]
                   : [[targetExt, createStaticTemplate(renderer, template)]]
                 )
-                .then(files => { files.forEach(([ext, result]) => { assets[name + ext] = result }) })
-                .catch(e => { compilation.errors.push(`Template plugin (${name}${srcExt}): ${e.message}`) })
+                .then(files => { files.forEach(([ext, result]) => { assets[outputName + ext] = result }) })
+                .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
             )
           }
 

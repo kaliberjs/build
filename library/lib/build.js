@@ -274,12 +274,7 @@ module.exports = function build({ watch }) {
     const templatePattern = /\.([^\.]+)\.js/
 
     return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
-      (result, entry) => {
-        const [, type] = templatePattern.exec(entry) || []
-        const name = type === 'entry' ? entry : entry.replace(templatePattern, '')
-        result[name] = './' + entry
-        return result
-      },
+      (result, entry) => (result[entry] = './' + entry, result),
       {}
     )
   }
