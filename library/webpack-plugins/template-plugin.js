@@ -85,7 +85,8 @@ function createStaticTemplate(renderer, template) {
 
 function createDynamicTemplate(name, ext, createMap) {
   return new RawSource(
-    `|const { template, renderer } = require('./${name}${ext}')
+    `|if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve('./${name}${ext}')]
+     |const { template, renderer } = require('./${name}${ext}')
      |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
      |
      |const createMap = () => (${JSON.stringify(createMap())})
