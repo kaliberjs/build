@@ -20,7 +20,6 @@ module.exports = function reactUniversalPlugin () {
       const clientEntries = {}
 
       const webCompiler = createWebCompiler(compiler, () => clientEntries)
-      let lastWebCompilationStats = null
 
       compiler.plugin('before-compile', (params, done) => {
         webCompiler.fileTimestamps = compiler.fileTimestamps
@@ -100,10 +99,13 @@ module.exports = function reactUniversalPlugin () {
         // push the client loader when appropriate
         // {{ QUESTION }}: is this plugin added more than once?
         normalModuleFactory.plugin('after-resolve', (data, done) => {
-          const { loaders, resourceResolveData: { query } } = data
-          if (query === '?universal-client') {
+          const { loaders, rawRequest, resourceResolveData: { query } } = data
+
+          if (query === '?universal-client')
             loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
-          }
+
+          if (rawRequest === '@kaliber/config')
+            return done('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
 
           done(null, data)
         })
@@ -150,7 +152,7 @@ function createWebCompiler(compiler, getEntries) {
   options.resolve = Object.assign({}, options.resolve)
   options.resolve.aliasFields = ["browser"]
   options.resolve.mainFields = ["browser", "module", "main"]
-  
+
   return createCompiler(compiler, options)
 }
 
