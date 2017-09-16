@@ -3,6 +3,7 @@
 
 .test {
   color: var(--color-green);
+  z-index: 100000;
 }
 
 .background {

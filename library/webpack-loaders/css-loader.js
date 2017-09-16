@@ -18,7 +18,7 @@ const plugins = [
   // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
   ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
   ['postcss-cssnext'],
-  isProduction && ['cssnano', { autoprefixer: false }]
+  isProduction && ['cssnano', { autoprefixer: false, isSafe: true, /* in 4 this will be the similar (autoprefixer is disabled by default): */ preset: 'default' }]
 ]
 
 const pluginCreators = plugins.filter(Boolean).map(([name, config]) => {
