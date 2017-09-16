@@ -11,12 +11,13 @@ export default (
     <mj-body>
       <mj-container background-color='#F3F3F3'>
 
-        <mj-sections padding-left='20' padding-right='20'>
+        <mj-section padding-left='20' padding-right='20'>
           <mj-column>
+            { /* using the construction below is dangerous as logo might be inlined */}
             <mj-image width='180' src={assetURL + logo} />
             <mj-spacer height='20' />
           </mj-column>
-        </mj-sections>
+        </mj-section>
 
         <mj-section padding-left='20' padding-right='20'>
           <mj-column>
