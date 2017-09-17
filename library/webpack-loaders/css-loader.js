@@ -6,9 +6,9 @@ const isProduction = process.env.NODE_ENV === 'production'
 const plugins = [
   // these plugis need to run on each file individual file
   // look at the source of postcss-modules to see that it effectively runs all modules twice
-  ['postcss-plugin-composition', ({ onImport, onExport, resolve }) => [
+  ['../postcss-plugins/postcss-plugin-composition', ({ onExport, resolve }) => [
     // postcss-import is advised to be the first
-    require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
+    require('postcss-import')({ glob: true, resolve }),
     require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
     require('postcss-modules')({
       getJSON: (_, json) => { onExport(json) },
@@ -33,7 +33,6 @@ module.exports = function CssLoader(source, map) {
 
   let exports = {}
   const handlers = {
-    onImport: imports => { imports.forEach(i => self.addDependency(i)) },
     resolve: (id, basedir, importOptions) => resolve(basedir, id),
     onExport: locals  => { exports = locals },
     onUrl   : (url, file) => {
@@ -54,9 +53,15 @@ module.exports = function CssLoader(source, map) {
 
   const result = postcss(plugins).process(source, options)
   result
-    .then(({ css, map }) => {
+    .then(({ css, map, messages }) => {
       throwErrorForWarnings(result.warnings())
+
+      messages
+        .filter(({ type }) => type === 'dependency')
+        .forEach(x => self.addDependency(x.file))
+
       this.emitFile(filename, css, map.toJSON())
+
       callback(null, exports)
     })
     .catch(e => { callback(e) })
