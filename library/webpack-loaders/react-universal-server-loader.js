@@ -1,5 +1,6 @@
 const { relative } = require('path')
 
+const isProduction = process.env.NODE_ENV === 'production'
 module.exports = ReactUniversalServerLoader
 
 function ReactUniversalServerLoader(source, map) {
@@ -10,6 +11,19 @@ function ReactUniversalServerLoader(source, map) {
 }
 
 function createServerCode({ importPath, scriptSrc, id }) {
+  const appScript = isProduction
+    ? `<script defer src='${scriptSrc}?v=${Date.now()}'></script>`
+    : `|<script dangerouslySetInnerHTML={{ __html: \`
+       |(function () {
+       |  window.addEventListener('load', function () {
+       |    const script = document.createElement('script')
+       |    script.setAttribute('src', '${scriptSrc}?v=' + Date.now())
+       |    script.setAttribute('defer', '')
+       |    document.body.appendChild(script)
+       |  })
+       |}())
+       |\` }} />`.split(/^[ \t]*\|/m).join('')
+
   return `|import Component from './${importPath}'
           |import { renderToString } from 'react-dom/server'
           |
@@ -18,7 +32,7 @@ function createServerCode({ importPath, scriptSrc, id }) {
           |  return (
           |    <div>
           |      <div id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }}></div>
-          |      <script defer src='${scriptSrc}'></script>
+          |      ${appScript}
           |    </div>
           |  )
           |}

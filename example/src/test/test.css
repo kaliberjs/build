@@ -1,3 +1,10 @@
 .test2 {
   background-color: red;
+  animation-name: foo;
+  animation-duration: 4s;
+}
+
+@keyframes foo {
+  from {background-color: red;}
+  to {background-color: yellow;}
 }

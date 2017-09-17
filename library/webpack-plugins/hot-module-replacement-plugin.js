@@ -24,6 +24,7 @@ module.exports = function hotModuleReplacementPlugin() {
         })
       })
 
+      // these are from the watch, so don't apply to child compilers
       compiler.plugin('done', stats => { send({ type: 'done', hash: stats.hash }) })
       compiler.plugin('failed', err => { send({ type: 'failed' }) })
     }

@@ -10,9 +10,6 @@ module.exports = function mergeCssPlugin() {
         compilation.plugin('before-module-assets', () => {
 
           compilation.chunks.forEach(chunk => {
-            // this should be an option
-            if (chunk.name === 'public_entry') return
-
             const currentChunkCssAssets = []
             chunkCssAssets.push([chunk.name, currentChunkCssAssets])
             const modules = chunk.getModules().sort(({ index: a }, { index: b }) => a - b)
@@ -40,8 +37,13 @@ module.exports = function mergeCssPlugin() {
         compilation.plugin('additional-chunk-assets', (chunks) => {
           chunkCssAssets.forEach(([chunkName, cssAssets]) => {
             if (cssAssets.length) {
-              const newChunkName = chunkName + (chunkName.endsWith('.css') ? '' : '.css')
-              compilation.assets[newChunkName] = new ConcatSource(...cssAssets)
+              const templatePattern = /\.([^\.]+)\.js/
+              const [, type] = templatePattern.exec(chunkName) || []
+
+              const newChunkName = type === 'entry' ? chunkName : chunkName.replace(templatePattern, '')
+
+              const chunkCssName = newChunkName + (newChunkName.endsWith('.css') ? '' : '.css')
+              compilation.assets[chunkCssName] = new ConcatSource(...cssAssets)
             }
           })
         })

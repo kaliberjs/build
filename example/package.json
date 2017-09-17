@@ -1,8 +1,9 @@
 {
 	"scripts": {
-		"build": "kaliber-build",
-		"watch": "kaliber-watch",
-		"serve": "PORT=8000 kaliber-serve",
+		"build": "NODE_ENV=production kaliber-build",
+		"watch": "CONFIG_ENV=dev kaliber-watch",
+		"serve": "kaliber-serve",
+		"serve:dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
 		"//": "only needed for library development",
 		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
 		"watch-library": "npm-watch"
@@ -14,5 +15,12 @@
 	},
 	"watch": {
 		"install-library": "../library/"
+	},
+	"dependencies": {
+		"express-basic-auth": "^1.1.1",
+		"firebase": "^4.3.1",
+		"firebase-admin": "^5.2.1",
+		"mjml": "^3.3.3",
+		"xml": "^1.0.1"
 	}
 }
