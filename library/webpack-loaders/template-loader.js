@@ -1,3 +1,7 @@
+/*
+  This loader turns an import of a template into an import of an object containing both the template and the renderer
+*/
+
 const loaderUtils = require('loader-utils')
 const { relative } = require('path')
 

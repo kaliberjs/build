@@ -1,7 +1,6 @@
 const { RawSource } = require('webpack-sources')
 const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
-// make this one about any type of template (xml, txt, html, etc.)
 module.exports = templatePlugin
 
 function templatePlugin(renderers) {
@@ -27,10 +26,16 @@ function templatePlugin(renderers) {
   return {
     apply: compiler => {
 
+      /*
+        Supply the template-loader to any resource that matches the `template pattern` in it's
+        file name. It will not do this to resources that have been marked with `?template-source`
+        as it would cause infinite loops
+      */
       compiler.plugin('normal-module-factory', normalModuleFactory => {
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, resourceResolveData: { query, path } } = data
           const renderInfo = getRenderInfo(path)
+
           if (renderInfo && query != '?template-source') {
             const { renderer } = renderInfo
             const templateLoader = require.resolve('../webpack-loaders/template-loader')
@@ -43,6 +48,19 @@ function templatePlugin(renderers) {
 
       compiler.plugin('compilation', compilation => {
 
+        /*
+          Determines if a given asset has the 'template pattern' and if so it
+          evaluates the template. If the template is a function it's turned into
+          a dynamic template (a javascript function that accepts props). If it's
+          not a function the template is rendered directly.
+
+          For static templates the `x.type.js` file is removed and rendered into `x.type`.
+
+          For dynamic templates some machinery is placed into `x.type.js` and the template
+          itself combined with it's renderer is placed into `x.template.type.js`. The
+          result (in `x.type.js`) is a simple function with one argument that can be called
+          to obtain a rendered template.
+        */
         compilation.plugin('optimize-assets', (assets, done) => {
           const renders = []
 

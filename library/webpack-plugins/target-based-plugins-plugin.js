@@ -1,11 +1,12 @@
+/*
+  Add plugins based on the target, plugins argument example:
 
-// Add plugins based on the target, plugins argument example:
-//
-// {
-//   all: [ ... ],
-//   node: [ ... ],
-//   web: [ ... ]
-//}
+  {
+    all: [ ... ],
+    node: [ ... ],
+    web: [ ... ]
+  }
+*/
 
 module.exports = function targetBasedPluginsPlugin(plugins) {
 

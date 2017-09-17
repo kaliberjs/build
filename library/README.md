@@ -136,6 +136,8 @@ export default (
 )
 ```
 
+❗ The key `kaliber` is deleted from the `config` by a special loader as it is reserved to store configuration for the build and serve code.
+
 If you need the configuration in a client component, pass it in using the props:
 ```
   <Test prop='value' configForClient={config.client} />

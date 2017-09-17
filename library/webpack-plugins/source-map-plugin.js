@@ -1,13 +1,18 @@
+/*
+  Tells webpack to keep source maps around and generates one for every chunk that
+  has a source map available.
+*/
+
 const { RawSource, ConcatSource } = require('webpack-sources')
 const path = require('path')
 
 module.exports = function sourceMapPlugin() {
   return {
     apply: compiler => {
-      compiler.plugin("compilation", compilation => {
+      compiler.plugin('compilation', compilation => {
 
         // make sure webpack stuff keeps their source maps
-        compilation.plugin("build-module", module => {
+        compilation.plugin('build-module', module => {
           module.useSourceMap = true
         })
 

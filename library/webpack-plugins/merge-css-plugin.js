@@ -1,3 +1,11 @@
+/*
+  Merges all css assets available for a given chunk, note that importing css in an entry chunk currently does not work.
+
+  The resulting css file will be one of the following:
+  - `x.entry.css` for `x.entry.css`
+  - `x.css` for `x.templateType.js`
+*/
+
 const { ConcatSource } = require('webpack-sources')
 
 module.exports = function mergeCssPlugin() {

@@ -1,3 +1,7 @@
+/*
+  Instead of loading @kaliber/config we execute it, remove the `kaliber` key and stringify the result
+*/
+
 const supportedConfigPhases = ['dev', 'tst', 'acc', 'prd']
 
 module.exports = ConfigLoader
@@ -11,6 +15,7 @@ ConfigLoader.pitch = function ConfigLoaderPitch() {
   }
 
   const result = require('@kaliber/config')
+  delete result.kaliber
 
   return `module.exports = ${JSON.stringify(result)};`
 }

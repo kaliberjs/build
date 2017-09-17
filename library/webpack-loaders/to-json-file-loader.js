@@ -1,3 +1,7 @@
+/*
+  Emits the given source as a json file
+*/
+
 const { relative } = require('path')
 
 module.exports = function ToJsonFileLoader(source) {
