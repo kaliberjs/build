@@ -2,7 +2,7 @@ module.exports = function configLoaderPlugin() {
 
   return {
     apply: compiler => {
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      compiler.plugin('normal-module-factory', normalModuleFactory => {
 
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, rawRequest } = data

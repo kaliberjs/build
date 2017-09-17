@@ -43,25 +43,6 @@ const babelLoader = {
   }
 }
 
-const nodeBabelLoader = {
-  loader: 'babel-loader',
-  options: {
-    babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: ['es2015', 'react'],
-    plugins: [
-      'transform-decorators-legacy',
-      'transform-class-properties',
-      'transform-object-rest-spread',
-      'transform-async-to-generator',
-      ['transform-runtime', {
-        'helpers': false,
-        'polyfill': false,
-        'regenerator': true
-      }]
-    ]
-  }
-}
-
 const cssLoader = {
   loader: 'css-loader'
 }
@@ -106,7 +87,7 @@ module.exports = function build({ watch }) {
       target: 'node',
       output: {
         filename: '[name]',
-        chunkFilename: '[name].bundle.js',
+        chunkFilename: '[name]',
         path: target,
         publicPath: '/',
         libraryTarget: 'commonjs2'

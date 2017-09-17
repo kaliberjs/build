@@ -27,8 +27,7 @@ function templatePlugin(renderers) {
   return {
     apply: compiler => {
 
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
-
+      compiler.plugin('normal-module-factory', normalModuleFactory => {
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, resourceResolveData: { query, path } } = data
           const renderInfo = getRenderInfo(path)
@@ -40,6 +39,9 @@ function templatePlugin(renderers) {
 
           done(null, data)
         })
+      })
+
+      compiler.plugin('compilation', compilation => {
 
         compilation.plugin('optimize-assets', (assets, done) => {
           const renders = []

@@ -1,5 +1,5 @@
 const Compiler = require('webpack/lib/Compiler')
-const NodeEnvironmentPlugin = require('webpack/lib/node/NodeEnvironmentPlugin')
+const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { relative } = require('path')
@@ -44,12 +44,20 @@ module.exports = function reactUniversalPlugin () {
         return unclaimed
       })
 
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      compiler.plugin('normal-module-factory', normalModuleFactory => {
+        normalModuleFactory.plugin('before-resolve', (data, done) => {
+          if (!data) return done(null, data)
+
+          if (data.dependencies.some(x => x instanceof ImportDependency)) return done()
+
+          done(null, data)
+        })
 
         // When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
         // loaders and add the module marked with `?universal-client` as client entry.
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, resourceResolveData: { query, path } } = data
+
           if (query === '?universal') {
             loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-server-loader') })
 
@@ -95,9 +103,8 @@ module.exports = function reactUniversalPlugin () {
 
       const removedAssets = []
 
-      webCompiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      webCompiler.plugin('normal-module-factory', normalModuleFactory => {
         // push the client loader when appropriate
-        // {{ QUESTION }}: is this plugin added more than once?
         normalModuleFactory.plugin('after-resolve', (data, done) => {
           const { loaders, rawRequest, resourceResolveData: { query } } = data
 
@@ -109,6 +116,9 @@ module.exports = function reactUniversalPlugin () {
 
           done(null, data)
         })
+      })
+
+      webCompiler.plugin('compilation', compilation => {
 
         // remove redundant assets introduced by client chunk
         compilation.plugin('after-optimize-chunk-assets', chunks => {
