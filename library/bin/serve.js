@@ -41,9 +41,11 @@ app.use((err, req, res, next) => {
 
   console.error(err)
   const response = res.status(500)
-  fileExists(internalServerError)
-    .then(() => response.sendFile(internalServerError))
-    .catch(next)
+  if (isProduction) {
+    fileExists(internalServerError)
+      .then(() => response.sendFile(internalServerError))
+      .catch(next)
+  } else response.send(`<pre>${err.toString()}</pre>`)
 })
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))
@@ -73,6 +75,6 @@ function serveIndex (req, res, next) {
 
   return Promise.resolve(routes)
     .then(routes => routes && routes.match(location, req) || { status: 200, data: null })
-    .then(({ status, data }) => template({ location, data }).then(html => [status, html]))
+    .then(({ status, data }) => Promise.resolve(template({ location, data })).then(html => [status, html]))
     .then(([ status, html ]) => res.status(status).send(html))
 }

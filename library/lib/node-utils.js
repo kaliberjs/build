@@ -15,8 +15,8 @@ function evalWithSourceMap(source, createMap) {
 
 function withSourceMappedError(createMap, fn) {
   return withRawErrorStack(() => {
-    try { return Promise.resolve(fn()) }
-    catch (e) { return Promise.reject(new Error(e + '\n' + toMappedStack(createMap, e.stack))) }
+    try { return fn() }
+    catch (e) { throw new Error(e + '\n' + toMappedStack(createMap, e.stack)) }
   })
 }
 
@@ -30,11 +30,9 @@ function toMappedStack(createMap, stack) {
   const sourceMap = new SourceMapConsumer(createMap())
   return stack
     .map(frame => {
-      if (frame.isEval()) {
-        const generated = { line: frame.getLineNumber(), column: frame.getColumnNumber() - 1 }
-        const { source, line, column } = sourceMap.originalPositionFor(generated)
-        if (source && !source.startsWith('webpack/')) return `    at ${source}:${line}:${column + 1}`
-      }
+      const generated = { line: frame.getLineNumber(), column: frame.getColumnNumber() - 1 }
+      const { source, line, column } = sourceMap.originalPositionFor(generated)
+      if (source && !source.startsWith('webpack/')) return `    at ${source}:${line}:${column + 1}`
     })
     .filter(Boolean)
     .join('\n')

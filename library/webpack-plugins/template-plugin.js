@@ -1,5 +1,5 @@
 const { RawSource } = require('webpack-sources')
-const { evalWithSourceMap } = require('../lib/node-utils')
+const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
 // make this one about any type of template (xml, txt, html, etc.)
 module.exports = templatePlugin
@@ -41,8 +41,6 @@ function templatePlugin(renderers) {
           done(null, data)
         })
 
-        // render templates to html -- we should probably do this earlier, before the uglifier / babili kicks in
-        // additional-assets
         compilation.plugin('optimize-assets', (assets, done) => {
           const renders = []
 
@@ -59,15 +57,13 @@ function templatePlugin(renderers) {
             const outputName = name.replace(templatePattern, '')
 
             const source = asset.source()
-            // this is not the sourcemap we need
             const createMap = () => asset.map()
-            // we need to check sourcemaps
             renders.push(
-              evalWithSourceMap(source, createMap)
+              new Promise(resolve => resolve(evalWithSourceMap(source, createMap))) // inside a promise to catch errors
                 .then(({ template, renderer }) => template ? { template, renderer } : Promise.reject(new Error(`${name} did not export a template`)))
                 .then(({ template, renderer }) => typeof template === 'function'
                   ? [[srcExt, createDynamicTemplate(outputName, templateExt, createMap)], [templateExt, asset]]
-                  : [[targetExt, createStaticTemplate(renderer, template)]]
+                  : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
                 )
                 .then(files => { files.forEach(([ext, result]) => { assets[outputName + ext] = result }) })
                 .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
@@ -81,25 +77,25 @@ function templatePlugin(renderers) {
   }
 }
 
-function createStaticTemplate(renderer, template) {
-  return new RawSource(renderer(template))
+function createStaticTemplate(renderer, template, createMap) {
+  return new RawSource(withSourceMappedError(createMap, () => renderer(template)))
 }
 
 function createDynamicTemplate(name, ext, createMap) {
   return new RawSource(
-    `|if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve('./${name}${ext}')]
-     |const { template, renderer } = require('./${name}${ext}')
+    `|const createMap = () => (${JSON.stringify(createMap())})
+     |
      |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
      |
-     |const createMap = () => (${JSON.stringify(createMap())})
+     |if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve('./${name}${ext}')]
+     |const { template, renderer } = withSourceMappedError(createMap, () => require('./${name}${ext}'))
      |
      |Object.assign(render, template)
      |
      |module.exports = render
      |
      |function render(props) {
-     |  return withSourceMappedError(createMap, () => template(props))
-     |     .then(template => renderer(template))
+     |  return withSourceMappedError(createMap, () => renderer(template(props)))
      |}
      |`.split(/^[ \t]*\|/m).join('')
   )
