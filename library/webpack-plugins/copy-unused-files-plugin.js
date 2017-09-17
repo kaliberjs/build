@@ -15,12 +15,13 @@ function copyUnusedFilesPlugin() {
             const source = path.resolve(context, filePath)
 
             if (compilation.fileDependencies.includes(source)) return
+
             const target = path.resolve(compiler.options.output.path, filePath)
             return stat(source)
               .then(stats => {
                 if (stats.isDirectory()) return
                 else {
-                  if (compilation.assets[filePath]) throw new Error('Unexpected problem - create an issue with an example to reproduce and we will figure out a solution')
+                  if (compilation.assets[filePath]) throw new Error(`Unexpected problem: ${filePath} is marked as unused but it is in the compilation assets - create an issue with an example to reproduce and we will figure out a solution`)
 
                   const asset = compilation.assets[filePath] = { size: () => stats.size, emitted: false }
 
