@@ -33,6 +33,7 @@ yarn add @kaliber/build
 - Environment specific configuration
 - Template system
 - Copying of 'unused' files (❗ Do not put sensitive information in your `src` directory)
+- Dynamic imports
 
 ## Conventions
 
@@ -142,6 +143,17 @@ If you need the configuration in a client component, pass it in using the props:
 ❗ Never pass the whole configuration to the client; it will be rendered in the html and may contain secrets.
 
 You could use [React context](https://facebook.github.io/react/docs/context.html) to easily access the configuration deeper in your react-application.
+
+## Usage with dynamic imports
+
+Dynamic imports are only compiled for the web, so make sure they are in the 'web part' of your React components (`componentDidMount`). If you have a use case that requires dynamic imports to work on the server side as well, raise an issue with your use-case. Example:
+
+```
+componentDidMount() {
+  import('./dynamicImportTestFunction')
+    .then(({ default: test }) => console.log('import?', test()))
+}
+```
 
 ## Kaliber configuration
 The configuration-files can be used to configure kaliber/build features.

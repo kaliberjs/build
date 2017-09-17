@@ -42,7 +42,7 @@ export default class Test extends Component {
     this.asyncFunction()
     this.interval = setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
 
-    import(/* webpackChunkName: "dynamicImportTest.entry.js" */ './dynamicImportTest').then(({ default: mod }) => console.log('import?', mod()))
+    import('./dynamicImportTestFunction').then(({ default: test }) => console.log('import? ' + test()))
   }
 
   componentWillUnmount() {

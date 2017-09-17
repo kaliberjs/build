@@ -123,10 +123,10 @@ module.exports = function reactUniversalPlugin () {
         // remove redundant assets introduced by client chunk
         compilation.plugin('after-optimize-chunk-assets', chunks => {
 
-          const chunkNames = {}
-          chunks.forEach(({ name }) => { chunkNames[name] = true })
+          const chunkFiles = {}
+          chunks.forEach(({ files }) => { files.forEach(file => { chunkFiles[file] = true }) })
           Object.keys(compilation.assets).forEach(assetName => {
-              if (!chunkNames[assetName] && !assetName.includes('hot-update')) {
+              if (!chunkFiles[assetName] && !assetName.includes('hot-update')) {
                 removedAssets.push(assetName)
                 delete compilation.assets[assetName]
               }

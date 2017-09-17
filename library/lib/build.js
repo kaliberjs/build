@@ -87,7 +87,7 @@ module.exports = function build({ watch }) {
       target: 'node',
       output: {
         filename: '[name]',
-        chunkFilename: '[name]',
+        chunkFilename: '[name]-[hash].js',
         path: target,
         publicPath: '/',
         libraryTarget: 'commonjs2'
