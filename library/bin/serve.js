@@ -75,6 +75,8 @@ function serveIndex (req, res, next) {
 
   return Promise.resolve(routes)
     .then(routes => routes && routes.match(location, req) || { status: 200, data: null })
-    .then(({ status, data }) => Promise.resolve(template({ location, data })).then(html => [status, html]))
-    .then(([ status, html ]) => res.status(status).send(html))
+    .then(({ status, headers, data }) =>
+      Promise.resolve(template({ location, data })).then(html => [status, headers, html])
+    )
+    .then(([ status, headers, html ]) => res.status(status).set(headers).send(html))
 }

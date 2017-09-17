@@ -11,7 +11,9 @@ main.routes = {
     ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } }))
     : pathname === '/error'
     ? Promise.reject(new Error('fake error'))
-    : Promise.resolve({ status: 400, data: { message: 'missing' } })
+    : pathname === '/redirect'
+    ? { status: 302, headers: { 'Location': '/redirect-target' } }
+    : { status: 404, data: { message: 'missing' } }
 }
 
 function getMessage() {
@@ -37,6 +39,7 @@ function getMessage() {
 export default main
 
 function main ({ location, data }) {
+  if (!data) return null
   return (
     <html>
       { head('Rendered on server') }
