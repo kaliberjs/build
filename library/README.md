@@ -50,6 +50,7 @@ Ruby popularized 'convention over configuration', this library has a set of conv
     - `{custom}` - It is possible to register custom renderers, see below for details.
   - `static` - Considered `static` when non-function value is exported, this value is passed to the renderer associated with the type.
   - `dynamic` - Considered `dynamic` when a function is exported, results in `*.{type}.js` with a function that accepts a single argument.
+- `src/**/*` - Any files not used in the compilation will be copied to the target directory.
 - `npm run *` - Expecting these commands to be called from the directory that contains `src` and `target`.
 - `config/*.js` - See [kaliberjs/config](https://github.com/kaliberjs/config) for documentation.
 
@@ -197,7 +198,9 @@ Example with a mail template:
 
 module.exports = {
   kaliber: {
-    mjml: '/mjml-renderer'
+    templateRenderers: {
+      mjml: '/mjml-renderer'
+    }
   }
 }
 ```
