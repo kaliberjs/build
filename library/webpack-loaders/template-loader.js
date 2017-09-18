@@ -1,5 +1,6 @@
 /*
-  This loader turns an import of a template into an import of an object containing both the template and the renderer
+  This loader turns a request for a template into something that returns an object containing
+  both the template and the renderer.
 */
 
 const loaderUtils = require('loader-utils')
