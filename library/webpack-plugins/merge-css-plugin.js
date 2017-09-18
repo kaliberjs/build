@@ -45,7 +45,7 @@ module.exports = function mergeCssPlugin() {
         compilation.plugin('additional-chunk-assets', (chunks) => {
           chunkCssAssets.forEach(([chunkName, cssAssets]) => {
             if (cssAssets.length) {
-              const templatePattern = /\.([^\.]+)\.js/
+              const templatePattern = /\.([^\./]+)\.js$/
               const [, type] = templatePattern.exec(chunkName) || []
 
               const newChunkName = type === 'entry' ? chunkName : chunkName.replace(templatePattern, '')

@@ -1,3 +1,21 @@
+/*
+  This plugin adds a special loader to all files that have the `*.*.js` (`{name}.{template type}.js`)
+  pattern in their filename. This loader loads both the template and the renderer, picked from the
+  list of renderers which are passed in as a configuration, for example:
+
+  {
+    'html': '@kaliber/build/lib/react-html-renderer'
+  }
+
+  It then does one of two things:
+
+  1. If the template returns a function, a new function is created that executes the given template with
+     the given props and passes that result to the renderer. When an error occurs in this process, the
+     stack trace is source mapped.
+  2. If the template does not return a function the value is passed to the renderer and the result is
+     stored in a file with the `.js` removed (`{name}.{template type}`)
+*/
+
 const { RawSource } = require('webpack-sources')
 const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
@@ -5,7 +23,7 @@ module.exports = templatePlugin
 
 function templatePlugin(renderers) {
 
-  const templatePattern = /\.([^\.]+)\.js$/ // {name}.{template type}.js
+  const templatePattern = /\.([^\./]+)\.js$/ // {name}.{template type}.js
 
   function createRenderInfo(type) {
     return {
