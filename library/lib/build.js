@@ -64,11 +64,6 @@ const imageSizeLoader = {
   options: { useImageMagick: true }
 }
 
-const keepNameFileLoader = {
-  loader: 'file-loader',
-  options: { name: '[path][name].[ext]' }
-}
-
 const toJsonFileLoader = {
   loader: 'to-json-file-loader'
 }
@@ -254,8 +249,6 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    const templatePattern = /\.([^\.]+)\.js/
-
     return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
       (result, entry) => (result[entry] = './' + entry, result),
       {}
