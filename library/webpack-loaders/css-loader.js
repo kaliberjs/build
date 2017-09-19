@@ -93,4 +93,4 @@ module.exports = function CssLoader(source, map) {
   }
 }
 
-function isDependency(s) { return !/^data:|^(https?:)?\/\//.test(s) }
+function isDependency(s) { return !/^data:|^(https?:)?\/\/|^#.+/.test(s) }
