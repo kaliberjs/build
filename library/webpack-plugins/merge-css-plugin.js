@@ -6,7 +6,7 @@
   - `x.css` for `x.templateType.js`
 */
 
-const { ConcatSource } = require('webpack-sources')
+const { ConcatSource, RawSource } = require('webpack-sources')
 
 module.exports = function mergeCssPlugin() {
   return {
@@ -51,11 +51,18 @@ module.exports = function mergeCssPlugin() {
               const newChunkName = type === 'entry' ? chunkName : chunkName.replace(templatePattern, '')
 
               const chunkCssName = newChunkName + (newChunkName.endsWith('.css') ? '' : '.css')
-              compilation.assets[chunkCssName] = new ConcatSource(...cssAssets)
+              compilation.assets[chunkCssName] = new ConcatSource(...cssAssets.map(createValidSource))
             }
           })
         })
       })
     }
   }
+}
+
+function createValidSource(source) {
+  // https://github.com/webpack/webpack-sources/issues/26
+  return source instanceof RawSource
+    ? new RawSource(source.source().toString())
+    : source
 }

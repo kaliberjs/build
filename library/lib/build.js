@@ -87,7 +87,7 @@ module.exports = function build({ watch }) {
         publicPath: '/',
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config'] }),
+      externals: nodeExternals({ whitelist: ['@kaliber/config', /\.css$/] }),
       resolve: {
         extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
@@ -113,7 +113,13 @@ module.exports = function build({ watch }) {
 
           {
             test: /\.css$/,
-            loaders: ['json-loader', cssLoader]
+            loaders: ['json-loader', cssLoader],
+            exclude: /node_modules/
+          },
+
+          {
+            test: /\.css$/,
+            loader: 'file-loader'
           },
 
           {

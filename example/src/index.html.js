@@ -1,4 +1,5 @@
 import 'global.css'
+import 'normalize.css'
 import head from './partials/head'
 import Test from './partials/Test?universal'
 import styles from './index.html.js.css'
