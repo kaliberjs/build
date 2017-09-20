@@ -48,6 +48,11 @@ const cssLoader = {
   loader: 'css-loader'
 }
 
+const cssLoaderMinifyOnly = {
+  loader: 'css-loader',
+  options: { minifyOnly: true }
+}
+
 const imageLoader = {
   loader: 'image-webpack-loader',
   options: {
@@ -63,14 +68,6 @@ const imageLoader = {
 const imageSizeLoader = {
   loader: 'image-maxsize-webpack-loader',
   options: { useImageMagick: true }
-}
-
-const toJsonFileLoader = {
-  loader: 'to-json-file-loader'
-}
-
-const fragmentLoader = {
-  loader: 'fragment-loader'
 }
 
 module.exports = function build({ watch }) {
@@ -113,7 +110,7 @@ module.exports = function build({ watch }) {
 
           {
             test: /\.entry\.css$/,
-            loaders: [toJsonFileLoader, cssLoader]
+            loaders: ['to-json-file-loader', cssLoader]
           },
 
           {
@@ -124,7 +121,7 @@ module.exports = function build({ watch }) {
 
           {
             test: /\.css$/,
-            loader: 'file-loader'
+            loaders: ['json-loader', cssLoaderMinifyOnly]
           },
 
           {
@@ -140,7 +137,7 @@ module.exports = function build({ watch }) {
           {
             test: /\.svg$/,
             resourceQuery: /fragment/,
-            loaders: [fragmentLoader]
+            loaders: ['fragment-loader']
           },
 
           {

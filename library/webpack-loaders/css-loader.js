@@ -1,13 +1,14 @@
-const { relative, dirname } = require('path')
+const loaderUtils = require('loader-utils')
 const postcss = require('postcss')
+const { relative, dirname } = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins({ onExport, resolve, processUrl }) {
+function createPlugins(minifyOnly, { onExport, resolve, processUrl }) {
   return [
     // these plugis need to run on each file individual file
     // look at the source of postcss-modules to see that it effectively runs all modules twice
-    require('../postcss-plugins/postcss-plugin-composition')([
+    !minifyOnly && require('../postcss-plugins/postcss-plugin-composition')([
       // postcss-import is advised to be the first
       require('postcss-import')({ glob: true, resolve }),
       require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
@@ -17,8 +18,8 @@ function createPlugins({ onExport, resolve, processUrl }) {
       })
     ]),
     // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
-    require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
-    require('postcss-cssnext'),
+    !minifyOnly && require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
+    !minifyOnly && require('postcss-cssnext'),
     isProduction && require('cssnano')({ autoprefixer: false, isSafe: true, /* in 4 this will be the similar (autoprefixer is disabled by default): */ preset: 'default' })
   ].filter(Boolean)
 }
@@ -39,7 +40,9 @@ module.exports = function CssLoader(source, map) {
       : Promise.resolve(url)
   }
 
-  const plugins = createPlugins(handlers)
+  const { minifyOnly = false } = loaderUtils.getOptions(this) || {}
+
+  const plugins = createPlugins(minifyOnly, handlers)
   const filename = relative(this.options.context, this.resourcePath)
   const options = {
     from: this.resourcePath,
