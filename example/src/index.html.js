@@ -6,6 +6,7 @@ import styles from './index.html.js.css'
 import publicSvg from 'public/public.svg'
 import config from '@kaliber/config'
 import firebase from 'firebase-admin'
+import bg1 from './bg1.jpg'
 
 main.routes = {
   match: ({ pathname }, request) => pathname === '/'
@@ -59,6 +60,16 @@ function main ({ location, data }) {
         <div className={styles.multipleBackground}>multiple backgrounds</div>
         <div className={styles.svgBackground}>svg background</div>
         <img src={publicSvg} /> public svg ({publicSvg})
+        <img className={styles.clip} src={bg1} />
+        <img className={styles.clip2} src={bg1} />
+        <svg width='0' height='0'>
+          <defs>
+            <clipPath id='myClip'>
+              <circle cx='100' cy='100' r='40' />
+              <circle cx='60' cy='60' r='40' />
+            </clipPath>
+          </defs>
+        </svg>
       </body>
     </html>
   )

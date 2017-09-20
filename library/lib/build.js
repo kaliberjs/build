@@ -16,6 +16,7 @@ const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
+const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
 
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
@@ -68,6 +69,10 @@ const toJsonFileLoader = {
   loader: 'to-json-file-loader'
 }
 
+const fragmentLoader = {
+  loader: 'fragment-loader'
+}
+
 module.exports = function build({ watch }) {
 
   const target = path.resolve(process.cwd(), 'target')
@@ -91,7 +96,7 @@ module.exports = function build({ watch }) {
       resolve: {
         extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
-        plugins: [absolutePathResolverPlugin(srcDir)]
+        plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
       },
       resolveLoader: {
         modules: [path.resolve(__dirname, '../webpack-loaders'), 'node_modules']
@@ -130,6 +135,12 @@ module.exports = function build({ watch }) {
 
           {
             test: /\.js$/
+          },
+
+          {
+            test: /\.svg$/,
+            resourceQuery: /fragment/,
+            loaders: [fragmentLoader]
           },
 
           {
