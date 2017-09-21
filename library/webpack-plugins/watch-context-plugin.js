@@ -1,3 +1,7 @@
+/*
+  Simply adds the context as a context dependency
+*/
+
 module.exports = function watchContextPlugin() {
   return {
     apply: compiler => {

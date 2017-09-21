@@ -1,23 +1,28 @@
-console.log('----------------------------------------------------------------------------------------------')
-console.log('`DeprecationWarning: loaderUtils.parseQuery()` will be solved when babel-loader 7 is released.')
-console.log('----------------------------------------------------------------------------------------------')
-
-const path = require('path')
-const webpack = require('webpack')
 const fs = require('fs-extra')
+const nodeExternals = require('webpack-node-externals')
+const path = require('path')
 const walkSync = require('walk-sync')
+const webpack = require('webpack')
 
+const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
+const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
+const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
+const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
-const reactTemplatePlugin = require('../webpack-plugins/react-template-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
+const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
+const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
-const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
-const loadDirectoryPlugin = require('../webpack-plugins/load-directory-plugin')
+
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
+const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
+
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
+
+const { kaliber: { templateRenderers } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -25,6 +30,7 @@ const babelLoader = {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: [['es2015', { modules: false }], 'react'],
     plugins: [
+      'syntax-dynamic-import',
       'transform-decorators-legacy',
       'transform-class-properties',
       'transform-object-rest-spread',
@@ -40,6 +46,11 @@ const babelLoader = {
 
 const cssLoader = {
   loader: 'css-loader'
+}
+
+const cssLoaderMinifyOnly = {
+  loader: 'css-loader',
+  options: { minifyOnly: true }
 }
 
 const imageLoader = {
@@ -59,15 +70,6 @@ const imageSizeLoader = {
   options: { useImageMagick: true }
 }
 
-const keepNameFileLoader = {
-  loader: 'file-loader',
-  options: { name: '[path][name].[ext]' }
-}
-
-const toJsonFileLoader = {
-  loader: 'to-json-file-loader'
-}
-
 module.exports = function build({ watch }) {
 
   const target = path.resolve(process.cwd(), 'target')
@@ -75,76 +77,31 @@ module.exports = function build({ watch }) {
 
   const srcDir = path.resolve(process.cwd(), 'src')
 
-  const publicDir = path.resolve(srcDir, 'public')
-
-  function createCompiler(entries) {
-    return webpack({
-      entry: entries,
+  // This needs to be a function, if this would be an object things might breack
+  // because webpack stores state in the options object :-(
+  function getOptions() {
+    return {
+      target: 'node',
       output: {
         filename: '[name]',
+        chunkFilename: '[name]-[hash].js',
         path: target,
         publicPath: '/',
-        libraryTarget: 'umd2' //'commonjs2'
+        libraryTarget: 'commonjs2'
       },
-      externals: {
-        react: {
-          commonjs: 'react',
-          commonjs2: 'react',
-          root: 'React'
-        },
-        'react-dom': {
-          commonjs: 'react-dom',
-          commonjs2: 'react-dom',
-          root: 'ReactDOM'
-        },
-        'react-dom/server': {
-          commonjs: 'react-dom/server',
-          commonjs2: 'react-dom/server'
-        }
-      },
+      externals: nodeExternals({ whitelist: ['@kaliber/config', /\.css$/] }),
       resolve: {
-        extensions: ['.js', '.html.js'],
+        extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
-        plugins: [absolutePathResolverPlugin(srcDir)]
+        plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
       },
       resolveLoader: {
-        modules: [path.resolve(__dirname, '../webpack-loaders'), "node_modules"]
+        modules: [path.resolve(__dirname, '../webpack-loaders'), 'node_modules']
       },
       context: srcDir,
       module: {
         // noParse: https://webpack.js.org/configuration/module/#module-noparse
         rules: [{ oneOf: [
-
-          {
-            test: /@kaliber\/config/,
-            loaders: ['config-loader']
-          },
-          {
-            test: [new RegExp('^' + publicDir)],
-            oneOf: [
-              {
-                test: /\.css$/,
-                loaders: [toJsonFileLoader, cssLoader]
-              },
-
-              {
-                test: /\.svg$/,
-                loaders: [
-                  keepNameFileLoader,
-                  imageLoader
-                ]
-              },
-
-              {
-                test: /\.(jpe?g|png|gif)$/,
-                loaders: [keepNameFileLoader, imageLoader, imageSizeLoader]
-              },
-
-              {
-                loaders: [keepNameFileLoader]
-              }
-            ]
-          },
 
           {
             test: /\.json$/,
@@ -153,17 +110,34 @@ module.exports = function build({ watch }) {
 
           {
             test: /\.entry\.css$/,
-            loaders: [toJsonFileLoader, cssLoader]
+            loaders: ['to-json-file-loader', cssLoader]
           },
 
           {
             test: /\.css$/,
-            loaders: ['json-loader', cssLoader]
+            loaders: ['json-loader', cssLoader],
+            exclude: /node_modules/
+          },
+
+          {
+            test: /\.css$/,
+            loaders: ['json-loader', cssLoaderMinifyOnly]
           },
 
           {
             test: /(\.html\.js|\.js)$/,
-            loaders: [babelLoader]
+            loaders: [babelLoader],
+            exclude: /node_modules/
+          },
+
+          {
+            test: /\.js$/
+          },
+
+          {
+            test: /\.svg$/,
+            resourceQuery: /fragment/,
+            loaders: ['fragment-loader']
           },
 
           {
@@ -195,30 +169,51 @@ module.exports = function build({ watch }) {
 
         ]}]
       },
+      // server and compilation process plugins
       plugins: [
-        isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
-        new CaseSensitivePathsPlugin(),
-        watchContextPlugin(),
-        new webpack.DefinePlugin({
-          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
-        }),
-        new webpack.ProvidePlugin({
-          React: 'react',
-          Component: ['react', 'Component']
-        }),
-        sourceMapPlugin(),
-        reactTemplatePlugin(entries),
-        reactUniversalPlugin(),
-        mergeCssPlugin(),
-        watch && hotModuleReplacementPlugin(),
-        fs.existsSync(publicDir) && loadDirectoryPlugin(publicDir)
-      ].filter(Boolean)
-    })
+        targetBasedPluginsPlugin({
+          all: [
+            makeAdditionalEntriesPlugin(),
+            new CaseSensitivePathsPlugin(),
+            new webpack.DefinePlugin({
+              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+            }),
+            new webpack.ProvidePlugin({
+              React: 'react',
+              Component: ['react', 'Component']
+            }),
+            sourceMapPlugin()
+          ].filter(Boolean),
+          node: [
+            configLoaderPlugin(),
+            watchContextPlugin(),
+            reactUniversalPlugin(),        // claims .entry.js
+            templatePlugin(Object.assign({ // does work on .*.js
+              html: '@kaliber/build/lib/html-react-renderer',
+              default: '@kaliber/build/lib/default-renderer'
+            }, templateRenderers)),
+            mergeCssPlugin(),
+            copyUnusedFilesPlugin()
+          ].filter(Boolean),
+          web: [
+            isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
+            watch && hotModuleReplacementPlugin()
+          ].filter(Boolean)
+        })
+      ],
+    }
   }
 
   try {
     if (watch) startWatching(compilationComplete)
     else runOnce(compilationComplete)
+
+    function createCompiler(entries) {
+      const options = getOptions()
+      options.entry = entries
+
+      return webpack(options)
+    }
 
     function compilationComplete(err, stats) {
       if (err) {
@@ -226,13 +221,18 @@ module.exports = function build({ watch }) {
         if (err.details) console.error(err.details)
         return
       }
-
-      console.log(stats.toString({ colors: true }))
+      console.log(stats.toString({
+        colors: true,
+        chunksSort: 'name',
+        assetsSort: 'name',
+        modulesSort: 'name',
+        excludeModules: (name, module) => !module.external
+      }))
     }
 
-    function runOnce() {
+    function runOnce(callback) {
       const compiler = createCompiler(gatherEntries())
-      compiler.run(compilationComplete)
+      compiler.run(callback)
     }
 
     function startWatching(callback) {
@@ -263,9 +263,8 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    return walkSync(srcDir, { globs: ['**/*.html.js', '**/*.entry.js', '**/*.entry.css'] }).reduce(
-      (result, entry) => (
-        result[entry.replace('.html.js', '')] = './' + entry, result),
+    return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
+      (result, entry) => (result[entry] = './' + entry, result),
       {}
     )
   }

@@ -17,6 +17,11 @@
 		"install-library": "../library/"
 	},
 	"dependencies": {
-		"express-basic-auth": "^1.1.1"
+		"express-basic-auth": "^1.1.1",
+		"firebase": "^4.3.1",
+		"firebase-admin": "^5.2.1",
+		"mjml": "^3.3.3",
+		"normalize.css": "^7.0.0",
+		"xml": "^1.0.1"
 	}
 }

@@ -1,30 +1,28 @@
-const { relative, dirname } = require('path')
+const loaderUtils = require('loader-utils')
 const postcss = require('postcss')
+const { relative, dirname } = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const plugins = [
-  // these plugis need to run on each file individual file
-  // look at the source of postcss-modules to see that it effectively runs all modules twice
-  ['postcss-plugin-composition', ({ onImport, onExport, resolve }) => [
-    // postcss-import is advised to be the first
-    require('postcss-import')({ onImport, /* path: rootDirectories, */ glob: true, resolve }),
-    require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
-    require('postcss-modules')({
-      getJSON: (_, json) => { onExport(json) },
-      generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
-    })
-  ]],
-  // these plugins need to run on final result
-  ['../postcss-plugins/postcss-url-replace', ({ onUrl }) => ({ replace: (url, file) => onUrl(url, file) })],
-  ['postcss-cssnext'],
-  isProduction && ['cssnano']
-]
-
-const pluginCreators = plugins.filter(Boolean).map(([name, config]) => {
-  const createPlugin = require(name)
-  return handlers => createPlugin(typeof(config) === 'function' ? config(handlers) : config)
-})
+function createPlugins(minifyOnly, { onExport, resolve, processUrl }) {
+  return [
+    // these plugis need to run on each file individual file
+    // look at the source of postcss-modules to see that it effectively runs all modules twice
+    !minifyOnly && require('../postcss-plugins/postcss-plugin-composition')([
+      // postcss-import is advised to be the first
+      require('postcss-import')({ glob: true, resolve }),
+      require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
+      require('postcss-modules')({
+        getJSON: (_, json) => { onExport(json) },
+        generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
+      })
+    ]),
+    // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
+    !minifyOnly && require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
+    !minifyOnly && require('postcss-cssnext'),
+    isProduction && require('cssnano')({ autoprefixer: false, isSafe: true, /* in 4 this will be the similar (autoprefixer is disabled by default): */ preset: 'default' })
+  ].filter(Boolean)
+}
 
 module.exports = function CssLoader(source, map) {
 
@@ -33,18 +31,18 @@ module.exports = function CssLoader(source, map) {
 
   let exports = {}
   const handlers = {
-    onImport: imports => { imports.forEach(i => self.addDependency(i)) },
     resolve: (id, basedir, importOptions) => resolve(basedir, id),
     onExport: locals  => { exports = locals },
-    onUrl   : (url, file) => {
-      if (isDependency(url)) {
-        return resolve(dirname(file), url)
-          .then(resolved => loadModule(resolved).then(executeModuleAt(resolved)))
-      } else return Promise.resolve(url)
-    }
+    processUrl: (url, file) => isDependency(url)
+      ? resolve(dirname(file), url).then(resolved =>
+          loadModule(resolved).then(executeModuleAt(resolved))
+        )
+      : Promise.resolve(url)
   }
 
-  const plugins = pluginCreators.map(create => create(handlers))
+  const { minifyOnly = false } = loaderUtils.getOptions(this) || {}
+
+  const plugins = createPlugins(minifyOnly, handlers)
   const filename = relative(this.options.context, this.resourcePath)
   const options = {
     from: this.resourcePath,
@@ -54,9 +52,15 @@ module.exports = function CssLoader(source, map) {
 
   const result = postcss(plugins).process(source, options)
   result
-    .then(({ css, map }) => {
+    .then(({ css, map, messages }) => {
       throwErrorForWarnings(result.warnings())
+
+      messages
+        .filter(({ type }) => type === 'dependency')
+        .forEach(x => self.addDependency(x.file))
+
       this.emitFile(filename, css, map.toJSON())
+
       callback(null, exports)
     })
     .catch(e => { callback(e) })
@@ -92,4 +96,4 @@ module.exports = function CssLoader(source, map) {
   }
 }
 
-function isDependency(s) { return !/^data:|^(https?:)?\/\//.test(s) }
+function isDependency(s) { return !/^data:|^(https?:)?\/\/|^#.+/.test(s) }

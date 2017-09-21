@@ -3,6 +3,15 @@
 
 .test {
   color: var(--color-green);
+  z-index: 100000;
+}
+
+.clip {
+  clip-path: url(#myClip);
+}
+
+.clip2 {
+  clip-path: url("./clip.svg#myClip2");
 }
 
 .background {
