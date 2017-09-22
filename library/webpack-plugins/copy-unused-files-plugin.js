@@ -16,6 +16,14 @@ function copyUnusedFilesPlugin() {
 
         const context = compiler.context
 
+        // for stats
+        const chunk = {
+          name: 'unused file',
+          ids: ['_'],
+          files: []
+        }
+        compilation.chunks.push(chunk)
+
         const filesCopied = Promise.all(
           walkSync(context).map(filePath => {
             const source = path.resolve(context, filePath)
@@ -32,6 +40,7 @@ function copyUnusedFilesPlugin() {
                   size: () => stats.size,
                   emitted: false
                 }
+                chunk.files.push(filePath)
 
                 return copy(source, target)
                   .then(_ => { asset.emitted = true })
