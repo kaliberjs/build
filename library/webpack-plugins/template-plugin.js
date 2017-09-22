@@ -82,6 +82,11 @@ function templatePlugin(renderers) {
         compilation.plugin('optimize-assets', (assets, done) => {
           const renders = []
 
+          const chunksByName = compilation.chunks.reduce(
+            (result, chunk) => (result[chunk.name] = chunk, result),
+            {}
+          )
+
           for (const name in assets) {
             const entry = compiler.options.entry[name]
             const renderInfo = getRenderInfo(entry)
@@ -103,7 +108,11 @@ function templatePlugin(renderers) {
                   ? [[srcExt, createDynamicTemplate(outputName, templateExt, createMap)], [templateExt, asset]]
                   : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
                 )
-                .then(files => { files.forEach(([ext, result]) => { assets[outputName + ext] = result }) })
+                .then(files => { files.forEach(([ext, result]) => {
+                  const filename = outputName + ext
+                  if (filename != name) (x => x && x.files.push(filename))(chunksByName[name])
+                  assets[filename] = result
+                }) })
                 .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
             )
           }
