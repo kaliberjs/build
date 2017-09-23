@@ -4,8 +4,6 @@ const path = require('path')
 const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
-// might come in usefull: webpack-clean-obsolete-chunks
-
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
 const hotCssReplacementPlugin = require('../webpack-plugins/hot-css-replacement-plugin')
