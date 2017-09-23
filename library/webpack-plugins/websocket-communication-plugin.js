@@ -1,3 +1,17 @@
+/*
+  This plugin provides a websocket which can be used for communicating from plugins to a running client.
+
+  Plugins can get hold of the `send` method by adding the following hook:
+
+  compiler.plugin('websocket-send-available', send => {
+    ...
+  })
+
+  During code generation, the variable __webpack_websocket_port__ is replaced with the port number at the
+  other end of the `send` method. This allows clients to open a connection to that port and listen to the
+  message from `send`.
+*/
+
 const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const NullFactory = require('webpack/lib/NullFactory')
 const ParserHelpers = require('webpack/lib/ParserHelpers')
@@ -27,8 +41,8 @@ function websocketCommunicationPlugin() {
         freePort.then(found => { port = found }).then(_ => { done() }).catch(done)
       })
 
+      // make sure the __webpack_websocket_port__ is available in modules (code copied from ExtendedApiPlugin)
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
-        // make sure the __webpack_websocket_port__ is available in modules (code copied from ExtendedApiPlugin)
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
         compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
@@ -68,7 +82,6 @@ function findFreePort(retries = 2) {
 }
 
 function startWebSocketServer(port) {
-
   console.log(`WebSocket opened on port ${port}`)
   const wss = new ws.Server({ port })
 

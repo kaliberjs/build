@@ -1,9 +1,16 @@
 /*
   Merges all css assets available for a given chunk, note that importing css in an entry chunk currently does not work.
 
-  The resulting css file will be one of the following:
-  - `x.entry.css` for `x.entry.css`
-  - `x.css` for `x.templateType.js`
+  It will create a css file with a hash (based on the css content) as it's filename.
+
+  This plugin makes the __webpack_css_chunk_hash__ variable available to get the hash of the css that is linked
+  from the current chunk.
+
+  It also adds a 'chunk-css-hash' hook which can be used by plugins to record the css hash of a chunk:
+
+  compilation.plugin('chunk-css-hash', (chunkName, cssHash) => {
+    ...
+  })
 */
 
 const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
@@ -19,8 +26,6 @@ module.exports = function mergeCssPlugin() {
         const chunkCssAssets = {}
 
         // extract css assets
-        // note to self, is it really nescessary to do this in before-module-assets? It could probably be done in 
-        // before-chunk-assets
         compilation.plugin('before-module-assets', () => {
           compilation.chunks.forEach(chunk => {
             const currentChunkCssAssets = []

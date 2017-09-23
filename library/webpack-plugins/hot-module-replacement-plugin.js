@@ -1,12 +1,7 @@
 /*
   Adds the hot module replacement plugin which provides most of the machinery for hot reloading.
 
-  We set the `hotModuleReplacementPort` on the `context` for module loaders, this is picked up
-  by the `react-universal-client-loader` and used as a signal to load the `hot-module-replacement-client`
-  and accept hot reloading for that module.
-
-  We open up a websocket that communicates when a build has finished to the `hot-module-replacement-client`
-  which then instructs the hot module replacement machinery to inject the updated module.
+  The only thing we do is send a message when compilation completes.
 */
 
 const webpack = require('webpack')

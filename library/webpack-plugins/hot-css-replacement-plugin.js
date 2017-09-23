@@ -1,3 +1,8 @@
+/*
+  Adds a hook to the `chunk-css-hash` of the compilation to record the hashes of css chunks. These hases
+  are sent when compilation completes.
+*/
+
 module.exports = function hotCssReplacementPlugin() {
 
   return {
