@@ -11,7 +11,7 @@ yarn add @kaliber/build
 ```
 
 `package.json`:
-```
+```json
 {
   "scripts": {
     "build": "kaliber-build",
@@ -79,12 +79,14 @@ All css files used are combined into `index.css` if the entry was called `index.
 ## Usage (dynamic pages)
 
 `src/index.html.js`
-```
+```jsx
 import head from './partials/head'
 import styles from './index.html.css'
 
 main.routes = {
-  match: (location, req) => Promise.resolve({ status: ..., data: ... })
+  // You can return a non-promise object
+  // default status = 200 and data = null
+  match: (location, req) => Promise.resolve({ status: ..., headers: ..., data: ... })
 }
 
 export default main
@@ -102,9 +104,11 @@ function main(({ location, data })) {
 }
 ```
 
+If you did not know: redirects are one of the [redirect status codes](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) (`3xx`) combined with a `Location` header.
+
 ## Usage (universal rendering)
 
-```
+```jsx
 import head from './partials/head'
 import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
 
@@ -123,7 +127,7 @@ Note that universal rendering will change the html structure slightly (wrap an e
 
 ## Usage with environment-specific configuration
 
-```
+```jsx
 import config from '@kaliber/config' // import environment-specific configuration
 import head from './partials/head'
 import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
@@ -141,7 +145,7 @@ export default (
 ❗ The key `kaliber` is deleted from the `config` by a special loader as it is reserved to store configuration for the build and serve code.
 
 If you need the configuration in a client component, pass it in using the props:
-```
+```jsx
   <Test prop='value' configForClient={config.client} />
 ```
 ❗ Never pass the whole configuration to the client; it will be rendered in the html and may contain secrets.
@@ -152,7 +156,7 @@ You could use [React context](https://facebook.github.io/react/docs/context.html
 
 Dynamic imports are only compiled for the web, so make sure they are in the 'web part' of your React components (`componentDidMount`). If you have a use case that requires dynamic imports to work on the server side as well, raise an issue with your use-case. Example:
 
-```
+```jsx
 componentDidMount() {
   import('./dynamicImportTestFunction')
     .then(({ default: test }) => console.log('import?', test()))
