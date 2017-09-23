@@ -4,8 +4,11 @@ const path = require('path')
 const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
+// might come in usefull: webpack-clean-obsolete-chunks
+
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
+const hotCssReplacementPlugin = require('../webpack-plugins/hot-css-replacement-plugin')
 const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
 const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
@@ -14,11 +17,13 @@ const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
+const websocketCommunicationPlugin = require('../webpack-plugins/websocket-communication-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
 
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
+const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -89,7 +94,7 @@ module.exports = function build({ watch }) {
         publicPath: '/',
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', /\.css$/] }),
+      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/stylesheet/, /\.css$/] }),
       resolve: {
         extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
@@ -125,9 +130,11 @@ module.exports = function build({ watch }) {
           },
 
           {
-            test: /(\.html\.js|\.js)$/,
+            resource: {
+              test: /(\.html\.js|\.js)$/,
+              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/],
+            },
             loaders: [babelLoader],
-            exclude: /node_modules/
           },
 
           {
@@ -173,6 +180,7 @@ module.exports = function build({ watch }) {
       plugins: [
         targetBasedPluginsPlugin({
           all: [
+            watch && websocketCommunicationPlugin(),
             makeAdditionalEntriesPlugin(),
             new CaseSensitivePathsPlugin(),
             new webpack.DefinePlugin({
@@ -182,9 +190,10 @@ module.exports = function build({ watch }) {
               React: 'react',
               Component: ['react', 'Component']
             }),
-            sourceMapPlugin()
+            sourceMapPlugin(),
           ].filter(Boolean),
           node: [
+            watch && new ExtendedAPIPlugin(),
             configLoaderPlugin(),
             watchContextPlugin(),
             reactUniversalPlugin(),        // claims .entry.js
@@ -193,7 +202,8 @@ module.exports = function build({ watch }) {
               default: '@kaliber/build/lib/default-renderer'
             }, templateRenderers)),
             mergeCssPlugin(),
-            copyUnusedFilesPlugin()
+            copyUnusedFilesPlugin(),
+            watch && hotCssReplacementPlugin()
           ].filter(Boolean),
           web: [
             isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
