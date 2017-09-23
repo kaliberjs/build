@@ -117,7 +117,7 @@ export default (
   </html>
 )
 ```
-❗ A component that is imported with `?universal` should not be passed children (see [#48](/kaliberjs/build/issues/48))
+❗ A component that is imported with `?universal` should not be passed children (see [#48](https://github.com/kaliberjs/build/issues/48))
 
 Note that universal rendering will change the html structure slightly (wrap an extra `div`), this can probably be changed when React 16 is released with array support.
 
