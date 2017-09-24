@@ -18,7 +18,7 @@ module.exports = function hotCssReplacementPlugin() {
           cssChunkHashes[chunkName] = cssHash
         })
       })
-      compiler.plugin('done', stats => { console.log(stats); send({ type: 'done', hash: stats.hash, cssChunkHashes }) })
+      compiler.plugin('done', stats => { send({ type: 'done', hash: stats.hash, cssChunkHashes }) })
       compiler.plugin('failed', err => { send({ type: 'failed' }) })
     }
   }
