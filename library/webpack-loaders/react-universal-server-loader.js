@@ -25,7 +25,10 @@ function createServerCode({ importPath, scriptSrc, id }) {
        |\` }} />`.split(/^[ \t]*\|/m).join('')
 
   return `|import Component from './${importPath}'
+          |import assignStatics from 'hoist-non-react-statics'
           |import { renderToString } from 'react-dom/server'
+          |
+          |assignStatics(WrapWithScript, Component)
           |
           |export default function WrapWithScript(props) {
           |  const content = renderToString(<Component id='${id}' {...props} />)

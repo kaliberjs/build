@@ -19,7 +19,6 @@ main.routes = {
 }
 
 function getMessage() {
-
   return getApp().database().ref('read-only').child('message').once('value').then(snap => snap.val())
 
   function getApp() {
@@ -57,6 +56,9 @@ function main ({ location, data }) {
         </p>
         <span className={styles.test}>Something</span>
         <Test soep='kip' initialMessage={ data.message } clientConfig={config.client} />
+
+        Test static message, wrapped with universal wrapper: "{Test.message}"
+        <br /><br />
         <div className={styles.multipleBackground}>multiple backgrounds</div>
         <div className={styles.svgBackground}>svg background</div>
         <img src={publicSvg} /> public svg ({publicSvg})
