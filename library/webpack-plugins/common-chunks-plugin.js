@@ -40,10 +40,11 @@ function commonChunksPlugin() {
           Object.keys(newChunks).forEach(chunkName => {
 
             const newChunk = compilation.addChunk(chunkName)
-            newChunk.filenameTemplate = '[hash].js'
+            newChunk.filenameTemplate = '[id].[hash].js'
 
             const { chunks, modules } = newChunks[chunkName]
 
+            // move the modules
             modules.forEach(module => {
 
               // remove module from old chunks
@@ -52,17 +53,19 @@ function commonChunksPlugin() {
               // add module to new chunk
               newChunk.addModule(module)
               module.addChunk(newChunk)
+            })
 
-              // connect old and new chunks
-              chunks.forEach(chunk => {
-                const parents = chunk.parents || []
-                parents.push(newChunk)
-                newChunk.addChunk(chunk)
+            // connect old and new chunks
+            chunks.forEach(chunk => {
+              const parents = chunk.parents || []
+              parents.push(newChunk)
+              newChunk.addChunk(chunk)
 
-                chunk.entrypoints.forEach(entrypoint => { entrypoint.insertChunk(newChunk, chunk) })
-              })
+              chunk.entrypoints.forEach(entrypoint => { entrypoint.insertChunk(newChunk, chunk) })
             })
           })
+
+          return false
         })
       })
     }
