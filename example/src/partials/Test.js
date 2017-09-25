@@ -7,6 +7,8 @@ const extra = { x: 'x' }
 
 export default class Test extends Component {
 
+  static message = 'Works!'
+
   state = {
     counter: 0,
     asyncValue: null,
