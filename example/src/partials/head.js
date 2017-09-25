@@ -5,7 +5,7 @@ import stylesheet from '@kaliber/build/lib/stylesheet'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-export default function(title) {
+export default function (title) {
   return (
     <head>
       <title>{title}</title>

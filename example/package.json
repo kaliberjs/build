@@ -6,7 +6,8 @@
 		"serve:dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
 		"//": "only needed for library development",
 		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
-		"watch-library": "npm-watch"
+		"watch-library": "npm-watch",
+		"test": "eslint -c .eslintrc src config"
 	},
 	"//": "only needed for library development",
 	"devDependencies": {

@@ -1,0 +1,18 @@
+{
+  "parser": "babel-eslint",
+  "extends": ["standard", "standard-react"],
+  "rules" : {
+    "no-multi-spaces": 0,
+    "no-sequences": 0,
+    "object-property-newline": 0,
+    "padded-blocks": 0,
+    "prefer-promise-reject-errors": 0,
+    "react/jsx-no-bind": 0,
+    "react/no-unused-prop-types": 0,
+    "react/react-in-jsx-scope": 0
+  },
+  "globals" : {
+    "Component": true,
+    "React": true
+  }
+}
