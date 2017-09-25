@@ -1,5 +1,9 @@
 module.exports = commonChunksPlugin
 
+// we should probably exclude entry.js stuff
+// on the other hand we have no production use cases (I think) for entries. I am unsure if they will be
+// combined with normal usage. And if there are multiple entries sharing the same modules, I'm sure we
+// would want to extract the commons from them as well.
 function commonChunksPlugin() {
 
   return {

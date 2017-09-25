@@ -1,5 +1,8 @@
 const Compiler = require('webpack/lib/Compiler')
+const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
+const NullFactory = require('webpack/lib/NullFactory')
+const ParserHelpers = require('webpack/lib/ParserHelpers')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { relative } = require('path')
@@ -113,6 +116,45 @@ module.exports = function reactUniversalPlugin () {
 
           done()
         }
+      })
+
+      // make sure the __webpack_js_client_chunk_hashes__ is available in modules (code copied from ExtendedApiPlugin)
+      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
+        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
+        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
+
+          // find univeral modules in the current chunk (client chunk names)
+          const clientChunkNames = chunk.getModules()
+            .filter(x => x.resource && x.resource.endsWith('?universal'))
+            .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
+
+          // grab their hashes (uniquely)
+          const jsClientChunkHashes = compilation.children.reduce(
+            (result, compilation) => {
+              clientChunkNames.forEach(clientChunkName => {
+                const childChunk = compilation.chunks.find(childChunk => childChunk.name === clientChunkName)
+                if (childChunk)
+                  childChunk.parents.forEach(parent => { result[parent.id + '.' + compilation.hash] = true })
+              })
+              return result
+            },
+            {}
+          )
+
+          const buf = [
+            source,
+            '',
+            '// __webpack_js_client_chunk_hashes__',
+            `${this.requireFn}.jcch = ${JSON.stringify(Object.keys(jsClientChunkHashes))};`
+          ]
+          return this.asString(buf)
+        })
+        compilation.mainTemplate.plugin('global-hash', () => true)
+        normalModuleFactory.plugin('parser', (parser, parserOptions) => {
+          parser.plugin(`expression __webpack_js_client_chunk_hashes__`, ParserHelpers.toConstantDependency('__webpack_require__.jcch'))
+          parser.plugin(`evaluate typeof __webpack_js_client_chunk_hashes__`, ParserHelpers.evaluateToString('array'))
+        })
       })
     }
   }
