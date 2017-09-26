@@ -1,5 +1,10 @@
 **This package is not ready for public consumption**
 
+Breaking changes:
+
+- v0.0.35 - Stylesheets are now hashes, they require an additional import to load
+
+
 # Kaliber.js build
 
 An opinionated zero configuration build stack with React, PostCSS, Babel and Webpack as major ingredients.
