@@ -17,14 +17,8 @@ function hotCssReplacementClient(port, cssHash, chunkName) {
     switch (type) {
       case 'done':
         const cssHash = cssChunkHashes[chunkName]
-        if (!cssHash || previousCssHash === cssHash) return
-        document.querySelectorAll(`link[rel="stylesheet"]`).forEach(el => {
-          const href = el.getAttribute('href')
-          if (!href.startsWith('http')) {
-            const replacement = href.replace(previousCssHash, cssHash)
-            el.setAttribute('href', replacement)
-          }
-        })
+        if (!cssHash || (previousCssHash === cssHash)) return
+        document.querySelector(`link[href="/${previousCssHash}.css"]`).setAttribute('href', `/${cssHash}.css`)
         previousCssHash = cssHash
         break;
       case 'failed':
