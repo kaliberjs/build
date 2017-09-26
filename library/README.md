@@ -34,6 +34,7 @@ yarn add @kaliber/build
 - Template system
 - Copying of 'unused' files (❗ Do not put sensitive information in your `src` directory)
 - Dynamic imports
+- Hot css replacement support
 
 ## Conventions
 
@@ -74,7 +75,15 @@ export default (
   </html>
 )
 ```
-All css files used are combined into `index.css` if the entry was called `index.html.js`.
+All css files used are combined into `{hash}.css`, you load them using the `stylesheet` library:
+
+```jsx
+import stylesheet from '@kaliber/build/lib/stylesheet'
+
+<head>
+  { stylesheet }
+</head>
+```
 
 ## Usage (dynamic pages)
 
