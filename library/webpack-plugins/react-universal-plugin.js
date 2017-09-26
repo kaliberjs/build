@@ -134,19 +134,28 @@ module.exports = function reactUniversalPlugin () {
             (result, compilation) => {
               clientChunkNames.forEach(clientChunkName => {
                 const childChunk = compilation.chunks.find(childChunk => childChunk.name === clientChunkName)
-                if (childChunk)
-                  childChunk.parents.forEach(parent => { result[parent.id + '.' + compilation.hash] = true })
+                if (childChunk) childChunk.parents.forEach(inspectParent)
               })
+
+              function inspectParent(parent) {
+                const hash = parent.id + '.' + compilation.hash
+                if (!result.includes(hash)) {
+                  if (parent.hasRuntime()) result.unshift(hash)
+                  else result.push(hash)
+                }
+                parent.parents.forEach(inspectParent)
+              }
+
               return result
             },
-            {}
+            []
           )
 
           const buf = [
             source,
             '',
             '// __webpack_js_client_chunk_hashes__',
-            `${this.requireFn}.jcch = ${JSON.stringify(Object.keys(jsClientChunkHashes))};`
+            `${this.requireFn}.jcch = ${JSON.stringify(jsClientChunkHashes)};`
           ]
           return this.asString(buf)
         })

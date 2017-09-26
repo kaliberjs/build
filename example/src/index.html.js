@@ -7,6 +7,7 @@ import publicSvg from 'public/public.svg'
 import config from '@kaliber/config'
 import firebase from 'firebase-admin'
 import bg1 from './bg1.jpg'
+import SharedComponent from '/partials/SharedComponent?universal'
 
 main.routes = {
   match: ({ pathname }, request) => pathname === '/'
@@ -54,6 +55,7 @@ function main ({ location, data }) {
           <br />
           message: { data.message }
         </p>
+        <SharedComponent />
         <span className={styles.test}>Something</span>
         <Test soep='kip' initialMessage={ data.message } clientConfig={config.client} />
 

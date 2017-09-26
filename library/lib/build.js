@@ -93,7 +93,7 @@ module.exports = function build({ watch }) {
         publicPath: '/',
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/stylesheet/, /\.css$/] }),
+      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/(stylesheet|javascript)/, /\.css$/] }),
       resolve: {
         extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
@@ -131,7 +131,7 @@ module.exports = function build({ watch }) {
           {
             resource: {
               test: /(\.html\.js|\.js)$/,
-              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/],
+              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/(stylesheet|javascript)\.js$/],
             },
             loaders: [babelLoader],
           },

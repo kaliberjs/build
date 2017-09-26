@@ -12,20 +12,17 @@ function ReactUniversalServerLoader(source, map) {
 
 function createServerCode({ importPath, scriptSrc, id }) {
   const appScript = isProduction
-    ? `scriptSrcs => scriptSrcs.map(scriptSrc => <script defer key={scriptSrc} src={'/' + scriptSrc + '?v=${Date.now()}' }></script>)`
-    : `|scriptSrcs => (<script dangerouslySetInnerHTML={{ __html: \`
+    ? `<script defer src={'/${scriptSrc}?v=${Date.now()}' }></script>`
+    : `|<script dangerouslySetInnerHTML={{ __html: \`
        |(function () {
        |  window.addEventListener('load', () => {
-       |    \${JSON.stringify(scriptSrcs)}.map(scriptSrc => {
-       |      const script = document.createElement('script')
-       |      script.src = '/' + scriptSrc + '?v=' + Date.now()
-       |      script.async = false
-       |      //script.setAttribute('defer', '')
-       |      document.body.appendChild(script)
-       |    })
+       |    const script = document.createElement('script')
+       |    script.src = '/${scriptSrc}?v=' + Date.now()
+       |    script.async = false // https://www.html5rocks.com/en/tutorials/speed/script-loading/
+       |    document.body.appendChild(script)
        |  })
        |}())
-       |\` }} />)`.split(/^[ \t]*\|/m).join('')
+       |\` }} />`.split(/^[ \t]*\|/m).join('')
 
   return `|import Component from './${importPath}'
           |import assignStatics from 'hoist-non-react-statics'
@@ -38,7 +35,7 @@ function createServerCode({ importPath, scriptSrc, id }) {
           |  return (
           |    <div>
           |      <div id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }}></div>
-          |      { (${appScript})(__webpack_js_client_chunk_hashes__.map(x => x + '.js').concat('${scriptSrc}')) }
+          |      ${appScript}
           |    </div>
           |  )
           |}

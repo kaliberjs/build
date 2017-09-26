@@ -40,8 +40,14 @@ function commonChunksPlugin() {
             {}
           )
 
+          const newChunkNames = Object.keys(newChunks)
+
+          const masterChunk = newChunkNames.length
+            ? (x => (x.filenameTemplate = '[id].[hash].js', x))(compilation.addChunk('common runtime'))
+            : null
+
           // create the new chunks
-          Object.keys(newChunks).forEach(chunkName => {
+          newChunkNames.forEach(chunkName => {
 
             const newChunk = compilation.addChunk(chunkName)
             newChunk.filenameTemplate = '[id].[hash].js'
@@ -61,12 +67,15 @@ function commonChunksPlugin() {
 
             // connect old and new chunks
             chunks.forEach(chunk => {
-              const parents = chunk.parents || []
-              parents.push(newChunk)
+              chunk.parents.push(newChunk)
               newChunk.addChunk(chunk)
 
               chunk.entrypoints.forEach(entrypoint => { entrypoint.insertChunk(newChunk, chunk) })
             })
+
+            newChunk.parents.push(masterChunk)
+            masterChunk.addChunk(newChunk)
+            newChunk.entrypoints.forEach(entrypoint => { entrypoint.insertChunk(masterChunk, newChunk) })
           })
 
           return false
