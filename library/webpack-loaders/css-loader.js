@@ -61,6 +61,8 @@ module.exports = function CssLoader(source, map) {
 
       this.emitFile(filename, css, map.toJSON())
 
+      exports.cssHash = require('crypto').createHash('md5').update(css).digest('hex')
+
       callback(null, exports)
     })
     .catch(e => { callback(e) })
