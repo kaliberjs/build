@@ -2,6 +2,9 @@
 	"version": "0.0.37",
 	"name": "@kaliber/build",
 	"description": "Zero configuration, opinionated webpack / react build setup",
+	"scripts": {
+		"lint": "eslint -c .eslintrc ."
+	},
 	"bin": {
 		"kaliber-build": "bin/build.js",
 		"kaliber-watch": "bin/watch.js",
