@@ -33,7 +33,7 @@ const { createDependency } = require('webpack/lib/SingleEntryPlugin')
 
 module.exports = makeAdditionalEntries
 
-function makeAdditionalEntries() {
+function makeAdditionalEntries () {
   return {
     apply: compiler => {
 
@@ -44,7 +44,7 @@ function makeAdditionalEntries() {
         to claim certain entries, any leftover entries are added using this plugin
       */
       compiler.plugin('entry-option', (context, entries) => {
-        if(typeof entries === 'object' && !Array.isArray(entries)) {
+        if (typeof entries === 'object' && !Array.isArray(entries)) {
           const originalEntries = Object.assign({}, entries)
           Object.assign(entriesToMake, compiler.applyPluginsWaterfall('claim-entries', originalEntries))
           return true
@@ -68,7 +68,7 @@ function makeAdditionalEntries() {
           .then(_ => { done() })
           .catch(e => { done(e) })
 
-        function makeAdditionalEntries() {
+        function makeAdditionalEntries () {
           return new Promise((resolve, reject) => {
             compiler.applyPluginsAsyncSeries(
               'make-additional-entries',
@@ -79,11 +79,11 @@ function makeAdditionalEntries() {
           })
         }
 
-        function addEntries(entries) {
+        function addEntries (entries) {
           return Promise.all(Object.keys(entries).map(name => addEntry(name, entries[name])))
         }
 
-        function addEntry(name, path) {
+        function addEntry (name, path) {
           return new Promise((resolve, reject) => {
             const entry = createDependency(path, name)
             compilation.addEntry(compiler.context, entry, entry.loc, err => err ? reject(err) : resolve())

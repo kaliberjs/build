@@ -6,7 +6,7 @@
 const { RawSource, ConcatSource } = require('webpack-sources')
 const path = require('path')
 
-module.exports = function sourceMapPlugin() {
+module.exports = function sourceMapPlugin () {
   return {
     apply: compiler => {
       compiler.plugin('compilation', compilation => {

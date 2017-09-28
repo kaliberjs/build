@@ -19,7 +19,7 @@ const ParserHelpers = require('webpack/lib/ParserHelpers')
 const crypto = require('crypto')
 const { ConcatSource, RawSource } = require('webpack-sources')
 
-module.exports = function mergeCssPlugin() {
+module.exports = function mergeCssPlugin () {
   return {
     apply: compiler => {
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
@@ -64,8 +64,8 @@ module.exports = function mergeCssPlugin() {
         // make sure the __webpack_css_chunk_hash__ is available in modules (code copied from ExtendedApiPlugin)
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
-          const cssHash = (x => x && x.cssHash || 'no_css_files_in_chunk')(chunkCssAssets[chunk.name])
+        compilation.mainTemplate.plugin('require-extensions', function (source, chunk, hash) {
+          const cssHash = (x => (x && x.cssHash) || 'no_css_files_in_chunk')(chunkCssAssets[chunk.name])
           const buf = [
             source,
             '',
@@ -84,20 +84,23 @@ module.exports = function mergeCssPlugin() {
         compilation.plugin('additional-chunk-assets', (chunks) => {
 
           const chunksByName = chunks.reduce(
-            (result, chunk) => (result[chunk.name] = chunk, result),
+            (result, chunk) => {
+              result[chunk.name] = chunk
+              return result
+            },
             {}
           )
 
           Object.keys(chunkCssAssets).forEach(chunkName => {
             const { cssAssets, cssHash } = chunkCssAssets[chunkName]
             if (cssAssets.length) {
-              const templatePattern = /\.([^\./]+)\.css$/
+              const templatePattern = /\.([^./]+)\.css$/
               const [, type] = templatePattern.exec(chunkName) || []
 
               const newChunkName = type === 'entry' ? chunkName : cssHash
 
               const chunkCssName = newChunkName + (newChunkName.endsWith('.css') ? '' : '.css')
-              if (chunkName != chunkCssName) (x => x && x.files.push(chunkCssName))(chunksByName[chunkName])
+              if (chunkName !== chunkCssName) (x => x && x.files.push(chunkCssName))(chunksByName[chunkName])
               compilation.assets[chunkCssName] = new ConcatSource(...cssAssets.map(createValidSource))
             }
           })
@@ -107,7 +110,7 @@ module.exports = function mergeCssPlugin() {
   }
 }
 
-function createValidSource(source) {
+function createValidSource (source) {
   // https://github.com/webpack/webpack-sources/issues/26
   return source instanceof RawSource
     ? new RawSource(source.source().toString())

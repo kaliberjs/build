@@ -2,6 +2,7 @@
   "parser": "babel-eslint",
   "extends": ["standard", "standard-react"],
   "rules" : {
+    "camelcase": 0,
     "no-multi-spaces": 0,
     "no-sequences": 0,
     "object-property-newline": 0,

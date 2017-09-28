@@ -8,7 +8,7 @@ const walkSync = require('walk-sync')
 
 module.exports = copyUnusedFilesPlugin
 
-function copyUnusedFilesPlugin() {
+function copyUnusedFilesPlugin () {
   return {
     apply: compiler => {
 
@@ -54,14 +54,14 @@ function copyUnusedFilesPlugin() {
   }
 }
 
-function copy(source, target) {
+function copy (source, target) {
   return new Promise((resolve, reject) => {
     fs.copy(source, target, err => { err ? reject(err) : resolve() })
   })
 }
 
-function stat(filePath) {
+function stat (filePath) {
   return new Promise((resolve, reject) => {
-    fs.stat(filePath, (err, stats) => { err ? reject(er) : resolve(stats) })
+    fs.stat(filePath, (err, stats) => { err ? reject(err) : resolve(stats) })
   })
 }

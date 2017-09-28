@@ -73,7 +73,7 @@ const imageSizeLoader = {
   options: { useImageMagick: true }
 }
 
-module.exports = function build({ watch }) {
+module.exports = function build ({ watch }) {
 
   const target = path.resolve(process.cwd(), 'target')
   fs.removeSync(target)
@@ -82,7 +82,7 @@ module.exports = function build({ watch }) {
 
   // This needs to be a function, if this would be an object things might breack
   // because webpack stores state in the options object :-(
-  function getOptions() {
+  function getOptions () {
     return {
       target: 'node',
       output: {
@@ -130,7 +130,7 @@ module.exports = function build({ watch }) {
           {
             resource: {
               test: /(\.html\.js|\.js)$/,
-              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/],
+              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/]
             },
             loaders: [babelLoader]
           },
@@ -188,7 +188,7 @@ module.exports = function build({ watch }) {
               React: 'react',
               Component: ['react', 'Component']
             }),
-            sourceMapPlugin(),
+            sourceMapPlugin()
           ].filter(Boolean),
           node: [
             watch && new ExtendedAPIPlugin(),
@@ -208,71 +208,74 @@ module.exports = function build({ watch }) {
             watch && hotModuleReplacementPlugin()
           ].filter(Boolean)
         })
-      ],
+      ]
     }
   }
 
   try {
     if (watch) startWatching(compilationComplete)
     else runOnce(compilationComplete)
-
-    function createCompiler(entries) {
-      const options = getOptions()
-      options.entry = entries
-
-      return webpack(options)
-    }
-
-    function compilationComplete(err, stats) {
-      if (err) {
-        console.error(err.stack || err)
-        if (err.details) console.error(err.details)
-        return
-      }
-      console.log(stats.toString({
-        colors: true,
-        chunksSort: 'name',
-        assetsSort: 'name',
-        modulesSort: 'name',
-        excludeModules: (name, module) => !module.external
-      }))
-    }
-
-    function runOnce(callback) {
-      const compiler = createCompiler(gatherEntries())
-      compiler.run(callback)
-    }
-
-    function startWatching(callback) {
-      let watching
-      let entries
-      start(gatherEntries())
-
-      function start(newEntries) {
-        entries = newEntries
-        const compiler = createCompiler(entries)
-        watching = compiler.watch({}, onWatchTriggered)
-      }
-
-      function onWatchTriggered(err, stats) {
-        callback(err, stats)
-
-        const newEntries = gatherEntries()
-        const [oldKeys, newKeys] = [Object.keys(entries), Object.keys(newEntries)]
-        const entriesChanged = !oldKeys.every(x => newKeys.includes(x)) || !newKeys.every(x => oldKeys.includes(x))
-
-        if (entriesChanged) {
-          console.log('Entries changed, restarting watch')
-          watching.close(() => { start(newEntries) })
-        }
-        console.log('\nWaiting for file changes...\n')
-      }
-    }
   } catch (e) { console.error(e.message) }
 
-  function gatherEntries() {
+  function createCompiler (entries) {
+    const options = getOptions()
+    options.entry = entries
+
+    return webpack(options)
+  }
+
+  function compilationComplete (err, stats) {
+    if (err) {
+      console.error(err.stack || err)
+      if (err.details) console.error(err.details)
+      return
+    }
+    console.log(stats.toString({
+      colors: true,
+      chunksSort: 'name',
+      assetsSort: 'name',
+      modulesSort: 'name',
+      excludeModules: (name, module) => !module.external
+    }))
+  }
+
+  function runOnce (callback) {
+    const compiler = createCompiler(gatherEntries())
+    compiler.run(callback)
+  }
+
+  function startWatching (callback) {
+    let watching
+    let entries
+    start(gatherEntries())
+
+    function start (newEntries) {
+      entries = newEntries
+      const compiler = createCompiler(entries)
+      watching = compiler.watch({}, onWatchTriggered)
+    }
+
+    function onWatchTriggered (err, stats) {
+      callback(err, stats)
+
+      const newEntries = gatherEntries()
+      const [oldKeys, newKeys] = [Object.keys(entries), Object.keys(newEntries)]
+      const entriesChanged = !oldKeys.every(x => newKeys.includes(x)) || !newKeys.every(x => oldKeys.includes(x))
+
+      if (entriesChanged) {
+        console.log('Entries changed, restarting watch')
+        watching.close(() => { start(newEntries) })
+      }
+      console.log('\nWaiting for file changes...\n')
+    }
+  }
+
+  function gatherEntries () {
     return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
-      (result, entry) => (result[entry] = './' + entry, result),
+      (result, entry) => {
+        result[entry] = './' + entry
+        return result
+      },
       {}
     )
   }

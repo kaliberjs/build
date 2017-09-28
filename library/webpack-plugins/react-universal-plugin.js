@@ -99,7 +99,7 @@ module.exports = function reactUniversalPlugin () {
           })
         })
 
-        function finish(err, compilation) {
+        function finish (err, compilation) {
           if (err) {
             webCompiler.applyPlugins('failed', err)
             return done(err)
@@ -118,7 +118,7 @@ module.exports = function reactUniversalPlugin () {
   }
 }
 
-function createWebCompiler(compiler, getEntries) {
+function createWebCompiler (compiler, getEntries) {
 
   // Massage the options to become a web configuration
   const options = Object.assign({}, compiler.options)
@@ -131,8 +131,8 @@ function createWebCompiler(compiler, getEntries) {
   options.output.libraryTarget = 'var'
 
   options.resolve = Object.assign({}, options.resolve)
-  options.resolve.aliasFields = ["browser"]
-  options.resolve.mainFields = ["browser", "module", "main"]
+  options.resolve.aliasFields = ['browser']
+  options.resolve.mainFields = ['browser', 'module', 'main']
 
   const webCompiler = createCompiler(compiler, options)
 
@@ -147,11 +147,9 @@ function createWebCompiler(compiler, getEntries) {
     normalModuleFactory.plugin('after-resolve', (data, done) => {
       const { loaders, rawRequest, resourceResolveData: { query } } = data
 
-      if (query === '?universal-client')
-        loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
+      if (query === '?universal-client') { loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') }) }
 
-      if (rawRequest === '@kaliber/config')
-        return done('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
+      if (rawRequest === '@kaliber/config') { return done('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------') }
 
       done(null, data)
     })
@@ -164,11 +162,11 @@ function createWebCompiler(compiler, getEntries) {
       const chunkFiles = {}
       chunks.forEach(({ files }) => { files.forEach(file => { chunkFiles[file] = true }) })
       Object.keys(compilation.assets).forEach(assetName => {
-          if (!chunkFiles[assetName] && !assetName.includes('hot-update')) {
-            removedAssets.push(assetName)
-            delete compilation.assets[assetName]
-          }
-        })
+        if (!chunkFiles[assetName] && !assetName.includes('hot-update')) {
+          removedAssets.push(assetName)
+          delete compilation.assets[assetName]
+        }
+      })
     })
   })
 
@@ -183,7 +181,7 @@ function createWebCompiler(compiler, getEntries) {
   return webCompiler
 }
 
-function createCompiler(compiler, options) {
+function createCompiler (compiler, options) {
   const childCompiler = new Compiler()
 
   /* from webpack.js */

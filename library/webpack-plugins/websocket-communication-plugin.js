@@ -20,14 +20,14 @@ const ws = require('ws')
 
 module.exports = websocketCommunicationPlugin
 
-function websocketCommunicationPlugin() {
+function websocketCommunicationPlugin () {
 
   return {
     apply: compiler => {
       const freePort = findFreePort()
       const webSocketServer = freePort.then(startWebSocketServer)
 
-      function send(message) { webSocketServer.then(wss => wss.send(message)) }
+      function send (message) { webSocketServer.then(wss => wss.send(message)) }
 
       let port
 
@@ -45,7 +45,7 @@ function websocketCommunicationPlugin() {
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
+        compilation.mainTemplate.plugin('require-extensions', function (source, chunk, hash) {
           const buf = [
             source,
             '',
@@ -64,7 +64,7 @@ function websocketCommunicationPlugin() {
   }
 }
 
-function findFreePort(retries = 2) {
+function findFreePort (retries = 2) {
   return new Promise((resolve, reject) => {
     const server = net.createServer()
     let port
@@ -81,7 +81,7 @@ function findFreePort(retries = 2) {
   )
 }
 
-function startWebSocketServer(port) {
+function startWebSocketServer (port) {
   console.log(`WebSocket opened on port ${port}`)
   const wss = new ws.Server({ port })
 

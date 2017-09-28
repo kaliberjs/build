@@ -74,7 +74,7 @@ function serveIndex (req, res, next) {
   const location = parsePath(req.url)
 
   return Promise.resolve(routes)
-    .then(routes => routes && routes.match(location, req) || { status: 200, data: null })
+    .then(routes => (routes && routes.match(location, req)) || { status: 200, data: null })
     .then(({ status, headers, data }) =>
       Promise.resolve(template({ location, data })).then(html => [status, headers, html])
     )
