@@ -117,86 +117,188 @@ function commonChunksPlugin() {
 
         compilation.plugin('optimize-chunks', chunks => {
 
-          // determine the usage of modules
-          const moduleUsage = chunks.reduce(
-            (result, chunk) => chunk.getModules().reduce(
-              (result, module) => {
-                const chunks = result.get(module) || []
-                chunks.push(chunk)
+          const moduleUsage = determineModuleUsage(chunks)
+          /*
+            moduleUsage = Map(
+              [module]: [chunk1, ..., chunkN]
+            )
+          */
 
-                return result.set(module, chunks)
-              },
-              result
-            ),
-            new Map()
-          )
+          const newChunkInfo = determineNewChunks(moduleUsage)
+          /*
+            newChunkInfo = {
+              'newChunkName': {
+                chunks: [chunk1, ..., chunkN],
+                modules: [module1, ..., moduleN]
+              }
+            }
+          */
 
-          // determine the chunks we need to make
-          const newChunkInfo = Array.from(moduleUsage.entries()).reduce(
-            (result, [module, chunks]) => {
-              if (chunks.length === 1) return result
+          const newChunks = addChunks(compilation, Object.keys(newChunkInfo))
 
-              const newChunk = 'commons (' + chunks.map(chunk => chunk.name).join(', ') + ')'
+          newChunk.forEach(newChunk => {
 
-              const { modules } = result[newChunk] || (result[newChunk] = { chunks, modules: [] })
-              modules.push(module)
-              return result
-            },
-            {}
-          )
+            const { chunks, modules } = newChunkInfo[newChunk.name]
 
-          // create the new chunks
-          const newChunks = Object.keys(newChunkInfo).map(newChunkName => {
+            moveModules(modules, { sources: chunks, target: newChunk })
 
-            const newChunk = compilation.addChunk(newChunkName)
-            newChunk.filenameTemplate = '[id].[hash].js'
-            newChunk.entrypoints = [{ chunks: [] }] // no runtime in this chunk
+            createHierarchy({ parent: newChunk, children: chunks })
 
-            const { chunks, modules } = newChunkInfo[newChunkName]
-
-            // move the modules
-            modules.forEach(module => {
-
-              // remove module from old chunks
-              chunks.forEach(chunk => { chunk.removeModule(module) })
-
-              // add module to new chunk
-              newChunk.addModule(module)
-              module.addChunk(newChunk)
-            })
-
-            // connect old and new chunks
-            chunks.forEach(chunk => {
-              chunk.addParent(newChunk)
-              newChunk.addChunk(chunk)
-
-              chunk.entrypoints.forEach(entrypoint => {
-                entrypoint.chunks.length = 0 // prevent the chunk from including a runtime
-              })
-            })
-
-            return newChunk
+            removeRuntimes(chunks)
           })
 
-          // attach the new chunks as children to the masterChunk and make sure the masterChunk has a runtime
-          if (newChunks.length) {
+          if (newChunks.length) addRuntimes(compilation, newChunks)
 
-            // so we will change this with some smart algorithm to determine which chunks
-            // need a runtime, for now it's good enough to introduce a single chunk with a runtime
-
-            const masterChunk = compilation.addChunk('common runtime')
-            masterChunk.filenameTemplate = '[id].[hash].js'
-            masterChunk.entrypoints = [{ chunks: [masterChunk] }] // this chunk has a runtime
-
-            newChunks.forEach(newChunk => {
-              newChunk.addParent(masterChunk)
-              masterChunk.addChunk(newChunk)
-            })
-          }
+          // we could use this instead of the `addRuntimes` function
+          // const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
+          // createHierarchy({ parent: runtimeChunk, children: newChunks })
 
           return false
         })
       })
     }
   }
+}
+
+function determineModuleUsage(chunks) {
+  return chunks.reduce(
+    (result, chunk) => {
+      chunk.getModules().forEach(module => {
+        const chunks = result.get(module)
+        if (chunks) chunks.push(chunk)
+        else result.set(module, [chunk])
+      })
+      return result
+    },
+    new Map()
+  )
+}
+
+function determineNewChunks(moduleUsage) {
+  return Array.from(moduleUsage.entries()).reduce(
+    (result, [module, chunks]) => {
+      if (chunks.length === 1) return result // ignore modules that are included in only one chunk
+
+      const newChunkName = 'commons (' + chunks.map(chunk => chunk.name).join(', ') + ')'
+
+      const chunkInfo = result[newChunkName]
+      if (chunkInfo) chunkInfo.modules.push(module)
+      else result[newChunkName] = { chunks, modules: [module] }
+
+      return result
+    },
+    {}
+  )
+}
+
+function addChunks(compilation, chunkNames) {
+  return chunkNames.map(newChunkName =>
+    addChunk(compilation, newChunkName, { addRuntime: false })
+  )
+}
+
+function addChunk(compilation, name, { addRuntime }) {
+  const newChunk = compilation.addChunk(newChunkName)
+  newChunk.filenameTemplate = '[id].[hash].js'
+  newChunk.entrypoints = [{ chunks: addRuntime ? [newChunk] : [] }] // no runtime in this chunk
+  return newChunk
+}
+
+function moveModules(modules, { sources, target }) {
+  modules.forEach(module => {
+    sources.forEach(chunk => { chunk.removeModule(module) })
+    target.addModule(module)
+    module.addChunk(target)
+  })
+}
+
+function createHierarchy({ parent, children }) {
+  children.forEach(chunk => {
+    chunk.addParent(parent)
+    parent.addChunk(chunk)
+  })
+}
+
+function removeRuntimes(chunks) {
+  chunks.forEach(chunk => {
+    chunk.entrypoints.forEach(entrypoint => {
+      entrypoint.chunks.length = 0 // prevent the chunk from including a runtime
+    })
+  })
+}
+
+function addRuntimes(compilation, newChunks) {
+  if (newChunks.length === 1) return addRuntime(newChunks[0])
+
+  const affectedChunks = determineAffectedChunks(newChunks)
+  /*
+    affectedChunks = Map(
+      [chunk]: [newChunk1, ..., newChunkN]
+    )
+  */
+
+  const chunkWithAllChunks = newChunks.find(({ chunks }) => chunks.length === affectedChunks.size)
+  if (chunkWithAllChunks) return addRuntime(chunkWithAllChunks)
+
+
+  const { exclusive, shared } = determineCoverage(newChunks, affectedChunks)
+  exclusive.forEach(addRuntime)
+
+  if (!shared.length) return
+
+  const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
+  createHierarchy({ parent: runtimeChunk, children: shared })
+}
+
+function addRuntime(chunk) {
+  chunk.entrypoints = [{ chunks: [chunk] }]
+}
+
+function determineAffectedChunks(newChunks) {
+  return newChunks.reduce(
+    (result, newChunk) => {
+      newChunk.chunks.forEach(chunk => {
+        const newChunks = result.get(chunk)
+        if (newChunks) newChunks.push(newChunk)
+        else result.set(chunk, [newChunk])
+      })
+      return result
+    },
+    new Map()
+  )
+}
+
+function determineCoverage(newChunks, affectedChunks) {
+  const shareCount = determineShareCounts(newChunks, affectedChunks)
+  /*
+    shareCount = Map(
+      [newChunk]: 0
+    )
+  */
+
+  return newChunks.reduce(
+    ({ exclusive, shared }, newChunk) => {
+      const isExclusive = shareCount.get(newChunk) === 1
+
+      if (isExclusive) exclusive.push(newChunk)
+      else shared.push(newChunk)
+
+      return { exclusive, shared }
+    },
+    { exclusive: [], shared: [] }
+  )
+}
+
+function determineShareCounts(newChunks, affectedChunks) {
+  return Array.from(affectedChunks.values()).reduce(
+    (result, newChunks) => {
+      const previousShareCount = result.get(newChunk) || 0
+      const newShareCount = newChunks.length
+
+      return newShareCount > previousShareCount)
+        ? result.set(newChunk, newShareCount)
+        : result
+    },
+    new Map()
+  )
 }
