@@ -47,6 +47,13 @@ const babelLoader = {
   }
 }
 
+const eslintLoader = {
+  loader: 'eslint-loader',
+  options: {
+    emitWarning: !isProduction
+  }
+}
+
 const cssLoader = {
   loader: 'css-loader'
 }
@@ -132,7 +139,7 @@ module.exports = function build({ watch }) {
               test: /(\.html\.js|\.js)$/,
               or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/],
             },
-            loaders: [babelLoader],
+            loaders: [babelLoader, eslintLoader],
           },
 
           {
