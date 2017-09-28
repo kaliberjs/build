@@ -7,24 +7,24 @@ import publicSvg from 'public/public.svg'
 import config from '@kaliber/config'
 import firebase from 'firebase-admin'
 import bg1 from './bg1.jpg'
+import { object } from 'prop-types'
 
 main.routes = {
   match: ({ pathname }, request) => pathname === '/'
     ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } }))
     : pathname === '/error'
-    ? Promise.reject(new Error('fake error'))
-    : pathname === '/redirect'
-    ? { status: 302, headers: { 'Location': '/redirect-target' } }
-    : { status: 404, data: { message: 'missing' } }
+      ? Promise.reject(new Error('fake error'))
+      : pathname === '/redirect'
+        ? { status: 302, headers: { 'Location': '/redirect-target' } }
+        : { status: 404, data: { message: 'missing' } }
 }
 
-function getMessage() {
+function getMessage () {
   return getApp().database().ref('read-only').child('message').once('value').then(snap => snap.val())
 
-  function getApp() {
+  function getApp () {
     const name = 'build-example-app'
-    try { return firebase.app(name) }
-    catch (e) {
+    try { return firebase.app(name) } catch (e) {
       const { credentials, databaseURL } = config.server.firebase
       return firebase.initializeApp(
         {
@@ -38,6 +38,11 @@ function getMessage() {
 }
 
 export default main
+
+main.propTypes = {
+  location: object,
+  data: object
+}
 
 function main ({ location, data }) {
   if (!data) return null
@@ -55,7 +60,7 @@ function main ({ location, data }) {
           message: { data.message }
         </p>
         <span className={styles.test}>Something</span>
-        <Test soep='kip' initialMessage={ data.message } clientConfig={config.client} />
+        <Test soep='kip' initialMessage={data.message} clientConfig={config.client} />
 
         Test static message, wrapped with universal wrapper: "{Test.message}"
         <br /><br />

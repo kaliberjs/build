@@ -12,7 +12,7 @@ function ReactUniversalServerLoader(source, map) {
 
 function createServerCode({ importPath, scriptSrc, id }) {
   const appScript = isProduction
-    ? `<script defer src='${scriptSrc}?v=${Date.now()}'></script>`
+    ? `<script defer src='${scriptSrc}?v=${Date.now()}' />`
     : `|<script dangerouslySetInnerHTML={{ __html: \`
        |(function () {
        |  window.addEventListener('load', function () {
@@ -30,11 +30,11 @@ function createServerCode({ importPath, scriptSrc, id }) {
           |
           |assignStatics(WrapWithScript, Component)
           |
-          |export default function WrapWithScript(props) {
+          |export default function WrapWithScript (props) {
           |  const content = renderToString(<Component id='${id}' {...props} />)
           |  return (
           |    <div>
-          |      <div id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }}></div>
+          |      <div id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }} />
           |      ${appScript}
           |    </div>
           |  )
