@@ -17,6 +17,7 @@
 */
 
 const { RawSource } = require('webpack-sources')
+const { basename } = require('path')
 const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
 module.exports = templatePlugin
@@ -105,7 +106,7 @@ function templatePlugin(renderers) {
               new Promise(resolve => resolve(evalWithSourceMap(source, createMap))) // inside a promise to catch errors
                 .then(({ template, renderer }) => template ? { template, renderer } : Promise.reject(new Error(`${name} did not export a template`)))
                 .then(({ template, renderer }) => typeof template === 'function'
-                  ? [[srcExt, createDynamicTemplate(outputName, templateExt, createMap)], [templateExt, asset]]
+                  ? [[srcExt, createDynamicTemplate(basename(outputName), templateExt, createMap)], [templateExt, asset]]
                   : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
                 )
                 .then(files => { files.forEach(([ext, result]) => {
