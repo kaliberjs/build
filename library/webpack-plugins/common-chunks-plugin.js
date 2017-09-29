@@ -134,9 +134,10 @@ function commonChunksPlugin() {
             }
           */
 
-          const newChunks = addChunks(compilation, Object.keys(newChunkInfo))
+          removeSmallChunks(newChunkInfo, { minSize: 10000 /* 10K */ })
 
-          newChunk.forEach(newChunk => {
+          const newChunks = addChunks(compilation, Object.keys(newChunkInfo))
+          newChunks.forEach(newChunk => {
 
             const { chunks, modules } = newChunkInfo[newChunk.name]
 
@@ -147,7 +148,11 @@ function commonChunksPlugin() {
             removeRuntimes(chunks)
           })
 
-          if (newChunks.length) addRuntimes(compilation, newChunks)
+          if (newChunks.length) {
+            addRuntimes(compilation, newChunks)
+
+            dubbelCheckRuntimes(newChunks)
+          }
 
           // we could use this instead of the `addRuntimes` function
           // const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
@@ -179,7 +184,7 @@ function determineNewChunks(moduleUsage) {
     (result, [module, chunks]) => {
       if (chunks.length === 1) return result // ignore modules that are included in only one chunk
 
-      const newChunkName = 'commons (' + chunks.map(chunk => chunk.name).join(', ') + ')'
+      const newChunkName = `commons (${chunks.map(c => c.name).join(', ')})`
 
       const chunkInfo = result[newChunkName]
       if (chunkInfo) chunkInfo.modules.push(module)
@@ -191,14 +196,23 @@ function determineNewChunks(moduleUsage) {
   )
 }
 
+function removeSmallChunks(newChunkInfo, { minSize }) {
+  Object.keys(newChunkInfo).forEach(newChunkName => {
+    const { modules } = newChunkInfo[newChunkName]
+
+    const size = modules.reduce((result, module) => result + module.size(), 0)
+    if (size < minSize) delete newChunkInfo[newChunkName]
+  })
+}
+
 function addChunks(compilation, chunkNames) {
-  return chunkNames.map(newChunkName =>
-    addChunk(compilation, newChunkName, { addRuntime: false })
+  return chunkNames.map(chunkName =>
+    addChunk(compilation, chunkName, { addRuntime: false })
   )
 }
 
 function addChunk(compilation, name, { addRuntime }) {
-  const newChunk = compilation.addChunk(newChunkName)
+  const newChunk = compilation.addChunk(name)
   newChunk.filenameTemplate = '[id].[hash].js'
   newChunk.entrypoints = [{ chunks: addRuntime ? [newChunk] : [] }] // no runtime in this chunk
   return newChunk
@@ -246,7 +260,8 @@ function addRuntimes(compilation, newChunks) {
 
   if (!shared.length) return
 
-  const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
+  const runtimeChunkName = `common runtime (${shared.map(c => c.name).join(', ')})`
+  const runtimeChunk = addChunk(compilation, runtimeChunkName, { addRuntime: true })
   createHierarchy({ parent: runtimeChunk, children: shared })
 }
 
@@ -292,13 +307,82 @@ function determineCoverage(newChunks, affectedChunks) {
 function determineShareCounts(newChunks, affectedChunks) {
   return Array.from(affectedChunks.values()).reduce(
     (result, newChunks) => {
-      const previousShareCount = result.get(newChunk) || 0
-      const newShareCount = newChunks.length
+      newChunks.forEach(newChunk => {
+        const previousShareCount = result.get(newChunk) || 0
+        const newShareCount = newChunks.length
 
-      return newShareCount > previousShareCount)
-        ? result.set(newChunk, newShareCount)
-        : result
+        if (newShareCount > previousShareCount) result.set(newChunk, newShareCount)
+      })
+      return result
     },
     new Map()
   )
+}
+
+/*
+  This function is not strictly necessary but allows us to, more easily catch edge cases
+  and changes to the webpack internals.
+
+  With this function we check if each original chunk that was affected by this module
+  has exactly 1 runtime in it's 'chunk-chain'
+*/
+function dubbelCheckRuntimes(newChunks) {
+  const affectedChunks = determineAffectedChunks(newChunks)
+  /*
+    affectedChunks = Map(
+      [chunk]: [newChunk1, ..., newChunkN]
+    )
+  */
+  Array.from(affectedChunks.entries()).forEach(
+    ([chunk, newChunks]) => {
+
+      if (chunk.hasRuntime()) error(
+        `Optimized chunk (${chunk.name}) has a runtime while it uses ${newChunks.length} shared chunks`
+      )
+
+      const newChunksWithRuntime = newChunks.filter(newChunk => newChunk.hasRuntime())
+      if (newChunksWithRuntime > 1) error(
+        `More than one shared chunk (used by a single chunk), ${newChunksWithRuntime.length} to be exact,\n` +
+        `has a runtime:\n` +
+        `${newChunksWithRuntime.map(c => c.name).join(', ')}`
+      )
+
+      if (newChunksWithRuntime === 0) {
+        newChunks.reduce(
+          (previousParent, newChunk) => {
+            const parent = newChunk.parent
+
+            if (!parent.hasRuntime()) error(
+              `Shared chunk (${newChunk.name}) does not have a runtime and it's parent (${parent.name}) does not have\n` +
+              `one either.`
+            )
+
+            if (previousParent && previousParent !== parent) error(
+              `Shared chunk (${newChunk.name}) does not have a runtime and it's parent (${parent.name}) is different\n` +
+              `from the parent of the previous shared chunk (${previousParent.name}). This means the chunk (${chunk.name})\n` +
+              `has more than one runtime.`
+            )
+
+            return parent
+          },
+          null
+        )
+      }
+    }
+  )
+
+  function error(message) {
+    throw new Error(
+      `You have found an implementation problem in the CommonChunksPlugin of @kaliber/build.\n` +
+      `This error means one of two things:\n` +
+      `- Webpack has changed it's internals and we need to check the changes to make this plugin\n` +
+      `  work again.\n` +
+      `- You have found a situation that we did not foresee when writing this plugin\n` +
+      `\n` +
+      `* In both cases it would be awesome if you were to create an issue. *\n` +
+      `\n` +
+      `Extra information for the developers:\n` +
+      message
+    )
+  }
 }
