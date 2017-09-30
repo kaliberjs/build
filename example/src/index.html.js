@@ -2,6 +2,7 @@ import 'global.css'
 import 'normalize.css'
 import head from './partials/head'
 import Test from './partials/Test?universal'
+import Test2 from './test/Test2?universal'
 import styles from './index.html.js.css'
 import publicSvg from 'public/public.svg'
 import config from '@kaliber/config'
@@ -57,6 +58,7 @@ function main ({ location, data }) {
         </p>
         <SharedComponent />
         <span className={styles.test}>Something</span>
+        <Test2 />
         <Test soep='kip' initialMessage={ data.message } clientConfig={config.client} />
 
         Test static message, wrapped with universal wrapper: "{Test.message}"
