@@ -4,6 +4,7 @@ const path = require('path')
 const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
+const chunkManifestPlugin = require('../webpack-plugins/chunk-manifest-plugin')
 const commonChunksPlugin = require('../webpack-plugins/common-chunks-plugin')
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
@@ -206,6 +207,7 @@ module.exports = function build({ watch }) {
           ].filter(Boolean),
           web: [
             commonChunksPlugin(),
+            chunkManifestPlugin(),
             isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
             watch && hotModuleReplacementPlugin()
           ].filter(Boolean)

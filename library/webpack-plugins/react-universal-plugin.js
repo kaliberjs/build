@@ -118,7 +118,7 @@ module.exports = function reactUniversalPlugin () {
         }
       })
 
-      // make sure the __webpack_js_client_chunk_hashes__ is available in modules (code copied from ExtendedApiPlugin)
+      // make sure the __webpack_js_client_chunk_files__ is available in modules (code copied from ExtendedApiPlugin)
       compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
@@ -129,21 +129,20 @@ module.exports = function reactUniversalPlugin () {
             .filter(x => x.resource && x.resource.endsWith('?universal'))
             .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 
-          // grab their hashes (uniquely)
-          const jsClientChunkHashes = compilation.children.reduce(
-            (result, compilation) => {
+          // grab their filenames (uniquely)
+          const jsClientChunkFiles = compilation.children.reduce(
+            (result, { _kaliber_chunk_manifest_: manifest }) => {
               clientChunkNames.forEach(clientChunkName => {
-                const childChunk = compilation.chunks.find(childChunk => childChunk.name === clientChunkName)
-                if (childChunk) childChunk.parents.forEach(inspectParent)
+                const childChunk = manifest[clientChunkName]
+                addFilenames(childChunk)
               })
 
-              function inspectParent(parent) {
-                const hash = parent.id + '.' + compilation.hash
-                if (!result.includes(hash)) {
-                  if (parent.hasRuntime()) result.unshift(hash)
-                  else result.push(hash)
+              function addFilenames({ filename, hasRuntime, parents }) {
+                parents.map(x => manifest[x]).forEach(addFilenames)
+                if (!result.includes(filename)) {
+                  if (hasRuntime) result.unshift(filename)
+                  else result.push(filename)
                 }
-                parent.parents.forEach(inspectParent)
               }
 
               return result
@@ -154,15 +153,15 @@ module.exports = function reactUniversalPlugin () {
           const buf = [
             source,
             '',
-            '// __webpack_js_client_chunk_hashes__',
-            `${this.requireFn}.jcch = ${JSON.stringify(jsClientChunkHashes)};`
+            '// __webpack_js_client_chunk_files__',
+            `${this.requireFn}.jccf = ${JSON.stringify(jsClientChunkFiles)};`
           ]
           return this.asString(buf)
         })
         compilation.mainTemplate.plugin('global-hash', () => true)
         normalModuleFactory.plugin('parser', (parser, parserOptions) => {
-          parser.plugin(`expression __webpack_js_client_chunk_hashes__`, ParserHelpers.toConstantDependency('__webpack_require__.jcch'))
-          parser.plugin(`evaluate typeof __webpack_js_client_chunk_hashes__`, ParserHelpers.evaluateToString('array'))
+          parser.plugin(`expression __webpack_js_client_chunk_files__`, ParserHelpers.toConstantDependency('__webpack_require__.jccf'))
+          parser.plugin(`evaluate typeof __webpack_js_client_chunk_files__`, ParserHelpers.evaluateToString('array'))
         })
       })
     }
@@ -180,6 +179,7 @@ function createWebCompiler(compiler, getEntries) {
 
   options.output = Object.assign({}, options.output)
   options.output.libraryTarget = 'var'
+  options.output.filename = '[id].[hash].js'
 
   options.resolve = Object.assign({}, options.resolve)
   options.resolve.aliasFields = ["browser"]
@@ -215,11 +215,16 @@ function createWebCompiler(compiler, getEntries) {
       const chunkFiles = {}
       chunks.forEach(({ files }) => { files.forEach(file => { chunkFiles[file] = true }) })
       Object.keys(compilation.assets).forEach(assetName => {
-          if (!chunkFiles[assetName] && !assetName.includes('hot-update')) {
-            removedAssets.push(assetName)
-            delete compilation.assets[assetName]
-          }
-        })
+        // this should be solved with some smarter construction: https://github.com/kaliberjs/build/issues/58
+        if (!chunkFiles[assetName] && !assetName.includes('hot-update') && assetName !== 'chunk-manifest.json') {
+          removedAssets.push(assetName)
+          delete compilation.assets[assetName]
+        }
+      })
+    })
+
+    compilation.plugin('chunk-manifest', chunkManifest => {
+      compilation._kaliber_chunk_manifest_ = chunkManifest
     })
   })
 
