@@ -1,113 +1,24 @@
-module.exports = commonChunksPlugin
-
 /*
-  Chunks, entrypoints and the runtime.
-
-  You can safely skip this until you encounter a line drawn with '='' tokens.
-
-  This is a tricky topic (mainly because of the weird implementation) so I'll write it down in hopes I
-  will understand it.
-
-  There is this concept of 'preparedChunks' in the compilation. These are filled by calls to `addEntry`
-  which is done during the `make` phase (by for example the `entry` configuration).
-
-  During the `seal` phase these `preparedChunks` are converted into chunks (by `addChunk`). At this point
-  an `Entrypoint` with the name of the chunk is created. And the chunk is 'unshifted' into the entrypoint.
-  'unshift' here means:
-    - add the chunk at the front of the chunks array of the entry point
-    - add the entry point at the end of the entrypoints of the chunk
-
-  So, once this is done we have the following structure:
-
-  Chunk #1
-    - name: 'somename'
-    - entrypoints: [
-      Entrypoint #1
-        - name: 'somename',
-        - chunks: [Chunk #1]
-    ]
-
-  If you would ask this chunk: do you have a runtime? It would say: yes, because I am the first chunk in
-  the first entrypoint.
-
-  If you would ask this chunk: are you initial? It would say: yes, because I have entrypoints
-
-  Oh, the use of initial is a bit unclear, it seems to have an effect on the file name if the chunk has no
-  `filenameTemplate`. If this is the case, initial means use the outputOptions.filename otherwise use
-  outputOptions.chunkFilename.
-
-  If a chunk has a runtime it means it's rendered using the main template instead of the chunk template. This
-  however does not guarantee a runtime (also called bootstrap internally). There is one more thing required
-  for a chunk to be rendered with a runtime: chunk.chunks must have at least one chunk. These are added to the
-  chunk using the `addChunk` method in `Chunk`. To me it's unclear when this happens with with 'normal' chunks.
-
-  Anyway, from the CommonsChunkPlugin I learned which steps to take in order move around modules between chunks.
-
-    1. Gather the modules that need to be moved
-    2. Create a chunk to move them to
-    3. Move the module (parent/child relation)
-    4. Connect the chunks (parent/child relation)
-    5. Adjust the entrypoints
-
-  1, 2, 3* and 4** are fairly sraightforward.
-
-  * Moving a module to a chunk is a three step process:
-    1. Remove the module from a chunk
-    2. Add the module to a chunk
-    3. Add the chunk to a module
-
-  ** Adding a chunk(1) to a chunk(2) is a two step process, my guess is that this is used to signal a dependency:
-    1. Add the chunk(2) as a parent to the chunk(1)
-    2. Add a chunk(1) to the chunk(2)
-
-  5 on the other other hand is kinda tricky. Entrypoints seem to be only used to determine if a chunk is initial
-  or if it has a runtime. The CommonsChunkPlugin calls `insertChunk` on each entrypoint it stole modules from.
-  This has the effect that it will appear as the first chunk in the entrypoints of the chunk that the modules were
-  stolen from and that the entrypoint itself is added to the chunk. Yeah I know: mindboggling.
-
-  Netto effect is that the newly created chunk has an entry point with itself as a first chunk (a runtime) and making
-  sure the chunk it stole modules from is no longer the first entry point (no runtime). If a core member of the
-  webpack team ever reads this: Please, refactor this stuff, it makes watching at the clock and understanding what time
-  it is while under the influence of magic mushrooms look easy.
-
-  In any case instead of using the magical `insertChunk` method, we could probably just `unshift` any value into the
-  chunks property of the entry point, or even clear the chunks of the entry point.
-
-  The entry point in the newly created chunk can just contain the chunk itself if it needs a runtime, if not it can be
-  an array like this `[{ chunks: [] }]` to make sure it's initial.
-
-  =======================================================================================================================
-
   In a few steps, this is what the plugin does:
 
-  1. Gather all modules that are used in multiple chunks record the chunks that uses the modules
-
-     Map(
-       [module]: [chunk1, ..., chunkN]
-     )
+  1. Gather all modules that are used in multiple chunks record the chunks that use the module
 
   2. Determine all the chunks that need to be created and the modules that should be in those chunks
 
-     {
-       'common (chunk1, ..., chunkN)': {
-          chunks: [chunk1, ..., chunkN],
-          modules: [module1, ..., moduleN]
-       }
-     }
+  3. Remove any chunks smaller than a given size
 
-  3. Create the new chunks and move the modules to the new chunks
+  4. a. Create new Chunks
+     b. Move the modules into those chunks
+     c. Adjust the chunk hierarchy
+     d. Remove runtimes
 
-     [
-        Chunk {
-          name: 'common (chunk1, ..., chunkN)',
-          modules: [module1, ...., moduleN],
-          chunks: [chunk1, ...., chunkN],
-          entrypoints: [{ chunks: [] }]
-        }
-     ]
+  5. Make sure the correct chunks get a runtime
 
-  4. Make sure the correct chunks get a runtime. Read the code to find out the details.
+
+  ps. If you want to know more about entrypoints and runtimes, look at the end of this document.
 */
+
+module.exports = commonChunksPlugin
 
 function commonChunksPlugin() {
 
@@ -149,14 +60,14 @@ function commonChunksPlugin() {
           })
 
           if (newChunks.length) {
+            // we could use this instead of the `addRuntimes` function
+            // const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
+            // createHierarchy({ parent: runtimeChunk, children: newChunks })
+
             addRuntimes(compilation, newChunks)
 
             dubbelCheckRuntimes(newChunks)
           }
-
-          // we could use this instead of the `addRuntimes` function
-          // const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
-          // createHierarchy({ parent: runtimeChunk, children: newChunks })
 
           return false
         })
@@ -187,8 +98,10 @@ function determineNewChunks(moduleUsage) {
       const newChunkName = `commons (${chunks.map(c => c.name).join(', ')})`
 
       const chunkInfo = result[newChunkName]
-      if (chunkInfo) chunkInfo.modules.push(module)
-      else result[newChunkName] = { chunks, modules: [module] }
+      if (chunkInfo) {
+        chunkInfo.modules.push(module)
+        chunkInfo.size += module.size()
+      } else result[newChunkName] = { chunks, modules: [module], size: module.size() }
 
       return result
     },
@@ -198,9 +111,8 @@ function determineNewChunks(moduleUsage) {
 
 function removeSmallChunks(newChunkInfo, { minSize }) {
   Object.keys(newChunkInfo).forEach(newChunkName => {
-    const { modules } = newChunkInfo[newChunkName]
+    const { size } = newChunkInfo[newChunkName]
 
-    const size = modules.reduce((result, module) => result + module.size(), 0)
     if (size < minSize) delete newChunkInfo[newChunkName]
   })
 }
@@ -386,3 +298,79 @@ function dubbelCheckRuntimes(newChunks) {
     )
   }
 }
+
+/*
+  Chunks, entrypoints and the runtime.
+  ------------------------------------
+
+  This is a tricky topic (mainly because of the weird implementation) so I'll write it down in hopes I
+  will understand it.
+
+  There is this concept of 'preparedChunks' in the compilation. These are filled by calls to `addEntry`
+  which is done during the `make` phase (by for example the `entry` configuration).
+
+  During the `seal` phase these `preparedChunks` are converted into chunks (by `addChunk`). At this point
+  an `Entrypoint` with the name of the chunk is created. And the chunk is 'unshifted' into the entrypoint.
+  'unshift' here means:
+    - add the chunk at the front of the chunks array of the entry point
+    - add the entry point at the end of the entrypoints of the chunk
+
+  So, once this is done we have the following structure:
+
+  Chunk #1
+    - name: 'somename'
+    - entrypoints: [
+      Entrypoint #1
+        - name: 'somename',
+        - chunks: [Chunk #1]
+    ]
+
+  If you would ask this chunk: do you have a runtime? It would say: yes, because I am the first chunk in
+  the first entrypoint.
+
+  If you would ask this chunk: are you initial? It would say: yes, because I have entrypoints
+
+  Oh, the use of initial is a bit unclear, it seems to have an effect on the file name if the chunk has no
+  `filenameTemplate`. If this is the case, initial means use the outputOptions.filename otherwise use
+  outputOptions.chunkFilename.
+
+  If a chunk has a runtime it means it's rendered using the main template instead of the chunk template. This
+  however does not guarantee a runtime (also called bootstrap internally). There is one more thing required
+  for a chunk to be rendered with a runtime: chunk.chunks must have at least one chunk. These are added to the
+  chunk using the `addChunk` method in `Chunk`. To me it's unclear when this happens with with 'normal' chunks.
+
+  Anyway, from the CommonsChunkPlugin I learned which steps to take in order move around modules between chunks.
+
+    1. Gather the modules that need to be moved
+    2. Create a chunk to move them to
+    3. Move the module (parent/child relation)
+    4. Connect the chunks (parent/child relation)
+    5. Adjust the entrypoints
+
+  1, 2, 3* and 4** are fairly sraightforward.
+
+  * Moving a module to a chunk is a three step process:
+    1. Remove the module from a chunk
+    2. Add the module to a chunk
+    3. Add the chunk to a module
+
+  ** Adding a chunk(1) to a chunk(2) is a two step process, my guess is that this is used to signal a dependency:
+    1. Add the chunk(2) as a parent to the chunk(1)
+    2. Add a chunk(1) to the chunk(2)
+
+  5 on the other other hand is kinda tricky. Entrypoints seem to be only used to determine if a chunk is initial
+  or if it has a runtime. The CommonsChunkPlugin calls `insertChunk` on each entrypoint it stole modules from.
+  This has the effect that it will appear as the first chunk in the entrypoints of the chunk that the modules were
+  stolen from and that the entrypoint itself is added to the chunk. Yeah I know: mindboggling.
+
+  Netto effect is that the newly created chunk has an entry point with itself as a first chunk (a runtime) and making
+  sure the chunk it stole modules from is no longer the first entry point (no runtime). If a core member of the
+  webpack team ever reads this: Please, refactor this stuff, it makes watching at the clock and understanding what time
+  it is while under the influence of magic mushrooms look easy.
+
+  In any case instead of using the magical `insertChunk` method, we could probably just `unshift` any value into the
+  chunks property of the entry point, or even clear the chunks of the entry point.
+
+  The entry point in the newly created chunk can just contain the chunk itself if it needs a runtime, if not it can be
+  an array like this `[{ chunks: [] }]` to make sure it's initial.
+*/
