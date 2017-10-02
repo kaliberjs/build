@@ -1,5 +1,6 @@
 const Compiler = require('webpack/lib/Compiler')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
+const RawModule = require('webpack/lib/RawModule')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { relative } = require('path')
@@ -25,6 +26,21 @@ module.exports = function reactUniversalPlugin () {
       // when the webCompiler starts compiling add the recorded client entries
       webCompiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
         createEntries(clientEntries, done)
+      })
+
+      // check the parent compiler before creating a module, it might have already
+      // been processed
+      let compilation
+      compiler.plugin('compilation', c => { compilation = c })
+      webCompiler.plugin('normal-module-factory', normalModuleFactory => {
+        normalModuleFactory.plugin('create-module', data => {
+          if (!data.resourceResolveData.path.endsWith('.js')) {
+            const parentCompilationModule = compilation.findModule(data.request)
+            if (parentCompilationModule) {
+              return new RawModule(parentCompilationModule.source().source())
+            }
+          }
+        })
       })
 
       // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
@@ -136,8 +152,6 @@ function createWebCompiler(compiler, getEntries) {
 
   const webCompiler = createCompiler(compiler, options)
 
-  const removedAssets = []
-
   /*
     push the client loader when appropriate
 
@@ -155,29 +169,6 @@ function createWebCompiler(compiler, getEntries) {
 
       done(null, data)
     })
-  })
-
-  // remove redundant assets introduced by client chunk, keep hot update assets
-  webCompiler.plugin('compilation', compilation => {
-
-    compilation.plugin('after-optimize-chunk-assets', chunks => {
-      const chunkFiles = {}
-      chunks.forEach(({ files }) => { files.forEach(file => { chunkFiles[file] = true }) })
-      Object.keys(compilation.assets).forEach(assetName => {
-          if (!chunkFiles[assetName] && !assetName.includes('hot-update')) {
-            removedAssets.push(assetName)
-            delete compilation.assets[assetName]
-          }
-        })
-    })
-  })
-
-  // report the removed assets
-  webCompiler.plugin('after-emit', (compilation, done) => {
-    removedAssets.forEach(asset => {
-      compilation.assets[asset] = { size: () => 0, emitted: false }
-    })
-    done()
   })
 
   return webCompiler
