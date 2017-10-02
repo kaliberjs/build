@@ -22,6 +22,7 @@ const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-res
 
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
+const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -178,6 +179,7 @@ module.exports = function build({ watch }) {
       plugins: [
         targetBasedPluginsPlugin({
           all: [
+            new ProgressBarPlugin(),
             watch && websocketCommunicationPlugin(),
             makeAdditionalEntriesPlugin(),
             new CaseSensitivePathsPlugin(),
