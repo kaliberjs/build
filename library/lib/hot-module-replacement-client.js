@@ -1,9 +1,8 @@
-/* global __webpack_hash__:false */
-const ansiRegex = require('ansi-regex')
+const ansiRegex = require('ansi-regex');
 
 export default port => {
   console.log('Starting hot module reload client with port', port)
-  const ws = new window.WebSocket('ws://localhost:' + port)
+  const ws = new WebSocket('ws://localhost:' + port)
 
   ws.onopen = _ => { console.log('Waiting for signals') }
   ws.onmessage = ({ data }) => {
@@ -24,9 +23,9 @@ export default port => {
                 console.error(error)
               }
             }).then(renewedModules => {
-              const ignoredModules = updatedModules.filter(x => !renewedModules.includes(x))
-              if (ignoredModules.length) console.warn('Ignored modules: ' + ignoredModules.join(', '))
-            })
+                const ignoredModules = updatedModules.filter(x => !renewedModules.includes(x))
+                if (ignoredModules.length) console.warn('Ignored modules: ' + ignoredModules.join(', '))
+              })
               .catch(err => {
                 console.error('Error during hot reload apply')
                 console.error(err)
@@ -36,10 +35,10 @@ export default port => {
             console.error('Problem checking for hot reload updates')
             console.error(err)
           })
-        break
+        break;
       case 'failed':
         console.warn('Compilation failed')
-        break
+        break;
     }
   }
 }

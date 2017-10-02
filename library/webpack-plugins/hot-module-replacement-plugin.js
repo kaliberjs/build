@@ -6,7 +6,7 @@
 
 const webpack = require('webpack')
 
-module.exports = function hotModuleReplacementPlugin () {
+module.exports = function hotModuleReplacementPlugin() {
 
   return {
     apply: compiler => {
@@ -16,7 +16,7 @@ module.exports = function hotModuleReplacementPlugin () {
 
       compiler.plugin('websocket-send-available', x => { send = x })
       compiler.plugin('done', stats => { send({ type: 'done', hash: stats.hash }) })
-      compiler.plugin('failed', _ => { send({ type: 'failed' }) })
+      compiler.plugin('failed', err => { send({ type: 'failed' }) })
     }
   }
 }

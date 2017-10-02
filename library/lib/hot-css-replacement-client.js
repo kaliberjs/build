@@ -4,12 +4,12 @@
   In the future we could expand this to reload the static (non universal) portion of the site:
   https://github.com/kaliberjs/build/issues/64
 */
-function hotCssReplacementClient (port, cssHash, chunkName) { // eslint-disable-line no-unused-vars
+function hotCssReplacementClient(port, cssHash, chunkName) {
   console.log('Starting hot css replacement client with port', port)
 
   let previousCssHash = cssHash
 
-  const ws = new window.WebSocket('ws://localhost:' + port)
+  const ws = new WebSocket('ws://localhost:' + port)
   ws.onopen = _ => { console.log('Waiting for signals') }
   ws.onmessage = ({ data }) => {
     const { type, cssChunkHashes } = JSON.parse(data)
@@ -20,10 +20,10 @@ function hotCssReplacementClient (port, cssHash, chunkName) { // eslint-disable-
         if (!cssHash || (previousCssHash === cssHash)) return
         document.querySelector(`link[href="/${previousCssHash}.css"]`).setAttribute('href', `/${cssHash}.css`)
         previousCssHash = cssHash
-        break
+        break;
       case 'failed':
         console.warn('Compilation failed')
-        break
+        break;
     }
   }
 }

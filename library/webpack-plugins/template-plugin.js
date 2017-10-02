@@ -22,11 +22,11 @@ const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils'
 
 module.exports = templatePlugin
 
-function templatePlugin (renderers) {
+function templatePlugin(renderers) {
 
-  const templatePattern = /\.([^./]+)\.js$/ // {name}.{template type}.js
+  const templatePattern = /\.([^\./]+)\.js$/ // {name}.{template type}.js
 
-  function createRenderInfo (type) {
+  function createRenderInfo(type) {
     return {
       type,
       renderer: renderers[type] || renderers.default,
@@ -36,7 +36,7 @@ function templatePlugin (renderers) {
     }
   }
 
-  function getRenderInfo (path) {
+  function getRenderInfo(path) {
     const [, type] = templatePattern.exec(path) || []
 
     return type && createRenderInfo(type)
@@ -55,7 +55,7 @@ function templatePlugin (renderers) {
           const { loaders, resourceResolveData: { query, path } } = data
           const renderInfo = getRenderInfo(path)
 
-          if (renderInfo && query !== '?template-source') {
+          if (renderInfo && query != '?template-source') {
             const { renderer } = renderInfo
             const templateLoader = require.resolve('../webpack-loaders/template-loader')
             loaders.push({ loader: templateLoader, options: { renderer } })
@@ -84,10 +84,7 @@ function templatePlugin (renderers) {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
-            (result, chunk) => {
-              result[chunk.name] = chunk
-              return result
-            },
+            (result, chunk) => (result[chunk.name] = chunk, result),
             {}
           )
 
@@ -112,13 +109,11 @@ function templatePlugin (renderers) {
                   ? [[srcExt, createDynamicTemplate(basename(outputName), templateExt, createMap)], [templateExt, asset]]
                   : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
                 )
-                .then(files => {
-                  files.forEach(([ext, result]) => {
-                    const filename = outputName + ext
-                    if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
-                    assets[filename] = result
-                  })
-                })
+                .then(files => { files.forEach(([ext, result]) => {
+                  const filename = outputName + ext
+                  if (filename != name) (x => x && x.files.push(filename))(chunksByName[name])
+                  assets[filename] = result
+                }) })
                 .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
             )
           }
@@ -130,11 +125,11 @@ function templatePlugin (renderers) {
   }
 }
 
-function createStaticTemplate (renderer, template, createMap) {
+function createStaticTemplate(renderer, template, createMap) {
   return new RawSource(withSourceMappedError(createMap, () => renderer(template)))
 }
 
-function createDynamicTemplate (name, ext, createMap) {
+function createDynamicTemplate(name, ext, createMap) {
   return new RawSource(
     `|const createMap = () => (${JSON.stringify(createMap())})
      |

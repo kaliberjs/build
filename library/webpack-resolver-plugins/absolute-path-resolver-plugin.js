@@ -1,11 +1,11 @@
 module.exports = absolutePathResolverPlugin
 
-function absolutePathResolverPlugin (path) {
+function absolutePathResolverPlugin(path) {
   return {
     apply: resolver => {
       resolver.plugin('resolve', (request, callback) => {
         const innerRequest = request.request
-        if (innerRequest && innerRequest.startsWith('/')) {
+        if(innerRequest && innerRequest.startsWith('/')) {
           const newRequest = Object.assign({}, request, {
             path: path,
             request: './' + innerRequest.slice(1)

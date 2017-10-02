@@ -2,9 +2,9 @@
 const postcss = require('postcss')
 
 module.exports = postcss.plugin('postcss-plugin-composition', plugins => {
-  if (!Array.isArray(plugins)) throw new Error('`options` for postcss-plugin-composition must be array of plugins')
+  if(!Array.isArray(plugins)) throw new Error('`options` for postcss-plugin-composition must be array of plugins')
 
-  return (root, { opts, messages }) =>
+  return (root, { opts, messages }) => 
     postcss(plugins)
       .process(root, opts)
       .then(({ messages: m }) => { messages.push.apply(messages, m) })

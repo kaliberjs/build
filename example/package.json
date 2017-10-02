@@ -1,29 +1,30 @@
 {
-  "scripts": {
-    "build": "NODE_ENV=production kaliber-build",
-    "watch": "CONFIG_ENV=dev kaliber-watch",
-    "serve": "kaliber-serve",
-    "serve:dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
-    "//": "only needed for library development",
-    "install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
-    "watch-library": "npm-watch",
-    "lint": "eslint -c .eslintrc src config"
-  },
-  "//": "only needed for library development",
-  "devDependencies": {
-    "@kaliber/build": "file:../library",
-    "npm-watch": "^0.1.8"
-  },
-  "watch": {
-    "install-library": "../library/"
-  },
-  "dependencies": {
-    "express-basic-auth": "^1.1.1",
-    "firebase": "^4.3.1",
-    "firebase-admin": "^5.2.1",
-    "mjml": "^3.3.3",
-    "normalize.css": "^7.0.0",
-    "prop-types": "^15.6.0",
-    "xml": "^1.0.1"
-  }
+	"scripts": {
+		"build": "NODE_ENV=production kaliber-build",
+		"watch": "CONFIG_ENV=dev kaliber-watch",
+		"serve": "kaliber-serve",
+		"serve:dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
+		"//": "only needed for library development",
+		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
+		"watch-library": "npm-watch",
+		"lint": "eslint -c .eslintrc src config"
+	},
+	"//": "only needed for library development",
+	"devDependencies": {
+		"@kaliber/build": "file:../library",
+		"npm-watch": "^0.1.8"
+	},
+	"watch": {
+		"install-library": "../library/"
+	},
+	"dependencies": {
+		"eslint-loader": "^1.9.0",
+		"express-basic-auth": "^1.1.1",
+		"firebase": "^4.3.1",
+		"firebase-admin": "^5.2.1",
+		"mjml": "^3.3.3",
+		"normalize.css": "^7.0.0",
+		"prop-types": "^15.6.0",
+		"xml": "^1.0.1"
+	}
 }

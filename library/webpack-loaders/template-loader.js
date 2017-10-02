@@ -4,13 +4,14 @@
 */
 
 const loaderUtils = require('loader-utils')
+const { relative } = require('path')
 
 module.exports = TemplateLoader
 
-function TemplateLoader (source, map) {
+function TemplateLoader(source, map) {
 }
 
-TemplateLoader.pitch = function TemplateLoaderPitch (remainingRequest, precedingRequest, data) {
+TemplateLoader.pitch = function TemplateLoaderPitch(remainingRequest, precedingRequest, data) {
   const { renderer: rendererPath } = loaderUtils.getOptions(this)
   // This should tell us what we need to use: https://webpack.js.org/configuration/module/#rule-enforce
   return `|export { default as template } from '-!${precedingRequest}!${remainingRequest}?template-source'

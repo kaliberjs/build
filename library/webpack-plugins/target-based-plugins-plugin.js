@@ -8,7 +8,7 @@
   }
 */
 
-module.exports = function targetBasedPluginsPlugin (plugins) {
+module.exports = function targetBasedPluginsPlugin(plugins) {
 
   return {
     apply: compiler => {

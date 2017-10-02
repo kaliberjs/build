@@ -4,7 +4,7 @@ const { relative, dirname } = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins (minifyOnly, { onExport, resolve, processUrl }) {
+function createPlugins(minifyOnly, { onExport, resolve, processUrl }) {
   return [
     // these plugis need to run on each file individual file
     // look at the source of postcss-modules to see that it effectively runs all modules twice
@@ -24,7 +24,7 @@ function createPlugins (minifyOnly, { onExport, resolve, processUrl }) {
   ].filter(Boolean)
 }
 
-module.exports = function CssLoader (source, map) {
+module.exports = function CssLoader(source, map) {
 
   const self = this
   const callback = this.async()
@@ -35,8 +35,8 @@ module.exports = function CssLoader (source, map) {
     onExport: locals  => { exports = locals },
     processUrl: (url, file) => isDependency(url)
       ? resolve(dirname(file), url).then(resolved =>
-        loadModule(resolved).then(executeModuleAt(resolved))
-      )
+          loadModule(resolved).then(executeModuleAt(resolved))
+        )
       : Promise.resolve(url)
   }
 
@@ -46,8 +46,8 @@ module.exports = function CssLoader (source, map) {
   const filename = relative(this.options.context, this.resourcePath)
   const options = {
     from: this.resourcePath,
-    to: this.resourcePath,
-    map: { prev: map || false, inline: false, annotation: false }
+    to  : this.resourcePath,
+    map : { prev: map || false, inline: false, annotation: false }
   }
 
   const result = postcss(plugins).process(source, options)
@@ -67,37 +67,35 @@ module.exports = function CssLoader (source, map) {
     })
     .catch(e => { callback(e) })
 
-  function resolve (context, request) {
+  function resolve(context, request) {
     return new Promise((resolve, reject) => {
       self.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
     }).catch(e => { callback(e) }) // this should not be required, by it seems postcss-plugin-composition does not pass along 'warnings' (more commonly known as 'errors')
   }
 
-  function loadModule (url) {
+  function loadModule(url) {
     return new Promise((resolve, reject) => {
       self.loadModule(url, (err, source) => { if (err) reject(err); else resolve(source) })
     })
   }
 
-  function executeModuleAt (url) {
+  function executeModuleAt(url) {
     return source => {
       const completeSource = `const __webpack_public_path__ = '${self.options.output.publicPath || '/'}'\n` + source
       return self.exec(completeSource, url)
     }
   }
 
-  function throwErrorForWarnings (warnings) {
-    if (warnings.length) {
-      throw new Error(warnings
-        .sort(({ line: a = 0 }, { line: b = 0 }) => a - b)
-        .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
-      )
-    }
+  function throwErrorForWarnings(warnings) {
+    if (warnings.length) throw new Error(warnings
+      .sort(({ line: a = 0 }, { line: b = 0}) => a - b)
+      .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
+    )
 
-    function fileAndLine ({ line }) {
+    function fileAndLine({ line }) {
       return filename + ((line || '') && (':' + line)) + '\n\n'
     }
   }
 }
 
-function isDependency (s) { return !/^data:|^(https?:)?\/\/|^#.+/.test(s) }
+function isDependency(s) { return !/^data:|^(https?:)?\/\/|^#.+/.test(s) }

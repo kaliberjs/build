@@ -3,14 +3,14 @@ const { relative } = require('path')
 const isProduction = process.env.NODE_ENV === 'production'
 module.exports = ReactUniversalServerLoader
 
-function ReactUniversalServerLoader (source, map) {
+function ReactUniversalServerLoader(source, map) {
   const filename = relative(this.options.context, this.resourcePath)
   const importPath = relative(this.context, this.resourcePath)
-  const id = filename.replace(/[/.]/g, '_')
+  const id = filename.replace(/[/\.]/g, '_')
   return createServerCode({ importPath, scriptSrc: '/' + filename, id })
 }
 
-function createServerCode ({ importPath, scriptSrc, id }) {
+function createServerCode({ importPath, scriptSrc, id }) {
   const appScript = isProduction
     ? `<script defer src='${scriptSrc}?v=${Date.now()}' />`
     : `|<script dangerouslySetInnerHTML={{ __html: \`

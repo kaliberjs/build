@@ -3,7 +3,7 @@
   are sent when compilation completes.
 */
 
-module.exports = function hotCssReplacementPlugin () {
+module.exports = function hotCssReplacementPlugin() {
 
   return {
     apply: compiler => {
@@ -19,7 +19,7 @@ module.exports = function hotCssReplacementPlugin () {
         })
       })
       compiler.plugin('done', stats => { send({ type: 'done', hash: stats.hash, cssChunkHashes }) })
-      compiler.plugin('failed', _ => { send({ type: 'failed' }) })
+      compiler.plugin('failed', err => { send({ type: 'failed' }) })
     }
   }
 }
