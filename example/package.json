@@ -7,7 +7,7 @@
 		"//": "only needed for library development",
 		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
 		"watch-library": "npm-watch",
-		"lint": "eslint -c .eslintrc src config"
+		"test": "eslint -c .eslintrc src config"
 	},
 	"//": "only needed for library development",
 	"devDependencies": {
@@ -24,7 +24,6 @@
 		"firebase-admin": "^5.2.1",
 		"mjml": "^3.3.3",
 		"normalize.css": "^7.0.0",
-		"prop-types": "^15.6.0",
 		"xml": "^1.0.1"
 	}
 }

@@ -2,28 +2,21 @@ import Test2 from './Test2'
 import styles from './test.css'
 import json from './test.json'
 import firebase from 'firebase'
-import { string, object } from 'prop-types'
 
 const extra = { x: 'x' }
 
 export default class Test extends Component {
 
-  static propTypes = {
-    initialMessage: string,
-    soep: string,
-    clientConfig: object
-  }
-
   static message = 'Works!'
 
   state = {
-    counter: 123,
+    counter: 0,
     asyncValue: null,
     message: this.props.initialMessage,
     ...extra
   }
 
-  render () {
+  render() {
     return (
       <div>
         {this.props.soep}
@@ -37,7 +30,7 @@ export default class Test extends Component {
     )
   }
 
-  componentDidMount () {
+  componentDidMount() {
     let app
     try { app = firebase.app() } catch (e) {
       app = firebase.initializeApp(this.props.clientConfig.firebase)
@@ -54,7 +47,7 @@ export default class Test extends Component {
     import('./dynamicImportTestFunction').then(({ default: test }) => console.log('import? ' + test()))
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.messageRef.off()
     clearInterval(this.interval)
   }
@@ -65,10 +58,10 @@ export default class Test extends Component {
   }
 }
 
-function getDecorator () {
+function getDecorator() {
   return @decorator class Check {}
 
-  function decorator (Class) {
+  function decorator(Class) {
     return class Decorator { x = 'a decorator' }
   }
 }

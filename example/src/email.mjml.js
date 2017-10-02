@@ -37,7 +37,7 @@ export default (
 
         <mj-section>
           <mj-column width='100%'>
-            <mj-button href='http://test.com' background-color='#6D88A1'>Click me</mj-button>
+            <mj-button href="http://test.com" background-color='#6D88A1'>Click me</mj-button>
           </mj-column>
         </mj-section>
 
@@ -45,7 +45,7 @@ export default (
           <mj-column width='75%'>
             <mj-text align='center' font-size='10' line-height='1.5' font-family='Lato, Helvetica, Arial' color='#929199'>
               You want this mail.<br />
-              <a href='http://test.com' style={{ color: '#929199' }}>footer</a>
+              <a href="http://test.com" style={{ color: '#929199' }}>footer</a>
             </mj-text>
           </mj-column>
         </mj-section>

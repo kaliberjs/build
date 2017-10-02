@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import styles from './head.css'
 import x from 'test/test.entry'
 import y from 'test/test.css'
