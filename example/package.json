@@ -7,7 +7,7 @@
 		"//": "only needed for library development",
 		"install-library": "rm -R `yarn cache dir`/npm-@kaliber/build* ; yarn upgrade file:../library --dev",
 		"watch-library": "npm-watch",
-		"test": "eslint -c .eslintrc src config"
+		"lint": "eslint -c .eslintrc src config"
 	},
 	"//": "only needed for library development",
 	"devDependencies": {
