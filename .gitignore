@@ -2,3 +2,4 @@ node_modules/
 target/
 examples/**/yarn.lock
 local*
+*.log
