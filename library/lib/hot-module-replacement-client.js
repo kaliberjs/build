@@ -10,7 +10,7 @@ export default port => {
 
     switch (type) {
       case 'done':
-        if (!hash || __webpack_hash__ === hash) return
+        if (!hash || __webpack_hash__ === hash) return // eslint-disable-line no-undef
         module.hot.check(false)
           .then(updatedModules => {
             if (!updatedModules) { /* no updates */ }
@@ -39,6 +39,8 @@ export default port => {
       case 'failed':
         console.warn('Compilation failed')
         break;
+      default:
+        throw new Error(`Unexpected type '${type}'`)
     }
   }
 }

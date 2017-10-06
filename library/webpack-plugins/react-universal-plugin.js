@@ -131,8 +131,8 @@ function createWebCompiler(compiler, getEntries) {
   options.output.libraryTarget = 'var'
 
   options.resolve = Object.assign({}, options.resolve)
-  options.resolve.aliasFields = ["browser"]
-  options.resolve.mainFields = ["browser", "module", "main"]
+  options.resolve.aliasFields = ['browser']
+  options.resolve.mainFields = ['browser', 'module', 'main']
 
   const webCompiler = createCompiler(compiler, options)
 

@@ -28,7 +28,7 @@ function copyUnusedFilesPlugin() {
           walkSync(context).map(filePath => {
             const source = path.resolve(context, filePath)
 
-            if (compilation.fileDependencies.includes(source)) return
+            if (compilation.fileDependencies.includes(source)) return null
 
             const target = path.resolve(compiler.options.output.path, filePath)
             return stat(source)
@@ -62,6 +62,6 @@ function copy(source, target) {
 
 function stat(filePath) {
   return new Promise((resolve, reject) => {
-    fs.stat(filePath, (err, stats) => { err ? reject(er) : resolve(stats) })
+    fs.stat(filePath, (err, stats) => { err ? reject(err) : resolve(stats) })
   })
 }

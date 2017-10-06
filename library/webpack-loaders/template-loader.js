@@ -4,7 +4,6 @@
 */
 
 const loaderUtils = require('loader-utils')
-const { relative } = require('path')
 
 module.exports = TemplateLoader
 

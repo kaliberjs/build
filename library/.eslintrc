@@ -37,7 +37,7 @@
     "new-parens": "warn",
     "no-array-constructor": "warn",
     "no-caller": "warn",
-    "no-cond-assign": ["warn", "always"],
+    "no-cond-assign": "warn",
     "no-const-assign": "warn",
     "no-control-regex": "warn",
     "no-delete-var": "warn",

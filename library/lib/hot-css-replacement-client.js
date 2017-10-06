@@ -4,7 +4,7 @@
   In the future we could expand this to reload the static (non universal) portion of the site:
   https://github.com/kaliberjs/build/issues/64
 */
-function hotCssReplacementClient(port, cssHash, chunkName) {
+function hotCssReplacementClient(port, cssHash, chunkName) { // eslint-disable-line no-unused-vars
   console.log('Starting hot css replacement client with port', port)
 
   let previousCssHash = cssHash
@@ -24,6 +24,8 @@ function hotCssReplacementClient(port, cssHash, chunkName) {
       case 'failed':
         console.warn('Compilation failed')
         break;
+      default:
+        throw new Error(`Unexpected type '${type}'`)
     }
   }
 }

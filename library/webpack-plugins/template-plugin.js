@@ -24,7 +24,7 @@ module.exports = templatePlugin
 
 function templatePlugin(renderers) {
 
-  const templatePattern = /\.([^\./]+)\.js$/ // {name}.{template type}.js
+  const templatePattern = /\.([^./]+)\.js$/ // {name}.{template type}.js
 
   function createRenderInfo(type) {
     return {
@@ -55,7 +55,7 @@ function templatePlugin(renderers) {
           const { loaders, resourceResolveData: { query, path } } = data
           const renderInfo = getRenderInfo(path)
 
-          if (renderInfo && query != '?template-source') {
+          if (renderInfo && query !== '?template-source') {
             const { renderer } = renderInfo
             const templateLoader = require.resolve('../webpack-loaders/template-loader')
             loaders.push({ loader: templateLoader, options: { renderer } })
@@ -111,7 +111,7 @@ function templatePlugin(renderers) {
                 )
                 .then(files => { files.forEach(([ext, result]) => {
                   const filename = outputName + ext
-                  if (filename != name) (x => x && x.files.push(filename))(chunksByName[name])
+                  if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
                   assets[filename] = result
                 }) })
                 .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })

@@ -1,8 +1,9 @@
+/* eslint-disable no-undef */
 /*
   Links to the stylesheet and adds hot reloading for stylesheets
 */
 
-import hotCssReplacementClient from 'raw-loader!./hot-css-replacement-client'
+import hotCssReplacementClient from 'raw-loader!./hot-css-replacement-client' // eslint-disable-line import/no-webpack-loader-syntax
 
 const isProduction = process.env.NODE_ENV === 'production'
 
