@@ -18,7 +18,7 @@
   ps. If you want to know more about entrypoints and runtimes, look at the end of this document.
 */
 
-module.exports = function commonChunksPlugin() {
+module.exports = function sharedModulesPlugin() {
 
   return {
     apply: compiler => {
@@ -59,7 +59,7 @@ module.exports = function commonChunksPlugin() {
 
           if (newChunks.length) {
             // we could use this instead of the `addRuntimes` function
-            // const runtimeChunk = addChunk(compilation, 'common runtime', { addRuntime: true })
+            // const runtimeChunk = addChunk(compilation, 'shared runtime', { addRuntime: true })
             // createHierarchy({ parent: runtimeChunk, children: newChunks })
 
             addRuntimes(compilation, newChunks)
@@ -93,7 +93,7 @@ function determineNewChunks(moduleUsage) {
     (result, [module, chunks]) => {
       if (chunks.length === 1) return result // ignore modules that are included in only one chunk
 
-      const newChunkName = `commons (${chunks.map(c => c.name).join(', ')})`
+      const newChunkName = `shared (${chunks.map(c => c.name).join(', ')})`
 
       const chunkInfo = result[newChunkName]
       if (chunkInfo) {
@@ -170,7 +170,7 @@ function addRuntimes(compilation, newChunks) {
 
   if (!shared.length) return
 
-  const runtimeChunkName = `common runtime (${shared.map(c => c.name).join(', ')})`
+  const runtimeChunkName = `shared runtime (${shared.map(c => c.name).join(', ')})`
   const runtimeChunk = addChunk(compilation, runtimeChunkName, { addRuntime: true })
   createHierarchy({ parent: runtimeChunk, children: shared })
 }
