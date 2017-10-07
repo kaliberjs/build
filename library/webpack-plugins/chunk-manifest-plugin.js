@@ -17,9 +17,7 @@
 
 const { RawSource } = require('webpack-sources')
 
-module.exports = chunkManifestPlugin
-
-function chunkManifestPlugin() {
+module.exports = function chunkManifestPlugin() {
   return {
     apply: compiler => {
       compiler.plugin('compilation', compilation => {

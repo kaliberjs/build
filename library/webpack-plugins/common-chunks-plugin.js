@@ -18,9 +18,7 @@
   ps. If you want to know more about entrypoints and runtimes, look at the end of this document.
 */
 
-module.exports = commonChunksPlugin
-
-function commonChunksPlugin() {
+module.exports = function commonChunksPlugin() {
 
   return {
     apply: compiler => {
