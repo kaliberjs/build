@@ -9,6 +9,7 @@ import config from '@kaliber/config'
 import firebase from 'firebase-admin'
 import bg1 from './bg1.jpg'
 import SharedComponent from '/partials/SharedComponent?universal'
+import '/partials/NotRendered?universal'
 
 main.routes = {
   match: ({ pathname }, request) => pathname === '/'
