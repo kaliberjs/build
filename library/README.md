@@ -101,7 +101,7 @@ import javascript from '@kaliber/build/lib/javascript'
 </head>
 ```
 
-If you want to use the scripts in another language or framework, use the `chunk-manifest.json` file to obtain the correct file names.
+If you want to use the scripts in another language or framework, use the `chunk-manifest.json` file (saved to the `target` directory) to obtain the correct file names.
 
 ## Usage (dynamic pages)
 
