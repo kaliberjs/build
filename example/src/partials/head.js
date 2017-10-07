@@ -6,7 +6,7 @@ import javascript from '@kaliber/build/lib/javascript'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-export default function(title) {
+export default function (title) {
   return (
     <head>
       <title>{title}</title>

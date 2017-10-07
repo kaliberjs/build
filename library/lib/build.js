@@ -134,7 +134,7 @@ module.exports = function build({ watch }) {
               test: /(\.html\.js|\.js)$/,
               or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/(stylesheet|javascript)\.js$/],
             },
-            loaders: [babelLoader],
+            loaders: [babelLoader]
           },
 
           {
