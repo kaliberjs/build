@@ -66,7 +66,7 @@ function commonChunksPlugin() {
 
             addRuntimes(compilation, newChunks)
 
-            dubbelCheckRuntimes(newChunks)
+            doubleCheckRuntimes(newChunks)
           }
 
           return false
@@ -238,7 +238,7 @@ function determineShareCounts(newChunks, affectedChunks) {
   With this function we check if each original chunk that was affected by this module
   has exactly 1 runtime in it's 'chunk-chain'
 */
-function dubbelCheckRuntimes(newChunks) {
+function doubleCheckRuntimes(newChunks) {
   const affectedChunks = determineAffectedChunks(newChunks)
   /*
     affectedChunks = Map(
@@ -249,30 +249,29 @@ function dubbelCheckRuntimes(newChunks) {
     ([chunk, newChunks]) => {
 
       if (chunk.hasRuntime()) error(
-        `Optimized chunk (${chunk.name}) has a runtime while it uses ${newChunks.length} shared chunks`
+        `|Optimized chunk (${chunk.name}) has a runtime while it uses ${newChunks.length} shared chunks`
       )
 
       const newChunksWithRuntime = newChunks.filter(newChunk => newChunk.hasRuntime())
       if (newChunksWithRuntime > 1) error(
-        `More than one shared chunk (used by a single chunk), ${newChunksWithRuntime.length} to be exact,\n` +
-        `has a runtime:\n` +
-        `${newChunksWithRuntime.map(c => c.name).join(', ')}`
+        `|More than one shared chunk (used by a single chunk), ${newChunksWithRuntime.length} to be exact,
+         |has a runtime:
+         |${newChunksWithRuntime.map(c => c.name).join(', ')}`
       )
 
       if (newChunksWithRuntime === 0) {
         newChunks.reduce(
-          (previousParent, newChunk) => {
-            const parent = newChunk.parent
+          (previousParent, { name, parent }) => {
 
             if (!parent.hasRuntime()) error(
-              `Shared chunk (${newChunk.name}) does not have a runtime and it's parent (${parent.name}) does not have\n` +
-              `one either.`
+              `|Shared chunk (${name}) does not have a runtime and it's parent (${parent.name}) does not have
+               |one either.`
             )
 
             if (previousParent && previousParent !== parent) error(
-              `Shared chunk (${newChunk.name}) does not have a runtime and it's parent (${parent.name}) is different\n` +
-              `from the parent of the previous shared chunk (${previousParent.name}). This means the chunk (${chunk.name})\n` +
-              `has more than one runtime.`
+              `|Shared chunk (${name}) does not have a runtime and it's parent (${parent.name}) is different
+               |from the parent of the previous shared chunk (${previousParent.name}). This means the chunk (${chunk.name})
+               |has more than one runtime.`
             )
 
             return parent
@@ -285,16 +284,17 @@ function dubbelCheckRuntimes(newChunks) {
 
   function error(message) {
     throw new Error(
-      `You have found an implementation problem in the CommonChunksPlugin of @kaliber/build.\n` +
-      `This error means one of two things:\n` +
-      `- Webpack has changed it's internals and we need to check the changes to make this plugin\n` +
-      `  work again.\n` +
-      `- You have found a situation that we did not foresee when writing this plugin\n` +
-      `\n` +
-      `* In both cases it would be awesome if you were to create an issue. *\n` +
-      `\n` +
-      `Extra information for the developers:\n` +
-      message
+      `|You have found an implementation problem in the CommonChunksPlugin of @kaliber/build.
+       |This error means one of two things:
+       |- Webpack has changed it's internals and we need to check the changes to make this plugin
+       |  work again.
+       |- You have found a situation that we did not foresee when writing this plugin
+       |
+       |* In both cases it would be awesome if you were to create an issue. *
+       |
+       |Extra information for the developers:
+       ${message}
+       |`.split(/^[ \t]*\|/m).join('')
     )
   }
 }
