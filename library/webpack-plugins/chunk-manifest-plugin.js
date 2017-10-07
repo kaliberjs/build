@@ -35,7 +35,7 @@ module.exports = function chunkManifestPlugin() {
 
         compilation.plugin('additional-chunk-assets', chunks => {
           compilation.applyPlugins('chunk-manifest', chunkAssets)
-          compilation.assets['chunk-manifest.json'] = new RawSource(JSON.stringify(chunkAssets, null, '  '))
+          compilation.assets['chunk-manifest.json'] = new RawSource(JSON.stringify(chunkAssets, null, 2))
         })
       })
     }
