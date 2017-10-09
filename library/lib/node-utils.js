@@ -26,12 +26,16 @@ function withRawErrorStack(fn) {
   try { return fn() } finally { Error.prepareStackTrace = $prepareStackTrace }
 }
 
-function toMappedStack(createMap, stack, { evalOnly = false } = {}) {
+function toMappedStack(createMap, stack = [], { evalOnly = false } = {}) {
   const sourceMap = new SourceMapConsumer(createMap())
   return stack
     .map(frame => {
       if (evalOnly && !frame.isEval()) return
-      const generated = { line: frame.getLineNumber(), column: frame.getColumnNumber() - 1 }
+
+      const [frameLine, frameColumn] = [frame.getLineNumber(), frame.getColumnNumber()]
+      if (!frameLine || !frameColumn) return `    at ${frame.getFileName()}:${frameLine}:${frameColumn}`
+
+      const generated = { line: frameLine, column: frameColumn - 1 }
       const { source, line, column } = sourceMap.originalPositionFor(generated)
       if (source && !source.startsWith('webpack/')) return `    at ${source}:${line}:${column + 1}`
     })
