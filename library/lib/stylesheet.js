@@ -2,7 +2,7 @@
   Links to the stylesheet and adds hot reloading for stylesheets
 */
 
-import hotCssReplacementClient from 'raw-loader!./hot-css-replacement-client'
+import hotCssReplacementClient from './hot-css-replacement-client?transpiled-javascript-string'
 
 const isWatch = process.env.WATCH
 
