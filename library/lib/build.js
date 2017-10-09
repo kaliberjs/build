@@ -4,6 +4,7 @@ const path = require('path')
 const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
+const chunkManifestPlugin = require('../webpack-plugins/chunk-manifest-plugin')
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
 const hotCssReplacementPlugin = require('../webpack-plugins/hot-css-replacement-plugin')
@@ -11,6 +12,7 @@ const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replac
 const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
+const sharedModulesPlugin = require('../webpack-plugins/shared-modules-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
@@ -92,7 +94,7 @@ module.exports = function build({ watch }) {
         publicPath: '/',
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/stylesheet/, /\.css$/] }),
+      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/(stylesheet|javascript)/, /\.css$/] }),
       resolve: {
         extensions: ['.js'],
         modules: [srcDir, 'node_modules'],
@@ -130,7 +132,7 @@ module.exports = function build({ watch }) {
           {
             resource: {
               test: /(\.html\.js|\.js)$/,
-              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/],
+              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/(stylesheet|javascript)\.js$/],
             },
             loaders: [babelLoader]
           },
@@ -204,6 +206,8 @@ module.exports = function build({ watch }) {
             watch && hotCssReplacementPlugin()
           ].filter(Boolean),
           web: [
+            sharedModulesPlugin(),
+            chunkManifestPlugin(),
             isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
             watch && hotModuleReplacementPlugin()
           ].filter(Boolean)

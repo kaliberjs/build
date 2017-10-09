@@ -20,9 +20,7 @@ const { RawSource } = require('webpack-sources')
 const { basename } = require('path')
 const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
-module.exports = templatePlugin
-
-function templatePlugin(renderers) {
+module.exports = function templatePlugin(renderers) {
 
   const templatePattern = /\.([^\./]+)\.js$/ // {name}.{template type}.js
 

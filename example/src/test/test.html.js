@@ -1,6 +1,15 @@
 import head from 'partials/head'
-import Test from 'partials/Test?universal'
+import shared from '/partials/shared'
+import SharedComponent from '/partials/SharedComponent?universal'
 
 export default function() {
-  return <html>{head('test')}<body><Test />Test</body></html>
+  return (
+    <html>{head('test')}
+      <body>
+        {shared}
+        <SharedComponent />
+        Test
+      </body>
+    </html>
+  )
 }
