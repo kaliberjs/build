@@ -1,6 +1,6 @@
 import styles from './head.css'
-import x from 'test/test.entry'
-import y from 'test/test.css'
+import x from '/test/test.entry'
+import y from '/test/test.css'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 
 const isProduction = process.env.NODE_ENV === 'production'

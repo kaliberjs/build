@@ -1,5 +1,5 @@
 /* partials/test.css */
-@import 'theme.css';
+@import '/theme.css';
 
 :root {
   --test-apply: {
