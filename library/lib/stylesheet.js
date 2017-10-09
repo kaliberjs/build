@@ -1,4 +1,5 @@
-/* eslint-disable no-undef */
+/* global __webpack_css_chunk_hash__, __webpack_websocket_port__, __webpack_css_chunk_hash__, __webpack_chunkname__ */
+
 /*
   Links to the stylesheet and adds hot reloading for stylesheets
 */

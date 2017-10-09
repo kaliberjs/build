@@ -1,4 +1,6 @@
-const ansiRegex = require('ansi-regex');
+/* global __webpack_websocket_port__, __webpack_websocket_port__, __webpack_hash__ */
+
+const ansiRegex = require('ansi-regex')
 
 console.log('Starting hot module reload client with port', __webpack_websocket_port__)
 const ws = new WebSocket('ws://localhost:' + __webpack_websocket_port__)
@@ -9,7 +11,7 @@ ws.onmessage = ({ data }) => {
 
   switch (type) {
     case 'done':
-      if (!hash || __webpack_hash__ === hash) return // eslint-disable-line no-undef
+      if (!hash || __webpack_hash__ === hash) return
       module.hot.check(false)
         .then(updatedModules => {
           if (!updatedModules) { /* no updates */ }

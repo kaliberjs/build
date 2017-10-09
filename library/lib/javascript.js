@@ -1,3 +1,5 @@
+/* global __webpack_js_chunk_information__, __webpack_public_path__ */
+
 export default getSharedChunkFileNames(__webpack_js_chunk_information__).map((filename, index) =>
   <script key={`javascript_${index}`} defer src={__webpack_public_path__ + filename} />
 )
