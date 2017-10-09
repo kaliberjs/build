@@ -1,5 +1,5 @@
 @import './test.css';
-@import 'test/test.css';
+@import '/test/test.css';
 
 div {
 

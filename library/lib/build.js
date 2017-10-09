@@ -97,7 +97,7 @@ module.exports = function build({ watch }) {
       externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/(stylesheet|javascript)/, /\.css$/] }),
       resolve: {
         extensions: ['.js'],
-        modules: [srcDir, 'node_modules'],
+        modules: ['node_modules'],
         plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
       },
       resolveLoader: {
