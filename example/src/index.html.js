@@ -1,13 +1,15 @@
-import 'global.css'
+import './global.css'
 import 'normalize.css'
 import head from './partials/head'
 import Test from './partials/Test?universal'
 import Test2 from './test/Test2?universal'
 import styles from './index.html.js.css'
-import publicSvg from 'public/public.svg'
+import publicSvg from '/public/public.svg'
 import config from '@kaliber/config'
 import firebase from 'firebase-admin'
 import bg1 from './bg1.jpg'
+import SharedComponent from '/partials/SharedComponent?universal'
+import '/partials/NotRendered?universal'
 
 main.routes = {
   match: ({ pathname }, request) => pathname === '/'
@@ -55,6 +57,7 @@ function main ({ location, data }) {
           <br />
           message: { data.message }
         </p>
+        <SharedComponent />
         <span className={styles.test}>Something</span>
         <Test2 />
         <Test soep='kip' initialMessage={ data.message } clientConfig={config.client} />
