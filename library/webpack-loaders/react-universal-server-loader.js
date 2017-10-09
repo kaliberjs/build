@@ -21,7 +21,7 @@ function createServerCode({ importPath, id, filename }) {
           |  return (
           |    <div>
           |      <div id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }}></div>
-          |      <script defer src={__webpack_js_chunk_information__.manifest['${filename}'].filename} />
+          |      <script defer src={__webpack_public_path__ + __webpack_js_chunk_information__.manifest['${filename}'].filename} />
           |    </div>
           |  )
           |}
