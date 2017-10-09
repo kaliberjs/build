@@ -18,7 +18,7 @@ function createClientCode({ importPath, id }) {
           |render(<Component {...props} />, element)
           |
           |if (module.hot) {
-          |  require('@kaliber/build/lib/hot-module-replacement-client').default(__webpack_websocket_port__)
+          |  require('@kaliber/build/lib/hot-module-replacement-client')
           |  module.hot.accept('./${importPath}', () => { render(<Component {...props} />, element) })
           |}
           |`.split(/^[ \t]*\|/m).join('')

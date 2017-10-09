@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+- v0.0.?? - Javascripts are now hashes, they require an additional import to load
 - v0.0.35 - Stylesheets are now hashes, they require an additional import to load
 
 
@@ -89,6 +90,18 @@ import stylesheet from '@kaliber/build/lib/stylesheet'
   { stylesheet }
 </head>
 ```
+
+Similarly the js files are compiled to hashed names, you load them using the `javascript` library:
+
+```jsx
+import javascript from '@kaliber/build/lib/javascript'
+
+<head>
+  { javascript }
+</head>
+```
+
+If you want to use the scripts in another language or framework, use the `chunk-manifest.json` file (saved to the `target` directory) to obtain the correct file names.
 
 ## Usage (dynamic pages)
 
