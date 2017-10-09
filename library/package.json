@@ -1,5 +1,5 @@
 {
-	"version": "0.0.37",
+	"version": "0.0.38",
 	"name": "@kaliber/build",
 	"description": "Zero configuration, opinionated webpack / react build setup",
 	"scripts": {
@@ -54,6 +54,7 @@
 		"postcss-cssnext": "^3.0.2",
 		"postcss-import": "^11.0.0",
 		"postcss-modules": "^0.8.0",
+		"progress-bar-webpack-plugin": "^1.10.0",
 		"raw-loader": "^0.5.1",
 		"react": "^15.6.1",
 		"react-dom": "^15.6.1",

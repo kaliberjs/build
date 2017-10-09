@@ -2,6 +2,7 @@ import Test2 from './Test2'
 import styles from './test.css'
 import json from './test.json'
 import firebase from 'firebase'
+import shared from './shared'
 
 const extra = { x: 'x' }
 
@@ -23,6 +24,8 @@ export default class Test extends Component {
         <span className={styles.test}>{this.state.counter} - {this.state.message}</span>
         <Test2 />
         <p>asyncValue: {this.state.asyncValue}</p>
+        <br />
+        {shared}
         <br />
         <p>Client config:</p>
         <pre>{JSON.stringify(this.props.clientConfig, null, 2)}</pre>

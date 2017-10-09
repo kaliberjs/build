@@ -31,9 +31,7 @@
 const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency')
 const { createDependency } = require('webpack/lib/SingleEntryPlugin')
 
-module.exports = makeAdditionalEntries
-
-function makeAdditionalEntries() {
+module.exports = function makeAdditionalEntries() {
   return {
     apply: compiler => {
 

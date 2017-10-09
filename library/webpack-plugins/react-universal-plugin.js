@@ -1,5 +1,8 @@
 const Compiler = require('webpack/lib/Compiler')
+const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
+const NullFactory = require('webpack/lib/NullFactory')
+const ParserHelpers = require('webpack/lib/ParserHelpers')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { relative } = require('path')
@@ -114,6 +117,35 @@ module.exports = function reactUniversalPlugin () {
           done()
         }
       })
+
+      // make sure the __webpack_js_chunk_information__ is available in modules (code copied from ExtendedApiPlugin)
+      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
+        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
+        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
+
+          // get the manifest from the client compilation
+          const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
+
+          // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
+          const universalChunkNames = chunk.getModules()
+            .filter(x => x.resource && x.resource.endsWith('?universal'))
+            .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
+
+          const buf = [
+            source,
+            '',
+            '// __webpack_js_chunk_information__',
+            `${this.requireFn}.jci = ${JSON.stringify({ universalChunkNames, manifest })};`
+          ]
+          return this.asString(buf)
+        })
+        compilation.mainTemplate.plugin('global-hash', () => true)
+        normalModuleFactory.plugin('parser', (parser, parserOptions) => {
+          parser.plugin(`expression __webpack_js_chunk_information__`, ParserHelpers.toConstantDependency('__webpack_require__.jci'))
+          parser.plugin(`evaluate typeof __webpack_js_chunk_information__`, ParserHelpers.evaluateToString('array'))
+        })
+      })
     }
   }
 }
@@ -129,6 +161,7 @@ function createWebCompiler(compiler, getEntries) {
 
   options.output = Object.assign({}, options.output)
   options.output.libraryTarget = 'var'
+  options.output.filename = '[id].[hash].js'
 
   options.resolve = Object.assign({}, options.resolve)
   options.resolve.aliasFields = ['browser']
@@ -164,11 +197,16 @@ function createWebCompiler(compiler, getEntries) {
       const chunkFiles = {}
       chunks.forEach(({ files }) => { files.forEach(file => { chunkFiles[file] = true }) })
       Object.keys(compilation.assets).forEach(assetName => {
-          if (!chunkFiles[assetName] && !assetName.includes('hot-update')) {
-            removedAssets.push(assetName)
-            delete compilation.assets[assetName]
-          }
-        })
+        // this should be solved with some smarter construction: https://github.com/kaliberjs/build/issues/58
+        if (!chunkFiles[assetName] && !assetName.includes('hot-update') && assetName !== 'chunk-manifest.json') {
+          removedAssets.push(assetName)
+          delete compilation.assets[assetName]
+        }
+      })
+    })
+
+    compilation.plugin('chunk-manifest', chunkManifest => {
+      compilation._kaliber_chunk_manifest_ = chunkManifest
     })
   })
 

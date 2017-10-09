@@ -4,6 +4,7 @@ const path = require('path')
 const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
+const chunkManifestPlugin = require('../webpack-plugins/chunk-manifest-plugin')
 const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
 const hotCssReplacementPlugin = require('../webpack-plugins/hot-css-replacement-plugin')
@@ -11,6 +12,7 @@ const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replac
 const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
+const sharedModulesPlugin = require('../webpack-plugins/shared-modules-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
@@ -22,10 +24,13 @@ const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-res
 
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
+const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
 const { kaliber: { templateRenderers } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+
+const kaliberBuildClientModules = /(@kaliber\/build\/lib\/(stylesheet|javascript|hot-module-replacement-client)|ansi-regex)/
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -92,10 +97,10 @@ module.exports = function build({ watch }) {
         publicPath: '/',
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/stylesheet/, /\.css$/] }),
+      externals: nodeExternals({ whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/] }),
       resolve: {
         extensions: ['.js'],
-        modules: [srcDir, 'node_modules'],
+        modules: ['node_modules'],
         plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
       },
       resolveLoader: {
@@ -128,9 +133,15 @@ module.exports = function build({ watch }) {
           },
 
           {
+            test: /\.js$/,
+            resourceQuery: /transpiled-javascript-string/,
+            loaders: ['raw-loader', babelLoader]
+          },
+
+          {
             resource: {
               test: /(\.html\.js|\.js)$/,
-              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/stylesheet\.js$/],
+              or: [{ exclude: /node_modules/ }, kaliberBuildClientModules],
             },
             loaders: [babelLoader]
           },
@@ -178,11 +189,13 @@ module.exports = function build({ watch }) {
       plugins: [
         targetBasedPluginsPlugin({
           all: [
+            new ProgressBarPlugin(),
             watch && websocketCommunicationPlugin(),
             makeAdditionalEntriesPlugin(),
             new CaseSensitivePathsPlugin(),
             new webpack.DefinePlugin({
-              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+              'process.env.WATCH': watch
             }),
             new webpack.ProvidePlugin({
               React: 'react',
@@ -204,6 +217,8 @@ module.exports = function build({ watch }) {
             watch && hotCssReplacementPlugin()
           ].filter(Boolean),
           web: [
+            sharedModulesPlugin(),
+            chunkManifestPlugin(),
             isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
             watch && hotModuleReplacementPlugin()
           ].filter(Boolean)
@@ -227,8 +242,10 @@ module.exports = function build({ watch }) {
       if (err) {
         console.error(err.stack || err)
         if (err.details) console.error(err.details)
+        if (!watch) process.exit(1)
         return
       }
+
       console.log(stats.toString({
         colors: true,
         chunksSort: 'name',
@@ -236,6 +253,8 @@ module.exports = function build({ watch }) {
         modulesSort: 'name',
         excludeModules: (name, module) => !module.external
       }))
+
+      if (!watch && stats.hasErrors()) process.exitCode = 2
     }
 
     function runOnce(callback) {

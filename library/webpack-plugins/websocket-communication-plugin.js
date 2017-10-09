@@ -18,9 +18,7 @@ const ParserHelpers = require('webpack/lib/ParserHelpers')
 const net = require('net')
 const ws = require('ws')
 
-module.exports = websocketCommunicationPlugin
-
-function websocketCommunicationPlugin() {
+module.exports = function websocketCommunicationPlugin() {
 
   return {
     apply: compiler => {

@@ -6,9 +6,7 @@ const fs = require('fs-extra')
 const path = require('path')
 const walkSync = require('walk-sync')
 
-module.exports = copyUnusedFilesPlugin
-
-function copyUnusedFilesPlugin() {
+module.exports = function copyUnusedFilesPlugin() {
   return {
     apply: compiler => {
 
