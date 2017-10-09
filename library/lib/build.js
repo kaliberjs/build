@@ -186,7 +186,8 @@ module.exports = function build({ watch }) {
             makeAdditionalEntriesPlugin(),
             new CaseSensitivePathsPlugin(),
             new webpack.DefinePlugin({
-              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+              'process.env.WATCH': watch
             }),
             new webpack.ProvidePlugin({
               React: 'react',
