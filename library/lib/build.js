@@ -233,8 +233,10 @@ module.exports = function build({ watch }) {
       if (err) {
         console.error(err.stack || err)
         if (err.details) console.error(err.details)
+        if (!watch) process.exit(1)
         return
       }
+
       console.log(stats.toString({
         colors: true,
         chunksSort: 'name',
@@ -242,6 +244,8 @@ module.exports = function build({ watch }) {
         modulesSort: 'name',
         excludeModules: (name, module) => !module.external
       }))
+
+      if (!watch && stats.hasErrors()) process.exitCode = 2
     }
 
     function runOnce(callback) {
