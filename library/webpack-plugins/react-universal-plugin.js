@@ -6,7 +6,9 @@ const ParserHelpers = require('webpack/lib/ParserHelpers')
 const RawModule = require('webpack/lib/RawModule')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
+const { ReplaceSource } = require('webpack-sources')
 const { relative } = require('path')
+
 
 /*
   The idea is simple:
@@ -35,12 +37,27 @@ module.exports = function reactUniversalPlugin () {
       // been processed
       let compilation
       compiler.plugin('compilation', c => { compilation = c })
-      webCompiler.plugin('normal-module-factory', normalModuleFactory => {
+      webCompiler.plugin('compilation', (webCompilation, { normalModuleFactory }) => {
         normalModuleFactory.plugin('create-module', data => {
           if (!data.resourceResolveData.path.endsWith('.js')) {
             const parentCompilationModule = compilation.findModule(data.request)
             if (parentCompilationModule) {
-              return new RawModule(parentCompilationModule.source().source())
+              // mutation in webpack internals is a minefield, tread carefully
+              const dependencies = parentCompilationModule.dependencies.slice()
+              const parentSource = new ReplaceSource(parentCompilationModule.originalSource())
+
+              const { dependencyTemplates, outputOptions, moduleTemplate: { requestShortener } } = webCompilation
+
+              // from NormalModule.sourceDependency
+              dependencies.forEach(dependency => {
+                const template = dependencyTemplates.get(dependency.constructor)
+                if(!template) throw new Error("No template for dependency: " + dependency.constructor.name)
+                template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
+              })
+
+              const result = new RawModule(parentSource.source())
+              result.dependencies = dependencies
+              return result
             }
           }
         })
