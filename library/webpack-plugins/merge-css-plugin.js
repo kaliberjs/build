@@ -65,7 +65,7 @@ module.exports = function mergeCssPlugin() {
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
         compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
-          const cssHash = (x => x && x.cssHash || 'no_css_files_in_chunk')(chunkCssAssets[chunk.name])
+          const cssHash = (x => (x && x.cssHash) || 'no_css_files_in_chunk')(chunkCssAssets[chunk.name])
           const buf = [
             source,
             '',
@@ -91,13 +91,13 @@ module.exports = function mergeCssPlugin() {
           Object.keys(chunkCssAssets).forEach(chunkName => {
             const { cssAssets, cssHash } = chunkCssAssets[chunkName]
             if (cssAssets.length) {
-              const templatePattern = /\.([^\./]+)\.css$/
+              const templatePattern = /\.([^./]+)\.css$/
               const [, type] = templatePattern.exec(chunkName) || []
 
               const newChunkName = type === 'entry' ? chunkName : cssHash
 
               const chunkCssName = newChunkName + (newChunkName.endsWith('.css') ? '' : '.css')
-              if (chunkName != chunkCssName) (x => x && x.files.push(chunkCssName))(chunksByName[chunkName])
+              if (chunkName !== chunkCssName) (x => x && x.files.push(chunkCssName))(chunksByName[chunkName])
               compilation.assets[chunkCssName] = new ConcatSource(...cssAssets.map(createValidSource))
             }
           })

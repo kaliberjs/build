@@ -5,7 +5,7 @@ module.exports = ReactUniversalServerLoader
 function ReactUniversalServerLoader(source, map) {
   const filename = relative(this.options.context, this.resourcePath)
   const importPath = relative(this.context, this.resourcePath)
-  const id = filename.replace(/[/\.]/g, '_')
+  const id = filename.replace(/[/.]/g, '_')
   return createServerCode({ importPath, id, filename })
 }
 

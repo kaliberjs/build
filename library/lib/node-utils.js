@@ -8,7 +8,7 @@ module.exports = {
 function evalWithSourceMap(source, createMap) {
   return withSourceMappedError(createMap, () => {
     const module = { exports: {} }
-    const result = eval(source)
+    eval(source) // eslint-disable-line no-eval
     return module.exports.default || module.exports
   }, { evalOnly: true })
 }
@@ -26,14 +26,20 @@ function withRawErrorStack(fn) {
   try { return fn() } finally { Error.prepareStackTrace = $prepareStackTrace }
 }
 
-function toMappedStack(createMap, stack, { evalOnly = false } = {}) {
+function toMappedStack(createMap, stack = [], { evalOnly = false } = {}) {
   const sourceMap = new SourceMapConsumer(createMap())
   return stack
     .map(frame => {
-      if (evalOnly && !frame.isEval()) return
-      const generated = { line: frame.getLineNumber(), column: frame.getColumnNumber() - 1 }
+      if (evalOnly && !frame.isEval()) return null
+
+      const [frameLine, frameColumn] = [frame.getLineNumber(), frame.getColumnNumber()]
+      if (!frameLine || !frameColumn) return `    at ${frame.getFileName()}:${frameLine}:${frameColumn}`
+
+      const generated = { line: frameLine, column: frameColumn - 1 }
       const { source, line, column } = sourceMap.originalPositionFor(generated)
-      if (source && !source.startsWith('webpack/')) return `    at ${source}:${line}:${column + 1}`
+      return (source && !source.startsWith('webpack/'))
+        ? `    at ${source}:${line}:${column + 1}`
+        : null
     })
     .filter(Boolean)
     .join('\n')

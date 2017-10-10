@@ -1,14 +1,16 @@
+/* global __webpack_css_chunk_hash__, __webpack_websocket_port__, __webpack_css_chunk_hash__, __webpack_chunkname__ */
+
 /*
   Links to the stylesheet and adds hot reloading for stylesheets
 */
 
-import hotCssReplacementClient from 'raw-loader!./hot-css-replacement-client'
+import hotCssReplacementClient from './hot-css-replacement-client?transpiled-javascript-string'
 
-const isProduction = process.env.NODE_ENV === 'production'
+const isWatch = process.env.WATCH
 
 export default [
   <link href={`/${__webpack_css_chunk_hash__}.css`} rel='stylesheet' type='text/css' key='hotCssReplacementClient_0' />,
-  !isProduction && createHotReload(__webpack_websocket_port__, __webpack_css_chunk_hash__, __webpack_chunkname__)
+  isWatch && createHotReload(__webpack_websocket_port__, __webpack_css_chunk_hash__, __webpack_chunkname__)
 ].filter(Boolean)
 
 function createHotReload(port, cssHash, chunkName) {

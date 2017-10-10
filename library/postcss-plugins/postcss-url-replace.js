@@ -1,10 +1,10 @@
-const postcss = require("postcss")
+const postcss = require('postcss')
 
 /*
   This plugin allows you to replace the values inside url's with something else (it accepts promises)
 */
 module.exports = postcss.plugin(
-  "postcss-url-replace",
+  'postcss-url-replace',
   ({ replace }) => {
 
     return styles => {
@@ -22,7 +22,7 @@ module.exports = postcss.plugin(
         // that can be used to build up the declaration with replacements in place
         let match
         let lastIndex = 0
-        while (match = urlPattern.exec(value)) {
+        while ((match = urlPattern.exec(value))) {
           const { index } = match
           parts.push(Promise.resolve(value.substring(lastIndex, index)))
 

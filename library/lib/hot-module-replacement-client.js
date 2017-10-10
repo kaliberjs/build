@@ -1,4 +1,6 @@
-const ansiRegex = require('ansi-regex');
+/* global __webpack_websocket_port__, __webpack_websocket_port__, __webpack_hash__ */
+
+const ansiRegex = require('ansi-regex')
 
 console.log('Starting hot module reload client with port', __webpack_websocket_port__)
 const ws = new WebSocket('ws://localhost:' + __webpack_websocket_port__)
@@ -38,5 +40,7 @@ ws.onmessage = ({ data }) => {
     case 'failed':
       console.warn('Compilation failed')
       break;
+    default:
+      throw new Error(`Unexpected type '${type}'`)
   }
 }

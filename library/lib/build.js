@@ -30,6 +30,8 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 const { kaliber: { templateRenderers } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
 
+const kaliberBuildClientModules = /(@kaliber\/build\/lib\/(stylesheet|javascript|hot-module-replacement-client)|ansi-regex)/
+
 const babelLoader = {
   loader: 'babel-loader',
   options: {
@@ -95,7 +97,7 @@ module.exports = function build({ watch }) {
         publicPath: '/',
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', /@kaliber\/build\/lib\/(stylesheet|javascript)/, /\.css$/] }),
+      externals: nodeExternals({ whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/] }),
       resolve: {
         extensions: ['.js'],
         modules: ['node_modules'],
@@ -131,9 +133,15 @@ module.exports = function build({ watch }) {
           },
 
           {
+            test: /\.js$/,
+            resourceQuery: /transpiled-javascript-string/,
+            loaders: ['raw-loader', babelLoader]
+          },
+
+          {
             resource: {
               test: /(\.html\.js|\.js)$/,
-              or: [{ exclude: /node_modules/ }, /@kaliber\/build\/lib\/(stylesheet|javascript)\.js$/],
+              or: [{ exclude: /node_modules/ }, kaliberBuildClientModules],
             },
             loaders: [babelLoader]
           },
@@ -186,7 +194,8 @@ module.exports = function build({ watch }) {
             makeAdditionalEntriesPlugin(),
             new CaseSensitivePathsPlugin(),
             new webpack.DefinePlugin({
-              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+              'process.env.WATCH': watch
             }),
             new webpack.ProvidePlugin({
               React: 'react',
@@ -233,8 +242,10 @@ module.exports = function build({ watch }) {
       if (err) {
         console.error(err.stack || err)
         if (err.details) console.error(err.details)
+        if (!watch) process.exit(1)
         return
       }
+
       console.log(stats.toString({
         colors: true,
         chunksSort: 'name',
@@ -242,6 +253,8 @@ module.exports = function build({ watch }) {
         modulesSort: 'name',
         excludeModules: (name, module) => !module.external
       }))
+
+      if (!watch && stats.hasErrors()) process.exitCode = 2
     }
 
     function runOnce(callback) {

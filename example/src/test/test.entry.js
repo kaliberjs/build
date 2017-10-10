@@ -1,3 +1,3 @@
-import firebase from 'firebase'
+import 'firebase'
 
 console.log('test entry');
