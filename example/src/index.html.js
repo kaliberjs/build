@@ -66,9 +66,9 @@ function main ({ location, data }) {
         <br /><br />
         <div className={styles.multipleBackground}>multiple backgrounds</div>
         <div className={styles.svgBackground}>svg background</div>
-        <img src={publicSvg} /> public svg ({publicSvg})
-        <img className={styles.clip} src={bg1} />
-        <img className={styles.clip2} src={bg1} />
+        <img alt='' src={publicSvg} /> public svg ({publicSvg})
+        <img alt='' className={styles.clip} src={bg1} />
+        <img alt='' className={styles.clip2} src={bg1} />
         <svg width='0' height='0'>
           <defs>
             <clipPath id='myClip'>

@@ -1,6 +1,6 @@
-import styles from './head.css'
-import x from '/test/test.entry'
-import y from '/test/test.css'
+import './head.css'
+import '/test/test.entry'
+import '/test/test.css'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 import javascript from '@kaliber/build/lib/javascript'
 
