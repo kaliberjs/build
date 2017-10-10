@@ -1,5 +1,5 @@
 import head from '/partials/head'
-import styles from './test.css'
+import './test.css'
 import Test from '/partials/Test?universal'
 import config from '@kaliber/config'
 import shared from '/partials/shared'
