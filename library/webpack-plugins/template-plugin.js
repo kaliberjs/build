@@ -82,7 +82,7 @@ module.exports = function templatePlugin(renderers) {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
-            (result, chunk) => (result[chunk.name] = chunk, result),
+            (result, chunk) => ({ ...result, [chunk.name]: chunk }),
             {}
           )
 

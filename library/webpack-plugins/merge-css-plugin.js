@@ -84,7 +84,7 @@ module.exports = function mergeCssPlugin() {
         compilation.plugin('additional-chunk-assets', (chunks) => {
 
           const chunksByName = chunks.reduce(
-            (result, chunk) => (result[chunk.name] = chunk, result),
+            (result, chunk) => ({ ...result, [chunk.name]: chunk }),
             {}
           )
 

@@ -42,7 +42,7 @@ module.exports = function makeAdditionalEntries() {
         to claim certain entries, any leftover entries are added using this plugin
       */
       compiler.plugin('entry-option', (context, entries) => {
-        if(typeof entries === 'object' && !Array.isArray(entries)) {
+        if (typeof entries === 'object' && !Array.isArray(entries)) {
           const originalEntries = Object.assign({}, entries)
           Object.assign(entriesToMake, compiler.applyPluginsWaterfall('claim-entries', originalEntries))
           return true

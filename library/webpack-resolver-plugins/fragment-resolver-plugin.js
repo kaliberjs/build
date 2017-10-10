@@ -6,7 +6,7 @@ function fragmentResolverPlugin() {
       resolver.plugin('resolve', (request, callback) => {
         const innerRequest = request.request
         const [file, fragment] = (innerRequest && innerRequest.split('#')) || []
-        if(file && fragment) {
+        if (file && fragment) {
           const newRequest = Object.assign({}, request, {
             request: file + '?fragment=' + fragment
           })

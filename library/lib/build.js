@@ -291,7 +291,7 @@ module.exports = function build({ watch }) {
 
   function gatherEntries() {
     return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
-      (result, entry) => (result[entry] = './' + entry, result),
+      (result, entry) => ({ ...result, [entry]: './' + entry }),
       {}
     )
   }

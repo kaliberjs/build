@@ -60,7 +60,7 @@ function main ({ location, data }) {
         <SharedComponent />
         <span className={styles.test}>Something</span>
         <Test2 />
-        <Test soep='kip' initialMessage={ data.message } clientConfig={config.client} />
+        <Test soep='kip' initialMessage={data.message} clientConfig={config.client} />
 
         Test static message, wrapped with universal wrapper: "{Test.message}"
         <br /><br />
