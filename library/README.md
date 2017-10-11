@@ -12,9 +12,22 @@ Breaking changes:
 An opinionated zero configuration build stack with React, PostCSS, Babel and Webpack as major ingredients.
 
 ## Installation
+### Easy, scaffold
+The scaffold will copy a template to an empty project-directory. It will not overwrite existing files.
+```
+>> mkdir <projectname> && cd <projectname>
+
+>> yarn add @kaliber/build
+
+>> ./node_modules/.bin/kaliber-scaffold
+
+>> yarn start
+```
+
+### Manual
 
 ```
-yarn add @kaliber/build
+>> yarn add @kaliber/build
 ```
 
 `package.json`:
@@ -149,7 +162,7 @@ export default (
   </html>
 )
 ```
-❗ A component that is imported with `?universal` should not be passed children (see [#48](https://github.com/kaliberjs/build/issues/48))
+❗ A component that is imported with `?universal` should be passed serializable props (e.g. no `children`) (see [#48](https://github.com/kaliberjs/build/issues/48))
 
 Note that universal rendering will change the html structure slightly (wrap an extra `div`), this can probably be changed when React 16 is released with array support.
 
@@ -284,9 +297,9 @@ This library is for Kaliber, we chose a set of conventions and configurations th
 To publish a new version:
 
 ```
->yarn publish
+>> yarn publish
 
->git push
+>> git push
 
->git push --tags
+>> git push --tags
 ```
