@@ -54,7 +54,8 @@ Ruby popularized 'convention over configuration', this library has a set of conv
 - `src/**/*.{type}.js` - Compiled as webpack entry using a renderer associated with the type.
   - `{type}` refers to the renderer that is used
     - `html` - Expects JSX to be returned from the template
-    - `default` (when no renderer was registered) - If the template returns a string, the string is used. In other cases `JSON.stringify(...)`.
+    - `txt` - Expects a string to be returned from the template
+    - `json` - Expects a javascript object or array to be returned
     - `{custom}` - It is possible to register custom renderers, see below for details.
   - `static` - Considered `static` when non-function value is exported, this value is passed to the renderer associated with the type.
   - `dynamic` - Considered `dynamic` when a function is exported, results in `*.{type}.js` with a function that accepts a single argument.
