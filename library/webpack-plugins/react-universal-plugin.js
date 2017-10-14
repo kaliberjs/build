@@ -3,9 +3,12 @@ const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const NullFactory = require('webpack/lib/NullFactory')
 const ParserHelpers = require('webpack/lib/ParserHelpers')
+const RawModule = require('webpack/lib/RawModule')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
+const { ReplaceSource } = require('webpack-sources')
 const { relative } = require('path')
+
 
 /*
   The idea is simple:
@@ -28,6 +31,36 @@ module.exports = function reactUniversalPlugin () {
       // when the webCompiler starts compiling add the recorded client entries
       webCompiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
         createEntries(clientEntries, done)
+      })
+
+      // check the parent compiler before creating a module, it might have already
+      // been processed
+      let compilation
+      compiler.plugin('compilation', c => { compilation = c })
+      webCompiler.plugin('compilation', (webCompilation, { normalModuleFactory }) => {
+        normalModuleFactory.plugin('create-module', data => {
+          if (!data.resourceResolveData.path.endsWith('.js')) {
+            const parentCompilationModule = compilation.findModule(data.request)
+            if (parentCompilationModule) {
+              // mutation in webpack internals is a minefield, tread carefully
+              const dependencies = parentCompilationModule.dependencies.slice()
+              const parentSource = new ReplaceSource(parentCompilationModule.originalSource())
+
+              const { dependencyTemplates, outputOptions, moduleTemplate: { requestShortener } } = webCompilation
+
+              // from NormalModule.sourceDependency
+              dependencies.forEach(dependency => {
+                const template = dependencyTemplates.get(dependency.constructor)
+                if(!template) throw new Error("No template for dependency: " + dependency.constructor.name)
+                template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
+              })
+
+              const result = new RawModule(parentSource.source())
+              result.dependencies = dependencies
+              return result
+            }
+          }
+        })
       })
 
       // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
@@ -169,8 +202,6 @@ function createWebCompiler(compiler, getEntries) {
 
   const webCompiler = createCompiler(compiler, options)
 
-  const removedAssets = []
-
   /*
     push the client loader when appropriate
 
@@ -190,32 +221,11 @@ function createWebCompiler(compiler, getEntries) {
     })
   })
 
-  // remove redundant assets introduced by client chunk, keep hot update assets
+  // make the chunk manifest available
   webCompiler.plugin('compilation', compilation => {
-
-    compilation.plugin('after-optimize-chunk-assets', chunks => {
-      const chunkFiles = {}
-      chunks.forEach(({ files }) => { files.forEach(file => { chunkFiles[file] = true }) })
-      Object.keys(compilation.assets).forEach(assetName => {
-        // this should be solved with some smarter construction: https://github.com/kaliberjs/build/issues/58
-        if (!chunkFiles[assetName] && !assetName.includes('hot-update') && assetName !== 'chunk-manifest.json') {
-          removedAssets.push(assetName)
-          delete compilation.assets[assetName]
-        }
-      })
-    })
-
     compilation.plugin('chunk-manifest', chunkManifest => {
       compilation._kaliber_chunk_manifest_ = chunkManifest
     })
-  })
-
-  // report the removed assets
-  webCompiler.plugin('after-emit', (compilation, done) => {
-    removedAssets.forEach(asset => {
-      compilation.assets[asset] = { size: () => 0, emitted: false }
-    })
-    done()
   })
 
   return webCompiler
