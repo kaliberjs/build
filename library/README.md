@@ -2,7 +2,8 @@
 
 Breaking changes:
 
-- V0.0.40 - `src` is no longer treated as `node_modules`, use absolute paths (`/x`) to retrieve modules from subdirectories
+- v0.0.41 - `*.*.js` are no longer all treated as templates, by default only `.html.js`, `.txt.js` and `.json.js` are considered
+- v0.0.40 - `src` is no longer treated as `node_modules`, use absolute paths (`/x`) to retrieve modules from subdirectories
 - v0.0.40 - Javascripts are now hashes, they require an additional import to load
 - v0.0.35 - Stylesheets are now hashes, they require an additional import to load
 
