@@ -174,9 +174,9 @@ module.exports = function build({ watch }) {
                 loader: 'url-loader',
                 options: { limit: 5000 }
               },
-              imageLoader,
+              isProduction && imageLoader,
               imageSizeLoader
-            ]
+            ].filter(Boolean)
           },
 
           {
