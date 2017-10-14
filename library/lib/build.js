@@ -28,7 +28,16 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { templateRenderers } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+const { kaliber: { templateRenderers: configuredTemplateRendererd = {} } = {} } =
+  process.env.CONFIG_ENV ? require('@kaliber/config') : {}
+
+const templateRenderers = Object.assign({
+  html: '@kaliber/build/lib/html-react-renderer',
+  txt: '@kaliber/build/lib/txt-renderer',
+  json: '@kaliber/build/lib/json-renderer'
+}, configuredTemplateRendererd)
+
+const recognizedTemplates = Object.keys(templateRenderers)
 
 const kaliberBuildClientModules = /(@kaliber\/build\/lib\/(stylesheet|javascript|hot-module-replacement-client)|ansi-regex)/
 
@@ -207,11 +216,8 @@ module.exports = function build({ watch }) {
             watch && new ExtendedAPIPlugin(),
             configLoaderPlugin(),
             watchContextPlugin(),
-            reactUniversalPlugin(),        // claims .entry.js
-            templatePlugin(Object.assign({ // does work on .*.js
-              html: '@kaliber/build/lib/html-react-renderer',
-              default: '@kaliber/build/lib/default-renderer'
-            }, templateRenderers)),
+            reactUniversalPlugin(),            // claims .entry.js
+            templatePlugin(templateRenderers), // does work on .*.js
             mergeCssPlugin(),
             copyUnusedFilesPlugin(),
             watch && hotCssReplacementPlugin()
@@ -290,7 +296,9 @@ module.exports = function build({ watch }) {
   } catch (e) { console.error(e.message) }
 
   function gatherEntries() {
-    return walkSync(srcDir, { globs: ['**/*.*.js', '**/*.entry.css'] }).reduce(
+    const template = recognizedTemplates.join('|')
+    const globs = [`**/*.@(${template}).js`, '**/*.entry.js', '**/*.entry.css']
+    return walkSync(srcDir, { globs }).reduce(
       (result, entry) => (result[entry] = './' + entry, result),
       {}
     )
