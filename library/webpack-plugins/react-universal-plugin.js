@@ -51,7 +51,7 @@ module.exports = function reactUniversalPlugin () {
               // from NormalModule.sourceDependency
               dependencies.forEach(dependency => {
                 const template = dependencyTemplates.get(dependency.constructor)
-                if(!template) throw new Error("No template for dependency: " + dependency.constructor.name)
+                if(!template) throw new Error('No template for dependency: ' + dependency.constructor.name)
                 template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
               })
 
