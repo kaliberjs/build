@@ -15,8 +15,9 @@ function evalWithSourceMap(source, createMap) {
 
 function withSourceMappedError(createMap, fn, options) {
   return withRawErrorStack(() => {
-    try { return fn() }
-    catch (e) { throw new Error(e + '\n' + toMappedStack(createMap, e.stack, options)) }
+    try {
+      return fn()
+    } catch (e) { throw new Error(e + '\n' + toMappedStack(createMap, e.stack, options)) }
   })
 }
 

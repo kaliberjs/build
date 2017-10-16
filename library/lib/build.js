@@ -299,7 +299,7 @@ module.exports = function build({ watch }) {
     const template = recognizedTemplates.join('|')
     const globs = [`**/*.@(${template}).js`, '**/*.entry.js', '**/*.entry.css']
     return walkSync(srcDir, { globs }).reduce(
-      (result, entry) => (result[entry] = './' + entry, result),
+      (result, entry) => ((result[entry] = './' + entry), result),
       {}
     )
   }

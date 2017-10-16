@@ -13,9 +13,25 @@ Breaking changes:
 An opinionated zero configuration build stack with React, PostCSS, Babel and Webpack as major ingredients.
 
 ## Installation
+### Easy (scaffold template)
+The scaffold-command will copy a template to an empty project-directory. It will not overwrite existing files.
+
+Oneliner: `yarn add @kaliber/build && ./node_modules/.bin/kaliber-scaffold && yarn start`
 
 ```
-yarn add @kaliber/build
+>> mkdir <projectname> && cd <projectname>
+
+>> yarn add @kaliber/build
+
+>> ./node_modules/.bin/kaliber-scaffold
+
+>> yarn start
+```
+
+### Manual
+
+```
+>> yarn add @kaliber/build
 ```
 
 `package.json`:
@@ -76,7 +92,7 @@ import head from './partials/head'
 import styles from './main.html.css'
 
 export default (
-  <html>
+  <html lang='en'>
     { head("Test title") }
     <body className={styles.background}>
       <p className={styles.context}>Test</p>
@@ -123,7 +139,7 @@ export default main
 
 function main(({ location, data })) {
   return (
-    <html>
+    <html lang='en'>
       { head('Test title') }
       <body className={styles.background}>
         <p className={styles.context}>Test</p>
@@ -143,7 +159,7 @@ import head from './partials/head'
 import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
 
 export default (
-  <html>
+  <html lang='en'>
     { head("Test title") }
     <body>
       <Test prop='value' />
@@ -151,7 +167,7 @@ export default (
   </html>
 )
 ```
-❗ A component that is imported with `?universal` should not be passed children (see [#48](https://github.com/kaliberjs/build/issues/48))
+❗ A component that is imported with `?universal` should be passed serializable props (e.g. no `children`) (see [#48](https://github.com/kaliberjs/build/issues/48))
 
 Note that universal rendering will change the html structure slightly (wrap an extra `div`), this can probably be changed when React 16 is released with array support.
 
@@ -163,7 +179,7 @@ import head from './partials/head'
 import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
 
 export default (
-  <html>
+  <html lang='en'>
     { head(config.title) }
     <body>
       <Test prop='value' configForClient={config.client} />
@@ -286,9 +302,9 @@ This library is for Kaliber, we chose a set of conventions and configurations th
 To publish a new version:
 
 ```
->yarn publish
+>> yarn publish
 
->git push
+>> git push
 
->git push --tags
+>> git push --tags
 ```

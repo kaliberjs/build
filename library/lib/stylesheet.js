@@ -14,9 +14,12 @@ export default __webpack_css_chunk_hashes__
   .filter(Boolean)
 
 function createHotReload(port, cssHashes, chunkName) {
-  return <script
-    key='stylesheet_hotCssReplacementClient'
-    dangerouslySetInnerHTML={{
+  return (
+    <script
+      key='stylesheet_hotCssReplacementClient'
+      dangerouslySetInnerHTML={{
       __html: `(${hotCssReplacementClient})(${port}, ${JSON.stringify(cssHashes)}, '${chunkName}')`
-    }}/>
+      }}
+    />
+  )
 }

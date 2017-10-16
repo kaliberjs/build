@@ -32,7 +32,7 @@ module.exports = function CssLoader(source, map) {
   let exports = {}
   const handlers = {
     resolve: (id, basedir, importOptions) => resolve(basedir, id),
-    onExport: locals  => { exports = locals },
+    onExport: locals => { exports = locals },
     processUrl: (url, file) => isDependency(url)
       ? resolve(dirname(file), url).then(resolved =>
           loadModule(resolved).then(executeModuleAt(resolved))
