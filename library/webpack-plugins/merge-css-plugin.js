@@ -127,6 +127,18 @@ module.exports = function mergeCssPlugin() {
             if (name.endsWith('.css')) delete compilation.assets[name]
           })
 
+          // create a manifest
+          const manifest = chunks.reduce(
+            (result, chunk) => {
+              const cssHashes = chunkCssHashes.get(chunk) || []
+              if (!cssHashes.length) return result
+              result[chunk.name] = cssHashes.map(hash => hash + '.css')
+              return result
+            },
+            {}
+          )
+          compilation.assets['css-manifest.json'] = new RawSource(JSON.stringify(manifest, null, 2))
+
           // create css assets
           Object.keys(newChunksWithCssAssets).forEach(chunkName => {
             const { chunks, assets, cssHash } = newChunksWithCssAssets[chunkName]
