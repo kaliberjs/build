@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+
+// Based on https://github.com/facebookincubator/create-react-app/blob/2e82ebb3371731a5c4e346f310848ddb23fd0976/packages/react-scripts/scripts/init.js
+
 const fs = require('fs-extra')
 const path = require('path')
 const spawn = require('cross-spawn')
@@ -49,12 +52,11 @@ fs.move(
 
 // install dev depenendecy `npm-run-all`
 const [ command, args ] = useYarn
-  ? [ 'yarnpkg',  [ 'add', '--dev', 'npm-run-all' ] ]
-  : [ 'npm',      [ 'install', '--save-dev', 'npm-run-all' ] ]
+  ? [ 'yarn', [ 'add', '--dev', 'npm-run-all' ] ]
+  : [ 'npm', [ 'install', '--save-dev', 'npm-run-all' ] ]
 
 const proc = spawn.sync(command, args, { stdio: 'inherit' })
 
 if (proc.status !== 0) {
   console.error(`\`${command} ${args.join(' ')}\` failed`)
-  return
 }

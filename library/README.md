@@ -13,8 +13,8 @@ Breaking changes:
 An opinionated zero configuration build stack with React, PostCSS, Babel and Webpack as major ingredients.
 
 ## Installation
-### Easy, scaffold
-The scaffold will copy a template to an empty project-directory. It will not overwrite existing files.
+### Easy (scaffold template)
+The scaffold-command will copy a template to an empty project-directory. It will not overwrite existing files.
 ```
 >> mkdir <projectname> && cd <projectname>
 
