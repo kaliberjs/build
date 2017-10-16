@@ -169,8 +169,13 @@ module.exports = function build({ watch }) {
             test: /\.svg$/,
             loaders: [
               {
-                loader: 'url-loader',
-                options: { limit: 5000 }
+                loader: 'svg-url-loader',
+                options: {
+                  limit: 5000,
+                  noquotes: true,
+                  stripdeclarations: true,
+                  iesafe: true
+                }
               },
               imageLoader
             ]
