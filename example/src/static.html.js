@@ -4,7 +4,7 @@ import styles from './index.html.js.css'
 import config from '@kaliber/config'
 
 export default (
-  <html>
+  <html lang='en'>
     { head('Some title') }
     <body>
       <div className={styles.background} />

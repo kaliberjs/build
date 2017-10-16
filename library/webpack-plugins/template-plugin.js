@@ -25,9 +25,10 @@ module.exports = function templatePlugin(renderers) {
   const templatePattern = /\.([^./]+)\.js$/ // {name}.{template type}.js
 
   function createRenderInfo(type) {
-    return {
+    const renderer = renderers[type]
+    return renderer && {
       type,
-      renderer: renderers[type] || renderers.default,
+      renderer,
       srcExt: `.${type}.js`,
       targetExt: `.${type}`,
       templateExt: `.template.${type}.js`
@@ -82,7 +83,7 @@ module.exports = function templatePlugin(renderers) {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
-            (result, chunk) => (result[chunk.name] = chunk, result),
+            (result, chunk) => ((result[chunk.name] = chunk), result),
             {}
           )
 
@@ -107,11 +108,13 @@ module.exports = function templatePlugin(renderers) {
                   ? [[srcExt, createDynamicTemplate(basename(outputName), templateExt, createMap)], [templateExt, asset]]
                   : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
                 )
-                .then(files => { files.forEach(([ext, result]) => {
-                  const filename = outputName + ext
-                  if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
-                  assets[filename] = result
-                }) })
+                .then(files => {
+                  files.forEach(([ext, result]) => {
+                    const filename = outputName + ext
+                    if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
+                    assets[filename] = result
+                  })
+                })
                 .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
             )
           }

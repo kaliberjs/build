@@ -2,7 +2,7 @@ import { main } from 'main.css'
 import bg1 from 'images/bg1.jpg'
 
 export default (
-  <html>
+  <html lang='en'>
     <head>
       <link rel='stylesheet' href='/index.css' />
     </head>
