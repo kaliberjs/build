@@ -26,8 +26,7 @@ function getMessage() {
 
   function getApp() {
     const name = 'build-example-app'
-    try { return firebase.app(name) }
-    catch (e) {
+    try { return firebase.app(name) } catch (e) {
       const { credentials, databaseURL } = config.server.firebase
       return firebase.initializeApp(
         {
@@ -45,7 +44,7 @@ export default main
 function main ({ location, data }) {
   if (!data) return null
   return (
-    <html>
+    <html lang='en'>
       { head('Rendered on server') }
       <body>
         <div className={styles.background} />

@@ -82,7 +82,7 @@ module.exports = function templatePlugin(renderers) {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
-            (result, chunk) => ({ ...result, [chunk.name]: chunk }),
+            (result, chunk) => ((result[chunk.name] = chunk), result),
             {}
           )
 
@@ -107,11 +107,13 @@ module.exports = function templatePlugin(renderers) {
                   ? [[srcExt, createDynamicTemplate(basename(outputName), templateExt, createMap)], [templateExt, asset]]
                   : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
                 )
-                .then(files => { files.forEach(([ext, result]) => {
-                  const filename = outputName + ext
-                  if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
-                  assets[filename] = result
-                }) })
+                .then(files => {
+                  files.forEach(([ext, result]) => {
+                    const filename = outputName + ext
+                    if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
+                    assets[filename] = result
+                  })
+                })
                 .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
             )
           }
