@@ -15,6 +15,9 @@ An opinionated zero configuration build stack with React, PostCSS, Babel and Web
 ## Installation
 ### Easy (scaffold template)
 The scaffold-command will copy a template to an empty project-directory. It will not overwrite existing files.
+
+Oneliner: `yarn add @kaliber/build && ./node_modules/.bin/kaliber-scaffold && yarn start`
+
 ```
 >> mkdir <projectname> && cd <projectname>
 
