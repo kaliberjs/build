@@ -9,7 +9,7 @@ import hotCssReplacementClient from './hot-css-replacement-client?transpiled-jav
 const isWatch = process.env.WATCH
 
 export default __webpack_css_chunk_hashes__
-  .map((cssHash, index) => <link href={`${__webpack_public_path__ + cssHash}.css`} rel='stylesheet' type='text/css' key={'stylesheet_' + index} />)
+  .map(cssHash => <link href={`${__webpack_public_path__ + cssHash}.css`} rel='stylesheet' type='text/css' key={`stylesheet_${cssHash}`} />)
   .concat(isWatch && createHotReload(__webpack_websocket_port__, __webpack_css_chunk_hashes__, __webpack_chunkname__, __webpack_public_path__))
   .filter(Boolean)
 
