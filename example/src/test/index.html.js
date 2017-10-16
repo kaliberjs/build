@@ -6,10 +6,13 @@ import shared from '/partials/shared'
 import SharedComponent from '/partials/SharedComponent?universal'
 
 export default (
-	<html>{head('test')}<body>
-    {shared}
-    <SharedComponent />
-    Test
-    <Test clientConfig={config.client} />
-    </body></html>
+  <html lang='en'>
+    {head('test')}
+    <body>
+      {shared}
+      <SharedComponent />
+      Test
+      <Test clientConfig={config.client} />
+    </body>
+  </html>
 )

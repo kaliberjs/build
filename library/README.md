@@ -76,7 +76,7 @@ import head from './partials/head'
 import styles from './main.html.css'
 
 export default (
-  <html>
+  <html lang='en'>
     { head("Test title") }
     <body className={styles.background}>
       <p className={styles.context}>Test</p>
@@ -123,7 +123,7 @@ export default main
 
 function main(({ location, data })) {
   return (
-    <html>
+    <html lang='en'>
       { head('Test title') }
       <body className={styles.background}>
         <p className={styles.context}>Test</p>
@@ -143,7 +143,7 @@ import head from './partials/head'
 import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
 
 export default (
-  <html>
+  <html lang='en'>
     { head("Test title") }
     <body>
       <Test prop='value' />
@@ -163,7 +163,7 @@ import head from './partials/head'
 import Test from './partials/Test?universal' // Import the component with `?universal` to turn it into a universal component
 
 export default (
-  <html>
+  <html lang='en'>
     { head(config.title) }
     <body>
       <Test prop='value' configForClient={config.client} />

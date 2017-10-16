@@ -5,7 +5,7 @@ import SharedComponent from '/partials/SharedComponent?universal'
 
 export default function() {
   return (
-    <html>{head('test')}
+    <html lang='en'>{head('test')}
       <body>
         {shared}
         <SharedComponent />

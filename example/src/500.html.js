@@ -1,3 +1,3 @@
 export default (
-  <html><head /><body>Oopsie :-P</body></html>
+  <html lang='en'><head /><body>Oopsie :-P</body></html>
 )

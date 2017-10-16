@@ -14,9 +14,12 @@ export default [
 ].filter(Boolean)
 
 function createHotReload(port, cssHash, chunkName) {
-  return <script
-    key='hotCssReplacementClient_1'
-    dangerouslySetInnerHTML={{
-      __html: `(${hotCssReplacementClient})(${port}, '${cssHash}', '${chunkName}')`
-    }}/>
+  return (
+    <script
+      key='hotCssReplacementClient_1'
+      dangerouslySetInnerHTML={{
+        __html: `(${hotCssReplacementClient})(${port}, '${cssHash}', '${chunkName}')`
+      }}
+    />
+  )
 }

@@ -6,7 +6,8 @@ export default (
     <mj-head>
       <mj-style inline='inline' dangerouslySetInnerHTML={{ __html: `
         .box-shadow { box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.20); }
-      ` }} />
+      ` }}
+      />
     </mj-head>
     <mj-body>
       <mj-container background-color='#F3F3F3'>
