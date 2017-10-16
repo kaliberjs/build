@@ -8,7 +8,7 @@
 
   It also adds a 'chunk-css-hashes' hook which can be used by plugins to record the css hash of a chunk:
 
-  compilation.plugin('chunk-css-hashes', (chunkName, cssHash) => {
+  compilation.plugin('chunk-css-hashes', (chunkName, cssHashes) => {
     ...
   })
 */
