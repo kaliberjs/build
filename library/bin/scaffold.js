@@ -7,7 +7,7 @@ const path = require('path')
 const spawn = require('cross-spawn')
 
 const appPath = process.cwd()
-const templatePath = path.resolve('../template')
+const templatePath = path.resolve(__dirname, '../template')
 const useYarn = fs.existsSync(path.join(appPath, 'yarn.lock'))
 
 const appPackage = require(path.resolve(appPath, 'package.json'))
