@@ -3,6 +3,7 @@ import styles from './test.css'
 import json from './test.json'
 import firebase from 'firebase'
 import shared from './shared'
+import img from '/bg2.jpg'
 
 const extra = { x: 'x' }
 
@@ -20,6 +21,7 @@ export default class Test extends Component {
   render() {
     return (
       <div>
+        <img src={img} />
         {this.props.soep}
         <span className={styles.test}>{this.state.counter} - {this.state.message}</span>
         <Test2 />

@@ -25,9 +25,10 @@ module.exports = function templatePlugin(renderers) {
   const templatePattern = /\.([^./]+)\.js$/ // {name}.{template type}.js
 
   function createRenderInfo(type) {
-    return {
+    const renderer = renderers[type]
+    return renderer && {
       type,
-      renderer: renderers[type] || renderers.default,
+      renderer,
       srcExt: `.${type}.js`,
       targetExt: `.${type}`,
       templateExt: `.template.${type}.js`
