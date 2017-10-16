@@ -1,17 +1,23 @@
 /* global __webpack_js_chunk_information__, __webpack_public_path__ */
 
-export default getSharedChunkFileNames(__webpack_js_chunk_information__).map((filename, index) =>
-  <script key={`javascript_${index}`} defer src={__webpack_public_path__ + filename} />
-)
+const { universalChunkNames, manifest } = __webpack_js_chunk_information__
 
-function getSharedChunkFileNames({ universalChunkNames, manifest }) {
+export default getSharedScriptsForAll(universalChunkNames)
+
+export function getSharedScriptsFor(name) {
+  return getSharedScriptsForAll([name])
+}
+
+export function getSharedScriptsForAll(names) {
   const sharedChunks = []
 
-  universalChunkNames.forEach(universalChunkName => {
-    addParents(manifest[universalChunkName].parents)
+  names.forEach(name => {
+    const info = manifest[name]
+    if (!info) throw new Error(`Could not find information in manifest for ${name}`)
+    addParents(manifest[name].parents)
   })
 
-  return sharedChunks
+  return sharedChunks.map(toScripts)
 
   function addParents(parents) {
     parents.map(x => manifest[x]).forEach(addFilenames)
@@ -24,4 +30,8 @@ function getSharedChunkFileNames({ universalChunkNames, manifest }) {
       else sharedChunks.push(filename)
     }
   }
+}
+
+function toScripts(filename, index) {
+  return <script key={`javascript_${index}`} defer src={__webpack_public_path__ + filename} />
 }
