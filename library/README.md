@@ -231,7 +231,14 @@ const basicAuth = require('express-basic-auth')
 
 module.exports = {
   kaliber: {
-    serveMiddleware: basicAuth({ ... }),
+    serveMiddleware: basicAuth({
+      challenge: true,
+      realm: 'xxx',
+      users: {
+        kaliber: 'XDR%5tgb',
+        user: 'pass'
+      }
+    }),
     
     // or
     serveMiddleware: ['/protected-path', basicAuth({ ... })]
