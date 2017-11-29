@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+- v0.0.44 - `*.entry.css` are now also hashed, use `css-manifest.json` to obtain the names
 - v0.0.41 - `*.*.js` are no longer all treated as templates, by default only `.html.js`, `.txt.js` and `.json.js` are considered
 - v0.0.40 - `src` is no longer treated as `node_modules`, use absolute paths (`/x`) to retrieve modules from subdirectories
 - v0.0.40 - Javascripts are now hashes, they require an additional import to load
@@ -239,7 +240,7 @@ module.exports = {
         user: 'pass'
       }
     }),
-    
+
     // or
     serveMiddleware: ['/protected-path', basicAuth({ ... })]
   }
@@ -298,7 +299,7 @@ At Kaliber we have created a lot of different projects over the years, each usin
 
 1. Static pages
 2. Single page applications
-3. Wordpress sites 
+3. Wordpress sites
 
 The second motivation for this project is the amount of time that was spent to set up a projects build stack. Some of our projects use Gulp, others use Webpack. It all felt way too complicated, slow or fit for a single purpose. We eventually chose webpack and created some loaders and plugins that are easier to understand than the ones that were available by default. The code in this library is not simple per-se, but it contains a lot less lines of codes compared to the alternatives.
 
