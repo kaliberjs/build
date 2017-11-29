@@ -5,7 +5,7 @@
     "serve": "kaliber-serve",
     "serve:dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
     "//": "only needed for library development",
-    "install-library": "yarn add file:../library --dev --force",
+    "install-library": "echo 'removing'; rm -R `yarn cache dir`/npm-@kaliber/build*; echo 'adding'; yarn add file:../library --dev --force",
     "watch-library": "npm-watch",
     "lint": "kaliber-lint"
   },
