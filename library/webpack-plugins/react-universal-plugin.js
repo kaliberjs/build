@@ -200,6 +200,9 @@ function createWebCompiler(compiler, getEntries) {
   options.resolve.aliasFields = ['browser']
   options.resolve.mainFields = ['browser', 'module', 'main']
 
+  options.module = Object.assign({}, options.module)
+  options.module.unsafeCache = false
+
   const webCompiler = createCompiler(compiler, options)
 
   /*
