@@ -12,7 +12,7 @@ function hotCssReplacementClient(port, cssHashes, chunkName, publicPath) { // es
   const ws = new WebSocket('ws://localhost:' + port)
   ws.onopen = _ => { console.log('Waiting for signals') }
   ws.onmessage = ({ data }) => {
-    const { type, cssChunkHashes } = JSON.parse(data)
+    const { type, cssChunkHashes, errors } = JSON.parse(data)
 
     switch (type) {
       case 'done':
@@ -28,7 +28,7 @@ function hotCssReplacementClient(port, cssHashes, chunkName, publicPath) { // es
 
         break;
       case 'failed':
-        console.warn('Compilation failed')
+        errors.forEach(error => console.error(error))
         break;
       default:
         throw new Error(`Unexpected type '${type}'`)

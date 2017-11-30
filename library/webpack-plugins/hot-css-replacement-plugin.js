@@ -2,6 +2,7 @@
   Adds a hook to the `chunk-css-hash` of the compilation to record the hashes of css chunks. These hases
   are sent when compilation completes.
 */
+const ansiRegex = require('ansi-regex')
 
 module.exports = function hotCssReplacementPlugin() {
 
@@ -18,8 +19,15 @@ module.exports = function hotCssReplacementPlugin() {
           cssChunkHashes[chunkName] = cssHashes
         })
       })
-      compiler.plugin('done', stats => { send({ type: 'done', hash: stats.hash, cssChunkHashes }) })
-      compiler.plugin('failed', err => { send({ type: 'failed' }) })
+      compiler.plugin('done', stats => {
+        if (stats.hasErrors()) sendErrors(stats.toJson('errors-only').errors)
+        else send({ type: 'done', hash: stats.hash, cssChunkHashes })
+      })
+      compiler.plugin('failed', err => { sendErrors([err.message]) })
+
+      function sendErrors(errors) {
+        send({ type: 'failed', errors: errors.map(e => e.replace(ansiRegex(), '')) })
+      }
     }
   }
 }

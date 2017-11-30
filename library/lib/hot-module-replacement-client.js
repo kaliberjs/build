@@ -7,7 +7,7 @@ const ws = new WebSocket('ws://localhost:' + __webpack_websocket_port__)
 
 ws.onopen = _ => { console.log('Waiting for signals') }
 ws.onmessage = ({ data }) => {
-  const { type, hash } = JSON.parse(data)
+  const { type, hash, errors } = JSON.parse(data)
 
   switch (type) {
     case 'done':
@@ -18,29 +18,30 @@ ws.onmessage = ({ data }) => {
 
           module.hot.apply({
             ignoreErrored: true,
-            onErrored: ({ error }) => {
-              error.message = error.message.replace(ansiRegex(), '')
-
-              console.error(error)
-            }
+            onErrored: ({ error }) => { logErrorWithoutColors(error) }
           }).then(renewedModules => {
               const ignoredModules = updatedModules.filter(x => !renewedModules.includes(x))
               if (ignoredModules.length) console.warn('Ignored modules: ' + ignoredModules.join(', '))
             })
             .catch(err => {
               console.error('Error during hot reload apply')
-              console.error(err)
+              logErrorWithoutColors(err)
             })
         })
         .catch(err => {
           console.error('Problem checking for hot reload updates')
-          console.error(err)
+          logErrorWithoutColors(err)
         })
       break;
     case 'failed':
-      console.warn('Compilation failed')
+      errors.forEach(error => console.error(error))
       break;
     default:
       throw new Error(`Unexpected type '${type}'`)
   }
+}
+
+function logErrorWithoutColors(error) {
+  error.message = error.message.replace(ansiRegex(), '')
+  console.error(error)
 }
