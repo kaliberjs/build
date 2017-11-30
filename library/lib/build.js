@@ -45,7 +45,7 @@ const babelLoader = {
   loader: 'babel-loader',
   options: {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: [['es2015', { modules: false }], 'react'],
+    presets: [['env', { modules: false }], 'react'],
     plugins: [
       'syntax-dynamic-import',
       'transform-decorators-legacy',
