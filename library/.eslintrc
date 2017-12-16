@@ -208,7 +208,7 @@
     "react/jsx-no-comment-textnodes": "warn",
     "react/jsx-no-duplicate-props": ["warn", { "ignoreCase": true }],
     "react/jsx-no-target-blank": "warn",
-    "react/jsx-no-undef": "warn",
+    "react/jsx-no-undef": ["warn", { "allowGlobals": true }],
     "react/jsx-pascal-case": ["warn", { "allowAllCaps": true }],
     "react/jsx-tag-spacing": "warn",
     "react/jsx-uses-react": "warn",
