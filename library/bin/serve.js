@@ -7,7 +7,7 @@ const { access } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 
-const { kaliber: { serveMiddleware } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+const { kaliber: { serveMiddleware, helmetOptions } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
 
 const app = express()
 
@@ -19,7 +19,8 @@ const internalServerError = resolve(target, '500.html')
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
 
-app.use(helmet())
+// hsts-headers are sent by our loadbalancer
+app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
 serveMiddleware && app.use(serveMiddleware)
 app.use(express.static(target))
