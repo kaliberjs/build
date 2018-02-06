@@ -220,6 +220,7 @@ The configuration-files can be used to configure kaliber/build features.
 The following features are configurable:
 - `kaliber-serve` with custom middleware
 - `kaliber-build` and `kaliber-watch` with custom renderers
+- custom public path
 
 ### `kaliber-serve` with custom middleware
 
@@ -296,6 +297,19 @@ export default (
     </mj-body>
   </mjml>
 )
+```
+
+### custom public path
+You can change the default public path using the `kaliber.publicPath` configuration.
+
+```js
+// config/{CONFIG_ENV}.js
+
+module.exports = {
+  kaliber: {
+    publicPath: '/subfolder/'
+  }
+}
 ```
 
 ## Motivation
