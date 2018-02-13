@@ -28,7 +28,7 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { templateRenderers: configuredTemplateRendererd = {} } = {} } =
+const { kaliber: { publicPath = '/', templateRenderers: configuredTemplateRendererd = {} } = {} } =
   process.env.CONFIG_ENV ? require('@kaliber/config') : {}
 
 const templateRenderers = Object.assign({
@@ -102,8 +102,8 @@ module.exports = function build({ watch }) {
       output: {
         filename: '[name]',
         chunkFilename: '[name]-[hash].js',
-        path: target,
-        publicPath: '/',
+        path: path.join(target, publicPath),
+        publicPath,
         libraryTarget: 'commonjs2'
       },
       externals: nodeExternals({ whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/] }),
