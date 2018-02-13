@@ -219,8 +219,7 @@ componentDidMount() {
 The configuration-files can be used to configure kaliber/build features.
 The following features are configurable:
 - `kaliber-serve` with custom middleware
-- `kaliber-build` and `kaliber-watch` with custom renderers
-- custom public path
+- `kaliber-build` and `kaliber-watch` with custom renderers and custom public path
 
 ### `kaliber-serve` with custom middleware
 
@@ -299,7 +298,8 @@ export default (
 )
 ```
 
-### custom public path
+### `kaliber-build` and `kaliber-watch` with custom public path
+
 You can change the default public path using the `kaliber.publicPath` configuration.
 
 ```js
