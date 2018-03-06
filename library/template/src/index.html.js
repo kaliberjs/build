@@ -10,6 +10,7 @@ export default (
       <meta name='description' content='' />
       <meta name='viewport' content='width=device-width, initial-scale=1' />
       {stylesheet}
+      <script defer src='https://cdn.polyfill.io/v2/polyfill.min.js?features=default,es2015,es2016,es2017' />
       {javascript}
     </head>
     <body>
