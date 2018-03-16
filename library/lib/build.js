@@ -25,6 +25,7 @@ const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-res
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
+const findYarnWorkspaceRoot = require('find-yarn-workspace-root')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -94,6 +95,8 @@ module.exports = function build({ watch }) {
 
   const srcDir = path.resolve(process.cwd(), 'src')
 
+  const yarnWorkspaceDir = findYarnWorkspaceRoot(path.resolve(__dirname, '..'))
+
   // This needs to be a function, if this would be an object things might breack
   // because webpack stores state in the options object :-(
   function getOptions() {
@@ -106,14 +109,21 @@ module.exports = function build({ watch }) {
         publicPath,
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/] }),
+      externals: [
+        nodeExternals(externalConfForModulesDir('node_modules')),
+        yarnWorkspaceDir && nodeExternals(externalConfForModulesDir(path.resolve(yarnWorkspaceDir, 'node_modules')))
+      ].filter(Boolean),
       resolve: {
         extensions: ['.js'],
         modules: ['node_modules'],
         plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
       },
       resolveLoader: {
-        modules: [path.resolve(__dirname, '../webpack-loaders'), 'node_modules']
+        modules: [
+          path.resolve(__dirname, '../webpack-loaders'),
+          'node_modules',
+          yarnWorkspaceDir && path.resolve(yarnWorkspaceDir, 'node_modules')
+        ].filter(Boolean)
       },
       context: srcDir,
       module: {
@@ -230,6 +240,13 @@ module.exports = function build({ watch }) {
           ].filter(Boolean)
         })
       ],
+    }
+
+    function externalConfForModulesDir (modulesDir = 'node_modules') {
+      return {
+        whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/],
+        modulesDir
+      }
     }
   }
 
