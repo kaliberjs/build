@@ -176,8 +176,6 @@ export default (
 ```
 ❗ A component that is imported with `?universal` should be passed serializable props (e.g. no `children`) (see [#48](https://github.com/kaliberjs/build/issues/48))
 
-Note that universal rendering will change the html structure slightly (wrap an extra `div`), this can probably be changed when React 16 is released with array support.
-
 ## Usage with environment-specific configuration
 
 ```jsx
