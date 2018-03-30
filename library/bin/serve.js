@@ -22,7 +22,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 // hsts-headers are sent by our loadbalancer
 app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
-serveMiddleware && app.use(serveMiddleware)
+serveMiddleware && app.use(...[].concat(serveMiddleware))
 app.use(express.static(target))
 
 app.use((req, res, next) => {
