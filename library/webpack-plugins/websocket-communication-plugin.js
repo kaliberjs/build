@@ -80,8 +80,14 @@ function findFreePort(retries = 2) {
 }
 
 function startWebSocketServer(port) {
-  console.log(`WebSocket opened on port ${port}`)
   const wss = new ws.Server({ port })
+  wss.on('connection', ws => {
+    ws.on('error', err => {
+      // Ignore network errors like `ECONNRESET`, `EPIPE`, etc., fixes https://github.com/kaliberjs/build/issues/106
+      if (err.errno) return
+      throw err
+    })
+  })
 
   return {
     send: message => {
