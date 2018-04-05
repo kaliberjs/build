@@ -90,12 +90,14 @@ const imageSizeLoader = {
 
 module.exports = function build({ watch }) {
 
-  const target = path.resolve(process.cwd(), 'target')
+  const cwd = process.cwd()
+
+  const target = path.resolve(cwd, 'target')
   fs.removeSync(target)
 
-  const srcDir = path.resolve(process.cwd(), 'src')
+  const srcDir = path.resolve(cwd, 'src')
 
-  const yarnWorkspaceDir = findYarnWorkspaceRoot(path.resolve(__dirname, '..'))
+  const yarnWorkspaceDir = findYarnWorkspaceRoot(cwd)
 
   // This needs to be a function, if this would be an object things might breack
   // because webpack stores state in the options object :-(
@@ -242,7 +244,7 @@ module.exports = function build({ watch }) {
       ],
     }
 
-    function externalConfForModulesDir (modulesDir = 'node_modules') {
+    function externalConfForModulesDir (modulesDir) {
       return {
         whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/],
         modulesDir
