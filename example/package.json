@@ -10,13 +10,13 @@
     "lint": "kaliber-lint"
   },
   "devDependencies": {
-    "@kaliber/build": "0.0.47"
+    "@kaliber/build": "0.0.50"
   },
   "dependencies": {
     "express-basic-auth": "^1.1.3",
     "firebase": "^4.6.2",
     "firebase-admin": "^5.5.1",
-    "mjml": "^3.3.3",
+    "mjml": "^4.0.3",
     "normalize.css": "^7.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
