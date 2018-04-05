@@ -123,8 +123,7 @@ module.exports = function build({ watch }) {
       resolveLoader: {
         modules: [
           path.resolve(__dirname, '../webpack-loaders'),
-          'node_modules',
-          yarnWorkspaceDir && path.resolve(yarnWorkspaceDir, 'node_modules')
+          'node_modules'
         ].filter(Boolean)
       },
       context: srcDir,
