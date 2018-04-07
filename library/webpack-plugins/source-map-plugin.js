@@ -6,18 +6,20 @@
 const { RawSource, ConcatSource } = require('webpack-sources')
 const path = require('path')
 
+const p = 'source-map-plugin'
+
 module.exports = function sourceMapPlugin() {
   return {
     apply: compiler => {
-      compiler.plugin('compilation', compilation => {
+      compiler.hooks.compilation.tap(p, compilation => {
 
         // make sure webpack stuff keeps their source maps
-        compilation.plugin('build-module', module => {
+        compilation.hooks.buildModule.tap(p, module => {
           module.useSourceMap = true
         })
 
         // add source map assets for anything that still has one
-        compilation.plugin('after-optimize-assets', assets => {
+        compilation.hooks.afterOptimizeAssets.tap(p, assets => {
           Object.keys(assets).forEach(name => {
             const asset = assets[name]
             const map = asset.map()

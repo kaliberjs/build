@@ -12,9 +12,11 @@ module.exports = function targetBasedPluginsPlugin(plugins) {
 
   return {
     apply: compiler => {
-      compiler.apply.apply(compiler, plugins.all)
+      plugins.all.forEach(applyPlugin)
       const targetPlugins = plugins[compiler.options.target]
-      if (targetPlugins) compiler.apply.apply(compiler, targetPlugins)
+      if (targetPlugins) targetPlugins.forEach(applyPlugin)
+
+      function applyPlugin(plugin) { plugin.apply(compiler) }
     }
   }
 }

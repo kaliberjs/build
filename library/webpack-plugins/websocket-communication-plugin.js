@@ -3,7 +3,7 @@
 
   Plugins can get hold of the `send` method by adding the following hook:
 
-  compiler.plugin('websocket-send-available', send => {
+  compiler.hooks.websocketSendAvailable.tap('plugin-name', send => {
     ...
   })
 
@@ -12,16 +12,23 @@
   message from `send`.
 */
 
+const { SyncHook } = require('tapable')
 const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const NullFactory = require('webpack/lib/NullFactory')
 const ParserHelpers = require('webpack/lib/ParserHelpers')
 const net = require('net')
 const ws = require('ws')
 
+const p = 'websocket-communication-plugin'
+
 module.exports = function websocketCommunicationPlugin() {
 
   return {
     apply: compiler => {
+      // we should add this check to all hooks we create
+      if (compiler.hooks.websocketSendAvailable) throw new Error('Hook `websocketSendAvailable` already in use')
+      compiler.hooks.websocketSendAvailable = new SyncHook(['send'])
+
       const freePort = findFreePort()
       const webSocketServer = freePort.then(startWebSocketServer)
 
@@ -30,33 +37,36 @@ module.exports = function websocketCommunicationPlugin() {
       let port
 
       // provide the send function
-      compiler.plugin('environment', () => {
-        compiler.applyPlugins('websocket-send-available', send)
+      compiler.hooks.environment.tap(p, () => {
+        compiler.hooks.websocketSendAvailable.call(send)
       })
 
       // wait for a free port before we start compiling
-      compiler.plugin('before-compile', (params, done) => {
+      compiler.hooks.beforeCompile.tapAsync(p, (params, done) => {
         freePort.then(found => { port = found }).then(_ => { done() }).catch(done)
       })
 
       // make sure the __webpack_websocket_port__ is available in modules (code copied from ExtendedApiPlugin)
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
+        compilation.mainTemplate.hooks.requireExtensions.tap(p, function(source, chunk, hash) {
           const buf = [
             source,
             '',
             '// __webpack_websocket_port__',
-            `${this.requireFn}.wsp = ${port};`
+            `${compilation.mainTemplate.requireFn}.wsp = ${port};`
           ]
-          return this.asString(buf)
+          return buf.join('\n')
         })
-        compilation.mainTemplate.plugin('global-hash', () => true)
-        normalModuleFactory.plugin('parser', (parser, parserOptions) => {
-          parser.plugin(`expression __webpack_websocket_port__`, ParserHelpers.toConstantDependency('__webpack_require__.wsp'))
-          parser.plugin(`evaluate typeof __webpack_websocket_port__`, ParserHelpers.evaluateToString('string'))
-        })
+        compilation.mainTemplate.hooks.globalHash.tap(p, () => true)
+        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, addParserHooks)
+        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, addParserHooks)
+
+        function addParserHooks(parser, parserOptions) {
+          parser.hooks.expression.for('__webpack_websocket_port__').tap(p, ParserHelpers.toConstantDependency(parser, '__webpack_require__.wsp'))
+          parser.hooks.evaluateTypeof.for('__webpack_websocket_port__').tap(p, ParserHelpers.evaluateToString('string'))
+        }
       })
     }
   }

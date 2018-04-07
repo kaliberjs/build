@@ -2,11 +2,13 @@
   Simply adds the context as a context dependency
 */
 
+const p = 'watch-context-plugin'
+
 module.exports = function watchContextPlugin() {
   return {
     apply: compiler => {
-      compiler.plugin('after-compile', (compilation, done) => {
-        compilation.contextDependencies.push(compiler.options.context)
+      compiler.hooks.afterCompile.tapAsync(p, (compilation, done) => {
+        compilation.contextDependencies.add(compiler.options.context)
         done()
       })
     }

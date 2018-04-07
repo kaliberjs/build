@@ -43,7 +43,7 @@ module.exports = function CssLoader(source, map) {
   const { minifyOnly = false } = loaderUtils.getOptions(this) || {}
 
   const plugins = createPlugins(minifyOnly, handlers)
-  const filename = relative(this.options.context, this.resourcePath)
+  const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
     to  : this.resourcePath,
@@ -81,7 +81,7 @@ module.exports = function CssLoader(source, map) {
 
   function executeModuleAt(url) {
     return source => {
-      const completeSource = `const __webpack_public_path__ = '${self.options.output.publicPath || '/'}'\n` + source
+      const completeSource = `const __webpack_public_path__ = '${self._compiler.options.output.publicPath || '/'}'\n` + source
       return self.exec(completeSource, url)
     }
   }

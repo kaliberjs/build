@@ -7,6 +7,8 @@
 const webpack = require('webpack')
 const ansiRegex = require('ansi-regex')
 
+const p = 'hot-module-replacement-plugin'
+
 module.exports = function hotModuleReplacementPlugin() {
 
   return {
@@ -15,12 +17,12 @@ module.exports = function hotModuleReplacementPlugin() {
 
       let send
 
-      compiler.plugin('websocket-send-available', x => { send = x })
-      compiler.plugin('done', stats => {
+      compiler.hooks.websocketSendAvailable.tap(p, x => { send = x })
+      compiler.hooks.done.tap(p, stats => {
         if (stats.hasErrors()) sendErrors(stats.toJson('errors-only').errors)
         else send({ type: 'done', hash: stats.hash })
       })
-      compiler.plugin('failed', err => { sendErrors([err.message]) })
+      compiler.hooks.failed.tap(p, err => { sendErrors([err.message]) })
 
       function sendErrors(errors) {
         send({ type: 'failed', errors: errors.map(e => e.replace(ansiRegex(), '')) })

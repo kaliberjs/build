@@ -8,6 +8,7 @@ const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { ReplaceSource } = require('webpack-sources')
 const { relative } = require('path')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 
 /*
@@ -17,6 +18,8 @@ const { relative } = require('path')
     - compile those modules again as separate entries using a web targetted compiler
     - add the client loader to those modules
 */
+
+const p = 'react-universal-plugin'
 
 // works only when entry is an object
 module.exports = function reactUniversalPlugin () {
@@ -28,31 +31,31 @@ module.exports = function reactUniversalPlugin () {
 
       const webCompiler = createWebCompiler(compiler, () => clientEntries)
 
-      // when the webCompiler starts compiling add the recorded client entries
-      webCompiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
+      // // when the webCompiler starts compiling add the recorded client entries
+      webCompiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, createEntries, done) => {
         createEntries(clientEntries, done)
       })
 
       // check the parent compiler before creating a module, it might have already
       // been processed
       let compilation
-      compiler.plugin('compilation', c => { compilation = c })
-      webCompiler.plugin('compilation', (webCompilation, { normalModuleFactory }) => {
-        normalModuleFactory.plugin('create-module', data => {
-          if (!data.resourceResolveData.path.endsWith('.js')) {
+      compiler.hooks.compilation.tap(p, c => { compilation = c })
+      webCompiler.hooks.compilation.tap(p, (webCompilation, { normalModuleFactory }) => {
+        normalModuleFactory.hooks.createModule.tap(p, data => {
+          const path = data.resourceResolveData.path
+          if (!path.endsWith('.js') && !path.endsWith('.json')) {
             const parentCompilationModule = compilation.findModule(data.request)
             if (parentCompilationModule) {
               // mutation in webpack internals is a minefield, tread carefully
               const dependencies = parentCompilationModule.dependencies.slice()
               const parentSource = new ReplaceSource(parentCompilationModule.originalSource())
 
-              const { dependencyTemplates, outputOptions, moduleTemplate: { requestShortener } } = webCompilation
+              const { dependencyTemplates, outputOptions, moduleTemplates: { javascript: { requestShortener } } } = webCompilation
 
               // from NormalModule.sourceDependency
               dependencies.forEach(dependency => {
                 const template = dependencyTemplates.get(dependency.constructor)
-                if(!template) throw new Error('No template for dependency: ' + dependency.constructor.name)
-                template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
+                if (template) template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
               })
 
               const result = new RawModule(parentSource.source())
@@ -64,14 +67,14 @@ module.exports = function reactUniversalPlugin () {
       })
 
       // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
-      compiler.plugin('before-compile', (params, done) => {
+      compiler.hooks.beforeCompile.tapAsync(p, (params, done) => {
         webCompiler.fileTimestamps = compiler.fileTimestamps
         webCompiler.contextTimestamps = compiler.contextTimestamps
         done()
       })
 
       // we claim entries ending with `entry.js` and record them as client entries for the web compiler
-      compiler.plugin('claim-entries', entries => {
+      compiler.hooks.claimEntries.tap(p, entries => {
         const [claimed, unclaimed] = Object.keys(entries).reduce(
           ([claimed, unclaimed], name) => {
             const entry = entries[name]
@@ -95,9 +98,9 @@ module.exports = function reactUniversalPlugin () {
         When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
         loaders and add the module marked with `?universal-client` as client entry.
       */
-      compiler.plugin('normal-module-factory', normalModuleFactory => {
+      compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
-        normalModuleFactory.plugin('before-resolve', (data, done) => {
+        normalModuleFactory.hooks.beforeResolve.tapAsync(p, (data, done) => {
           if (!data) return done(null, data)
 
           if (data.dependencies.some(x => x instanceof ImportDependency)) return done()
@@ -105,7 +108,7 @@ module.exports = function reactUniversalPlugin () {
           done(null, data)
         })
 
-        normalModuleFactory.plugin('after-resolve', (data, done) => {
+        normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
           const { loaders, resourceResolveData: { query, path } } = data
 
           if (query === '?universal') {
@@ -120,7 +123,7 @@ module.exports = function reactUniversalPlugin () {
       })
 
       // tell the web compiler to compile, emit the assets and notify the appropriate plugins
-      compiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
+      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, createEntries, done) => {
 
         const startTime = Date.now()
         webCompiler.compile((err, webCompilation) => {
@@ -137,7 +140,7 @@ module.exports = function reactUniversalPlugin () {
 
         function finish(err, compilation) {
           if (err) {
-            webCompiler.applyPlugins('failed', err)
+            webCompiler.hooks.failed.call(err)
             return done(err)
           }
 
@@ -145,17 +148,15 @@ module.exports = function reactUniversalPlugin () {
           stats.startTime = startTime
           stats.endTime = Date.now()
 
-          webCompiler.applyPlugins('done', stats)
-
-          done()
+          webCompiler.hooks.done.callAsync(stats, done)
         }
       })
 
       // make sure the __webpack_js_chunk_information__ is available in modules (code copied from ExtendedApiPlugin)
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
         compilation.dependencyFactories.set(ConstDependency, new NullFactory())
         compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
+        compilation.mainTemplate.hooks.requireExtensions.tap(p, function(source, chunk, hash) {
 
           // get the manifest from the client compilation
           const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
@@ -169,21 +170,27 @@ module.exports = function reactUniversalPlugin () {
             source,
             '',
             '// __webpack_js_chunk_information__',
-            `${this.requireFn}.jci = ${JSON.stringify({ universalChunkNames, manifest })};`
+            `${compilation.mainTemplate.requireFn}.jci = ${JSON.stringify({ universalChunkNames, manifest })};`
           ]
-          return this.asString(buf)
+          return buf.join('\n')
         })
-        compilation.mainTemplate.plugin('global-hash', () => true)
-        normalModuleFactory.plugin('parser', (parser, parserOptions) => {
-          parser.plugin(`expression __webpack_js_chunk_information__`, ParserHelpers.toConstantDependency('__webpack_require__.jci'))
-          parser.plugin(`evaluate typeof __webpack_js_chunk_information__`, ParserHelpers.evaluateToString('array'))
-        })
+        compilation.mainTemplate.hooks.globalHash.tap(p, () => true)
+        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, addParserHooks)
+        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, addParserHooks)
+
+        function addParserHooks(parser, parserOptions) {
+          parser.hooks.expression.for('__webpack_js_chunk_information__').tap(p, ParserHelpers.toConstantDependency(parser, '__webpack_require__.jci'))
+          parser.hooks.evaluateTypeof.for('__webpack_js_chunk_information__').tap(p, ParserHelpers.evaluateToString('array'))
+        }
       })
     }
   }
 }
 
 function createWebCompiler(compiler, getEntries) {
+
+  // TODO we need to use another mechanism so that we can set the options
+  // in the build.js and also we need to use the optiondefaulter from webpack
 
   // Massage the options to become a web configuration
   const options = Object.assign({}, compiler.options)
@@ -195,6 +202,36 @@ function createWebCompiler(compiler, getEntries) {
   options.output = Object.assign({}, options.output)
   options.output.libraryTarget = 'var'
   options.output.filename = '[id].[hash].js'
+  options.output.chunkFilename = '[id].[hash].js'
+  options.output.globalObject = 'window'
+
+  options.optimization = Object.assign({}, options.optimization)
+  options.optimization.runtimeChunk = 'single'
+  options.optimization.minimize = options.mode === 'production'
+  options.optimization.minimizer = [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: true,
+      sourceMap: true // this one is important
+    })
+  ]
+  options.optimization.splitChunks = {
+    chunks: 'all',
+    minSize: 10000,
+    minChunks: 1,
+    maxAsyncRequests: 5,
+    automaticNameDelimiter: '~',
+    maxInitialRequests: 3,
+    name: true,
+    filename: '[id].[hash].js',
+    cacheGroups: {
+      default: {
+        reuseExistingChunk: true,
+        minChunks: 2,
+        priority: -20
+      }
+    }
+  }
 
   options.resolve = Object.assign({}, options.resolve)
   options.resolve.aliasFields = ['browser']
@@ -210,8 +247,8 @@ function createWebCompiler(compiler, getEntries) {
 
     provide a friendly error if @kaliber/config is loaded from a client module
   */
-  webCompiler.plugin('normal-module-factory', normalModuleFactory => {
-    normalModuleFactory.plugin('after-resolve', (data, done) => {
+  webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
+    normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
       const { loaders, rawRequest, resourceResolveData: { query } } = data
 
       if (query === '?universal-client')
@@ -225,8 +262,8 @@ function createWebCompiler(compiler, getEntries) {
   })
 
   // make the chunk manifest available
-  webCompiler.plugin('compilation', compilation => {
-    compilation.plugin('chunk-manifest', chunkManifest => {
+  webCompiler.hooks.compilation.tap(p, compilation => {
+    compilation.hooks.chunkManifest.tap(p, chunkManifest => {
       compilation._kaliber_chunk_manifest_ = chunkManifest
     })
   })
@@ -235,9 +272,9 @@ function createWebCompiler(compiler, getEntries) {
 }
 
 function createCompiler(compiler, options) {
-  const childCompiler = new Compiler()
+  const childCompiler = new Compiler(options.context)
 
-  /* from webpack.js */
+  /* from lib/webpack.js */
   childCompiler.context = options.context
   childCompiler.options = options
 
@@ -246,9 +283,10 @@ function createCompiler(compiler, options) {
   childCompiler.outputFileSystem = compiler.outputFileSystem
   childCompiler.watchFileSystem = compiler.watchFileSystem
 
-  childCompiler.apply.apply(childCompiler, options.plugins)
-  childCompiler.applyPlugins('environment')
-  childCompiler.applyPlugins('after-environment')
+  options.plugins.forEach(plugin => { plugin.apply(childCompiler) })
+  childCompiler.hooks.environment.call()
+  childCompiler.hooks.afterEnvironment.call()
+
   childCompiler.options = new WebpackOptionsApply().process(options, childCompiler)
 
   return childCompiler

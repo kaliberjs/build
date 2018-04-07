@@ -1,12 +1,14 @@
 /*
   This plugin determines when @kaliber/config is imported and pushes the custom config-loader
 */
+const p = 'config-loader-plugin'
+
 module.exports = function configLoaderPlugin() {
   return {
     apply: compiler => {
-      compiler.plugin('normal-module-factory', normalModuleFactory => {
+      compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
-        normalModuleFactory.plugin('after-resolve', (data, done) => {
+        normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
           const { loaders, rawRequest } = data
 
           if (rawRequest === '@kaliber/config')

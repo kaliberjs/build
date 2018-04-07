@@ -1,3 +1,9 @@
+// Better logging for deprecation and other errors
+process.traceDeprecation = true
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled rejection of:\n', p, '\nReason:\n', reason)
+})
+
 const fs = require('fs-extra')
 const nodeExternals = require('webpack-node-externals')
 const path = require('path')
@@ -12,7 +18,6 @@ const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replac
 const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
-const sharedModulesPlugin = require('../webpack-plugins/shared-modules-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
@@ -26,6 +31,7 @@ const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const findYarnWorkspaceRoot = require('find-yarn-workspace-root')
+const TimeFixPlugin = require('time-fix-plugin') // https://github.com/webpack/watchpack/issues/25
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -103,7 +109,9 @@ module.exports = function build({ watch }) {
   // because webpack stores state in the options object :-(
   function getOptions() {
     return {
+      mode: isProduction ? 'production' : 'development',
       target: 'node',
+      devtool: false,
       output: {
         filename: '[name]',
         chunkFilename: '[name]-[hash].js',
@@ -127,11 +135,17 @@ module.exports = function build({ watch }) {
         ].filter(Boolean)
       },
       context: srcDir,
+      optimization: {
+        namedChunks: false,
+        minimize: false,
+        splitChunks: false
+      },
       module: {
         // noParse: https://webpack.js.org/configuration/module/#module-noparse
         rules: [{ oneOf: [
 
           {
+            type: 'json',
             test: /\.json$/,
             loaders: []
           },
@@ -224,6 +238,7 @@ module.exports = function build({ watch }) {
             sourceMapPlugin(),
           ].filter(Boolean),
           node: [
+            new TimeFixPlugin(),
             watch && new ExtendedAPIPlugin(),
             configLoaderPlugin(),
             watchContextPlugin(),
@@ -234,9 +249,7 @@ module.exports = function build({ watch }) {
             watch && hotCssReplacementPlugin()
           ].filter(Boolean),
           web: [
-            sharedModulesPlugin(),
             chunkManifestPlugin(),
-            isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
             watch && hotModuleReplacementPlugin()
           ].filter(Boolean)
         })
@@ -304,11 +317,12 @@ module.exports = function build({ watch }) {
         const [oldKeys, newKeys] = [Object.keys(entries), Object.keys(newEntries)]
         const entriesChanged = !oldKeys.every(x => newKeys.includes(x)) || !newKeys.every(x => oldKeys.includes(x))
 
+        console.log('\nWaiting for file changes...\n')
+
         if (entriesChanged) {
           console.log('Entries changed, restarting watch')
           watching.close(() => { start(newEntries) })
         }
-        console.log('\nWaiting for file changes...\n')
       }
     }
   } catch (e) { console.error(e.message) }
