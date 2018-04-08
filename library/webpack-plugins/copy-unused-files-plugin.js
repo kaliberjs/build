@@ -12,7 +12,7 @@ module.exports = function copyUnusedFilesPlugin() {
   return {
     apply: compiler => {
 
-      compiler.hooks.afterEmit.tapAsync(p, (compilation, done) => {
+      compiler.hooks.afterEmit.tapPromise(p, compilation => {
 
         const context = compiler.context
 
@@ -48,7 +48,7 @@ module.exports = function copyUnusedFilesPlugin() {
           })
         )
 
-        filesCopied.then(_ => { done() }).catch(done)
+        return filesCopied
       })
     }
   }

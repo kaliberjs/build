@@ -39,7 +39,7 @@ module.exports = function makeAdditionalEntries() {
     apply: compiler => {
 
       compiler.hooks.claimEntries = new SyncWaterfallHook(['entries'])
-      compiler.hooks.makeAdditionalEntries = new AsyncSeriesHook(['compilation', 'createEntries'])
+      compiler.hooks.makeAdditionalEntries = new AsyncSeriesHook(['compilation', 'addEntries'])
 
       const entriesToMake = {}
 
@@ -65,21 +65,13 @@ module.exports = function makeAdditionalEntries() {
         Note that plugins can depend on entries created in plugins registered
         before them.
       */
-      compiler.hooks.make.tapAsync(p, (compilation, done) => {
+      compiler.hooks.make.tapPromise(p, compilation => {
 
-        addEntries(entriesToMake)
+        return addEntries(entriesToMake)
           .then(makeAdditionalEntries)
-          .then(_ => { done() })
-          .catch(e => { done(e) })
 
         function makeAdditionalEntries() {
-          return new Promise((resolve, reject) => {
-            compiler.hooks.makeAdditionalEntries.callAsync(
-              compilation,
-              (entries, done) => { addEntries(entries || {}).then(_ => { done() }).catch(done) },
-              err => { err ? reject(err) : resolve() }
-            )
-          })
+          return compiler.hooks.makeAdditionalEntries.promise(compilation, addEntries)
         }
 
         function addEntries(entries) {

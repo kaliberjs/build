@@ -12,7 +12,7 @@ function absolutePathResolverPlugin(path) {
             path: path,
             request: './' + innerRequest.slice(1)
           })
-          resolver.doResolve(resolver.hooks.resolve, newRequest, 'looking for file in ' + path, resolveContext, callback, true)
+          resolver.doResolve(resolver.hooks.resolve, newRequest, 'looking for file in ' + path, resolveContext, callback)
 
         } else return callback()
 

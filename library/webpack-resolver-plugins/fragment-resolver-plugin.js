@@ -12,7 +12,7 @@ function fragmentResolverPlugin() {
           const newRequest = Object.assign({}, request, {
             request: file + '?fragment=' + fragment
           })
-          resolver.doResolve(resolver.hooks.resolve, newRequest, 'resolving without fragment', resolveContext, callback, true)
+          resolver.doResolve(resolver.hooks.resolve, newRequest, 'resolving without fragment', resolveContext, callback)
 
         } else return callback()
 

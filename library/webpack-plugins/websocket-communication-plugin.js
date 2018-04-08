@@ -42,9 +42,7 @@ module.exports = function websocketCommunicationPlugin() {
       })
 
       // wait for a free port before we start compiling
-      compiler.hooks.beforeCompile.tapAsync(p, (params, done) => {
-        freePort.then(found => { port = found }).then(_ => { done() }).catch(done)
-      })
+      compiler.hooks.beforeCompile.tapPromise(p, params => freePort.then(found => { port = found }))
 
       // make sure the __webpack_websocket_port__ is available in modules (code copied from ExtendedApiPlugin)
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {

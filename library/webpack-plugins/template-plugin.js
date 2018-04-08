@@ -52,7 +52,7 @@ module.exports = function templatePlugin(renderers) {
         as it would cause infinite loops
       */
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
-        normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
+        normalModuleFactory.hooks.afterResolve.tap(p, data => {
           const { loaders, resourceResolveData: { query, path } } = data
           const renderInfo = getRenderInfo(path)
 
@@ -62,7 +62,7 @@ module.exports = function templatePlugin(renderers) {
             loaders.push({ loader: templateLoader, options: { renderer } })
           }
 
-          done(null, data)
+          return data
         })
       })
 
@@ -81,7 +81,7 @@ module.exports = function templatePlugin(renderers) {
           result (in `x.type.js`) is a simple function with one argument that can be called
           to obtain a rendered template.
         */
-        compilation.hooks.optimizeAssets.tapAsync(p, (assets, done) => {
+        compilation.hooks.optimizeAssets.tapPromise(p, assets => {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
@@ -121,7 +121,7 @@ module.exports = function templatePlugin(renderers) {
             )
           }
 
-          Promise.all(renders).then(_ => { done() }).catch(done)
+          return Promise.all(renders)
         })
       })
     }

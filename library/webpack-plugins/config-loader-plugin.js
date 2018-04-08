@@ -8,13 +8,13 @@ module.exports = function configLoaderPlugin() {
     apply: compiler => {
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
-        normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
+        normalModuleFactory.hooks.afterResolve.tap(p, data => {
           const { loaders, rawRequest } = data
 
           if (rawRequest === '@kaliber/config')
             loaders.push({ loader: require.resolve('../webpack-loaders/config-loader') })
 
-          done(null, data)
+          return data
         })
       })
     }

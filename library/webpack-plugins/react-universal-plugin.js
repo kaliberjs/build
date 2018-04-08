@@ -31,8 +31,8 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
       const webCompiler = createWebCompiler(compiler, webCompilerOptions, () => clientEntries)
 
       // // when the webCompiler starts compiling add the recorded client entries
-      webCompiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, createEntries, done) => {
-        createEntries(clientEntries, done)
+      webCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
+        return addEntries(clientEntries)
       })
 
       // check the parent compiler before creating a module, it might have already
@@ -66,10 +66,9 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
       })
 
       // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
-      compiler.hooks.beforeCompile.tapAsync(p, (params, done) => {
+      compiler.hooks.beforeCompile.tap(p, params => {
         webCompiler.fileTimestamps = compiler.fileTimestamps
         webCompiler.contextTimestamps = compiler.contextTimestamps
-        done()
       })
 
       // we claim entries ending with `entry.js` and record them as client entries for the web compiler
@@ -99,15 +98,15 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
       */
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
-        normalModuleFactory.hooks.beforeResolve.tapAsync(p, (data, done) => {
-          if (!data) return done(null, data)
+        normalModuleFactory.hooks.beforeResolve.tap(p, data => {
+          if (!data) return data
 
-          if (data.dependencies.some(x => x instanceof ImportDependency)) return done()
+          if (data.dependencies.some(x => x instanceof ImportDependency)) return
 
-          done(null, data)
+          return data
         })
 
-        normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
+        normalModuleFactory.hooks.afterResolve.tap(p, data => {
           const { loaders, resourceResolveData: { query, path } } = data
 
           if (query === '?universal') {
@@ -117,12 +116,13 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
             if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
           }
 
-          done(null, data)
+          return data
         })
       })
 
       // tell the web compiler to compile, emit the assets and notify the appropriate plugins
-      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, createEntries, done) => {
+      // Note, we can not use `make` because it's parralel
+      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, _, done) => {
 
         const startTime = Date.now()
         webCompiler.compile((err, webCompilation) => {
@@ -196,16 +196,16 @@ function createWebCompiler(compiler, options, getEntries) {
     provide a friendly error if @kaliber/config is loaded from a client module
   */
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
-    normalModuleFactory.hooks.afterResolve.tapAsync(p, (data, done) => {
+    normalModuleFactory.hooks.afterResolve.tap(p, data => {
       const { loaders, rawRequest, resourceResolveData: { query } } = data
 
       if (query === '?universal-client')
         loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
 
       if (rawRequest === '@kaliber/config')
-        return done('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
+        throw new Error('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
 
-      done(null, data)
+      return data
     })
   })
 
