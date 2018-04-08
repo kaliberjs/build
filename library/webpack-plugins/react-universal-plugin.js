@@ -8,8 +8,7 @@ const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const { ReplaceSource } = require('webpack-sources')
 const { relative } = require('path')
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-
+const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 
 /*
   The idea is simple:
@@ -22,14 +21,14 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const p = 'react-universal-plugin'
 
 // works only when entry is an object
-module.exports = function reactUniversalPlugin () {
+module.exports = function reactUniversalPlugin (webCompilerOptions) {
 
   return {
     apply: compiler => {
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
 
-      const webCompiler = createWebCompiler(compiler, () => clientEntries)
+      const webCompiler = createWebCompiler(compiler, webCompilerOptions, () => clientEntries)
 
       // // when the webCompiler starts compiling add the recorded client entries
       webCompiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, createEntries, done) => {
@@ -187,58 +186,7 @@ module.exports = function reactUniversalPlugin () {
   }
 }
 
-function createWebCompiler(compiler, getEntries) {
-
-  // TODO we need to use another mechanism so that we can set the options
-  // in the build.js and also we need to use the optiondefaulter from webpack
-
-  // Massage the options to become a web configuration
-  const options = Object.assign({}, compiler.options)
-  options.name = 'react-universal-plugin-client-compiler'
-  options.target = 'web'
-  options.entry = undefined
-  options.externals = undefined
-
-  options.output = Object.assign({}, options.output)
-  options.output.libraryTarget = 'var'
-  options.output.filename = '[id].[hash].js'
-  options.output.chunkFilename = '[id].[hash].js'
-  options.output.globalObject = 'window'
-
-  options.optimization = Object.assign({}, options.optimization)
-  options.optimization.runtimeChunk = 'single'
-  options.optimization.minimize = options.mode === 'production'
-  options.optimization.minimizer = [
-    new UglifyJsPlugin({
-      cache: true,
-      parallel: true,
-      sourceMap: true // this one is important
-    })
-  ]
-  options.optimization.splitChunks = {
-    chunks: 'all',
-    minSize: 10000,
-    minChunks: 1,
-    maxAsyncRequests: 5,
-    automaticNameDelimiter: '~',
-    maxInitialRequests: 3,
-    name: true,
-    filename: '[id].[hash].js',
-    cacheGroups: {
-      default: {
-        reuseExistingChunk: true,
-        minChunks: 2,
-        priority: -20
-      }
-    }
-  }
-
-  options.resolve = Object.assign({}, options.resolve)
-  options.resolve.aliasFields = ['browser']
-  options.resolve.mainFields = ['browser', 'module', 'main']
-
-  options.module = Object.assign({}, options.module)
-  options.module.unsafeCache = false
+function createWebCompiler(compiler, options, getEntries) {
 
   const webCompiler = createCompiler(compiler, options)
 
@@ -272,10 +220,10 @@ function createWebCompiler(compiler, getEntries) {
 }
 
 function createCompiler(compiler, options) {
-  const childCompiler = new Compiler(options.context)
-
   /* from lib/webpack.js */
-  childCompiler.context = options.context
+  options = new WebpackOptionsDefaulter().process(options)
+
+  const childCompiler = new Compiler(options.context)
   childCompiler.options = options
 
   // instead of using the NodeEnvironmentPlugin
@@ -286,7 +234,6 @@ function createCompiler(compiler, options) {
   options.plugins.forEach(plugin => { plugin.apply(childCompiler) })
   childCompiler.hooks.environment.call()
   childCompiler.hooks.afterEnvironment.call()
-
   childCompiler.options = new WebpackOptionsApply().process(options, childCompiler)
 
   return childCompiler
