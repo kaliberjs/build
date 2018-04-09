@@ -10,7 +10,7 @@
     "lint": "kaliber-lint"
   },
   "devDependencies": {
-    "@kaliber/build": "0.0.50"
+    "@kaliber/build": "*"
   },
   "dependencies": {
     "express-basic-auth": "^1.1.3",
