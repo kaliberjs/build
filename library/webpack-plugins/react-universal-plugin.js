@@ -30,7 +30,7 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
 
       const webCompiler = createWebCompiler(compiler, webCompilerOptions, () => clientEntries)
 
-      // // when the webCompiler starts compiling add the recorded client entries
+      // when the webCompiler starts compiling add the recorded client entries
       webCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
         return addEntries(clientEntries)
       })
