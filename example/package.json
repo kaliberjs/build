@@ -1,27 +1,22 @@
 {
+  "name": "example",
+  "private": true,
+  "version": "0.0.0",
   "scripts": {
     "build": "NODE_ENV=production kaliber-build",
     "watch": "CONFIG_ENV=dev kaliber-watch",
     "serve": "kaliber-serve",
     "serve:dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
-    "//": "only needed for library development",
-    "install-library": "echo 'removing'; rm -R `yarn cache dir`/npm-@kaliber/build*; echo 'adding'; yarn add file:../library --dev --force",
-    "watch-library": "npm-watch",
     "lint": "kaliber-lint"
   },
   "devDependencies": {
-    "@kaliber/build": "file:../library",
-    "npm-watch": "^0.3.0"
+    "@kaliber/build": "*"
   },
-  "watch": {
-    "install-library": "../library/"
-  },
-  "//": "Remove the `react` and  `react-dom` dependencies when `mjml` doesn't depend on `react@15.x` anymore",
   "dependencies": {
     "express-basic-auth": "^1.1.3",
     "firebase": "^4.6.2",
     "firebase-admin": "^5.5.1",
-    "mjml": "^3.3.3",
+    "mjml": "^4.0.3",
     "normalize.css": "^7.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
