@@ -28,8 +28,8 @@
   })
 */
 
-const { AsyncSeriesHook, SyncWaterfallHook } = require('tapable')
 const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency')
+const { AsyncSeriesHook, SyncWaterfallHook } = require('tapable')
 const { createDependency } = require('webpack/lib/SingleEntryPlugin')
 
 const p = 'make-additional-entries'
@@ -38,7 +38,9 @@ module.exports = function makeAdditionalEntries() {
   return {
     apply: compiler => {
 
+      if (compiler.hooks.claimEntries) throw new Error('Hook `claimEntries` already in use')
       compiler.hooks.claimEntries = new SyncWaterfallHook(['entries'])
+      if (compiler.hooks.makeAdditionalEntries) throw new Error('Hook `makeAdditionalEntries` already in use')
       compiler.hooks.makeAdditionalEntries = new AsyncSeriesHook(['compilation', 'addEntries'])
 
       const entriesToMake = {}

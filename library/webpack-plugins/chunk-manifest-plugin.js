@@ -25,6 +25,7 @@ module.exports = function chunkManifestPlugin() {
     apply: compiler => {
 
       compiler.hooks.compilation.tap(p, compilation => {
+        if (compilation.hooks.chunkManifest) throw new Error('Hook `chunkManifest` already in use')
         compilation.hooks.chunkManifest = new SyncHook(['chunkAssets'])
 
         const chunkAssets = {}

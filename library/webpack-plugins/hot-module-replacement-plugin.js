@@ -4,8 +4,8 @@
   The only thing we do is send a message when compilation completes.
 */
 
-const webpack = require('webpack')
 const ansiRegex = require('ansi-regex')
+const webpack = require('webpack')
 
 const p = 'hot-module-replacement-plugin'
 

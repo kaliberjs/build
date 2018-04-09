@@ -27,6 +27,7 @@ module.exports = function mergeCssPlugin() {
     apply: compiler => {
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
 
+        if (compilation.hooks.chunkCssHashes) throw new Error('Hook `chunkCssHashes` already in use')
         compilation.hooks.chunkCssHashes = new SyncHook(['chunkName', 'cssHashes'])
 
         const newChunksWithCssAssets = {}

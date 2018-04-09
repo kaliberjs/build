@@ -25,7 +25,6 @@ module.exports = function websocketCommunicationPlugin() {
 
   return {
     apply: compiler => {
-      // we should add this check to all hooks we create
       if (compiler.hooks.websocketSendAvailable) throw new Error('Hook `websocketSendAvailable` already in use')
       compiler.hooks.websocketSendAvailable = new SyncHook(['send'])
 

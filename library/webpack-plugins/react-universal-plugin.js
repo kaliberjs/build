@@ -6,9 +6,9 @@ const ParserHelpers = require('webpack/lib/ParserHelpers')
 const RawModule = require('webpack/lib/RawModule')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
+const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 const { ReplaceSource } = require('webpack-sources')
 const { relative } = require('path')
-const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 
 /*
   The idea is simple:

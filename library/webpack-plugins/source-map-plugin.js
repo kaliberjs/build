@@ -3,8 +3,8 @@
   has a source map available.
 */
 
-const { RawSource, ConcatSource } = require('webpack-sources')
 const path = require('path')
+const { RawSource, ConcatSource } = require('webpack-sources')
 
 const p = 'source-map-plugin'
 
