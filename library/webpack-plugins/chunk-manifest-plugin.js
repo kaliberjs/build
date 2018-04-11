@@ -36,12 +36,11 @@ module.exports = function chunkManifestPlugin() {
           const isShared = groups.length > 1
           const [group] = groups
 
-          chunkAssets[chunk.name] = {
+          chunkAssets[chunk.name] = Object.assign({
             filename,
             hasRuntime: chunk.hasRuntime(),
-            isShared,
-            ...(!isShared && { dependencies: group.chunks.filter(x => x !== chunk).map(x => x.name) })
-          }
+            isShared
+          }, !isShared && { dependencies: group.chunks.filter(x => x !== chunk).map(x => x.name) })
         })
 
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {

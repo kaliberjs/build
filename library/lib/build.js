@@ -174,10 +174,9 @@ module.exports = function build({ watch }) {
       },
       resolve: resolveOptions(),
       resolveLoader: resolveLoaderOptions(),
-      module: {
-        unsafeCache: false,
-        ...moduleOptions()
-      },
+      module: Object.assign({
+        unsafeCache: false
+      }, moduleOptions()),
       plugins: [
         ...pluginsOptions().all(),
         ...pluginsOptions().web()
@@ -325,10 +324,9 @@ module.exports = function build({ watch }) {
     else runOnce(compilationComplete)
 
     function createCompiler(entries) {
-      return webpack({
-        entry: entries,
-        ...nodeOptions()
-      })
+      return webpack(Object.assign({
+        entry: entries
+      }, nodeOptions()))
     }
 
     function compilationComplete(err, stats) {
