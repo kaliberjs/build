@@ -2,7 +2,7 @@
 
 Breaking changes:
 
-- v0.0.?? - `chunk-manifest.json` changed
+- v0.0.51 - `chunk-manifest.json` changed
 - v0.0.47 - Universal apps no longer have an extra `<div />` around the root-app-node and the script-tag.
 - v0.0.44 - `*.entry.css` are now also hashed, use `css-manifest.json` to obtain the names
 - v0.0.41 - `*.*.js` are no longer all treated as templates, by default only `.html.js`, `.txt.js` and `.json.js` are considered
