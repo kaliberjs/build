@@ -164,7 +164,7 @@ module.exports = function build({ watch }) {
           new UglifyJsPlugin({
             cache: true,
             parallel: true,
-            sourceMap: true // this one is important
+            sourceMap: true
           })
         ],
         splitChunks: {
@@ -203,7 +203,6 @@ module.exports = function build({ watch }) {
 
   function moduleOptions() {
     return {
-      // noParse: https://webpack.js.org/configuration/module/#module-noparse
       rules: [{ oneOf: [
 
         {
