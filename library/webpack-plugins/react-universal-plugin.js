@@ -39,7 +39,7 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
       compiler.hooks.compilation.tap(p, c => { compilation = c })
       webCompiler.hooks.compilation.tap(p, (webCompilation, { normalModuleFactory }) => {
         normalModuleFactory.hooks.createModule.tap(p, data => {
-          const path = data.resourceResolveData.path
+          const { path } = data.resourceResolveData
           if (!path.endsWith('.js') && !path.endsWith('.json')) {
             const parentCompilationModule = compilation.findModule(data.request)
             if (parentCompilationModule) {
@@ -119,8 +119,8 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
       })
 
       // tell the web compiler to compile, emit the assets and notify the appropriate plugins
-      // Note, we can not use `make` because it's parralel
-      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, _, done) => {
+      // Note, we can not use `make` because it's parallel
+      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, _, callback) => {
 
         const startTime = Date.now()
         webCompiler.compile((err, webCompilation) => {
@@ -138,14 +138,14 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
         function finish(err, compilation) {
           if (err) {
             webCompiler.hooks.failed.call(err)
-            return done(err)
+            return callback(err)
           }
 
           const stats = new Stats(compilation)
           stats.startTime = startTime
           stats.endTime = Date.now()
 
-          webCompiler.hooks.done.callAsync(stats, done)
+          webCompiler.hooks.done.callAsync(stats, callback)
         }
       })
 

@@ -9,16 +9,16 @@
 
   Usage from other plugins:
 
-  compiler.hooks.makeAdditionalEntries.tapAsync('plugin-name', (compilation, createEntries, done) => {
+  compiler.hooks.makeAdditionalEntries.tapAsync('plugin-name', (compilation, createEntries, callback) => {
 
     // if you want to add new entries
-    createEntries({ name: path }, done)
+    createEntries({ name: path }, callback)
 
     // If you don't want to create entries
-    done()
+    callback()
 
     // when you need to signal an error
-    done(err)
+    callback(err)
   })
 
   and
