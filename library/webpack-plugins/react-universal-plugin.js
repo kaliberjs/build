@@ -1,13 +1,11 @@
 const Compiler = require('webpack/lib/Compiler')
-const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
-const NullFactory = require('webpack/lib/NullFactory')
-const ParserHelpers = require('webpack/lib/ParserHelpers')
 const RawModule = require('webpack/lib/RawModule')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 const { ReplaceSource } = require('webpack-sources')
+const { addBuiltInVariable } = require('../lib/webpack-utils')
 const { relative } = require('path')
 
 /*
@@ -151,36 +149,27 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
         }
       })
 
-      // make sure the __webpack_js_chunk_information__ is available in modules (code copied from ExtendedApiPlugin)
+      // make sure the __webpack_js_chunk_information__ is available in modules
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
-        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
-        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.hooks.requireExtensions.tap(p, function(source, chunk, hash) {
 
-          // get the manifest from the client compilation
-          const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
+        addBuiltInVariable({
+          compilation, normalModuleFactory,
+          pluginName: p,
+          variableName: '__webpack_js_chunk_information__',
+          abbreviation: 'jci',
+          type: 'object',
+          createValue: (source, chunk, hash) => {
+            // get the manifest from the client compilation
+            const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
 
-          // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
-          const universalChunkNames = chunk.getModules()
-            .filter(x => x.resource && x.resource.endsWith('?universal'))
-            .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
+            // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
+            const universalChunkNames = chunk.getModules()
+              .filter(x => x.resource && x.resource.endsWith('?universal'))
+              .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 
-          const buf = [
-            source,
-            '',
-            '// __webpack_js_chunk_information__',
-            `${compilation.mainTemplate.requireFn}.jci = ${JSON.stringify({ universalChunkNames, manifest })};`
-          ]
-          return buf.join('\n')
+            return { universalChunkNames, manifest }
+          }
         })
-        compilation.mainTemplate.hooks.globalHash.tap(p, () => true)
-        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, addParserHooks)
-        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, addParserHooks)
-
-        function addParserHooks(parser, parserOptions) {
-          parser.hooks.expression.for('__webpack_js_chunk_information__').tap(p, ParserHelpers.toConstantDependency(parser, '__webpack_require__.jci'))
-          parser.hooks.evaluateTypeof.for('__webpack_js_chunk_information__').tap(p, ParserHelpers.evaluateToString('array'))
-        }
       })
     }
   }

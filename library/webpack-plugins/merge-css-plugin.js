@@ -13,12 +13,10 @@
   })
 */
 
-const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
-const NullFactory = require('webpack/lib/NullFactory')
-const ParserHelpers = require('webpack/lib/ParserHelpers')
 const crypto = require('crypto')
 const { ConcatSource, RawSource } = require('webpack-sources')
 const { SyncHook } = require('tapable')
+const { addBuiltInVariable } = require('../lib/webpack-utils')
 
 const p = 'merge-css-plugin'
 
@@ -104,29 +102,15 @@ module.exports = function mergeCssPlugin() {
           })
         })
 
-        // make sure the __webpack_css_chunk_hashes__ is available in modules (code copied from ExtendedApiPlugin)
-        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
-        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.hooks.requireExtensions.tap(p, function(source, chunk, hash) {
-
-          const cssHashes = chunkCssHashes.get(chunk) || []
-
-          const buf = [
-            source,
-            '',
-            '// __webpack_css_chunk_hashes__',
-            `${compilation.mainTemplate.requireFn}.cch = ${JSON.stringify(cssHashes)};`
-          ]
-          return buf.join('\n')
+        // make sure the __webpack_css_chunk_hashes__ is available in modules
+        addBuiltInVariable({
+          compilation, normalModuleFactory,
+          pluginName: p,
+          variableName: '__webpack_css_chunk_hashes__',
+          abbreviation: 'cch',
+          type: 'array',
+          createValue: (source, chunk, hash) => chunkCssHashes.get(chunk) || []
         })
-        compilation.mainTemplate.hooks.globalHash.tap(p, () => true)
-        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, addParserHooks)
-        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, addParserHooks)
-
-        function addParserHooks(parser, parserOptions) {
-          parser.hooks.expression.for(`__webpack_css_chunk_hashes__`).tap(p, ParserHelpers.toConstantDependency(parser, '__webpack_require__.cch'))
-          parser.hooks.evaluateTypeof.for(`__webpack_css_chunk_hashes__`).tap(p, ParserHelpers.evaluateToString('string'))
-        }
 
         // merge css assets
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {

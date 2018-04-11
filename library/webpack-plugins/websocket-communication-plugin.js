@@ -12,12 +12,10 @@
   message from `send`.
 */
 
-const { SyncHook } = require('tapable')
-const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
-const NullFactory = require('webpack/lib/NullFactory')
-const ParserHelpers = require('webpack/lib/ParserHelpers')
 const net = require('net')
 const ws = require('ws')
+const { SyncHook } = require('tapable')
+const { addBuiltInVariable } = require('../lib/webpack-utils')
 
 const p = 'websocket-communication-plugin'
 
@@ -43,27 +41,17 @@ module.exports = function websocketCommunicationPlugin() {
       // wait for a free port before we start compiling
       compiler.hooks.beforeCompile.tapPromise(p, params => freePort.then(found => { port = found }))
 
-      // make sure the __webpack_websocket_port__ is available in modules (code copied from ExtendedApiPlugin)
+      // make sure the __webpack_websocket_port__ is available in modules
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
-        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
-        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.hooks.requireExtensions.tap(p, function(source, chunk, hash) {
-          const buf = [
-            source,
-            '',
-            '// __webpack_websocket_port__',
-            `${compilation.mainTemplate.requireFn}.wsp = ${port};`
-          ]
-          return buf.join('\n')
-        })
-        compilation.mainTemplate.hooks.globalHash.tap(p, () => true)
-        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, addParserHooks)
-        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, addParserHooks)
 
-        function addParserHooks(parser, parserOptions) {
-          parser.hooks.expression.for('__webpack_websocket_port__').tap(p, ParserHelpers.toConstantDependency(parser, '__webpack_require__.wsp'))
-          parser.hooks.evaluateTypeof.for('__webpack_websocket_port__').tap(p, ParserHelpers.evaluateToString('string'))
-        }
+        addBuiltInVariable({
+          compilation, normalModuleFactory,
+          pluginName: p,
+          variableName: '__webpack_websocket_port__',
+          abbreviation: 'wsp',
+          type: 'number',
+          createValue: (source, chunk, hash) => port
+        })
       })
     }
   }
