@@ -7,15 +7,16 @@ const { access } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 
-const { kaliber: { serveMiddleware, helmetOptions } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/' } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
 
 const app = express()
 
 const target = resolve(process.cwd(), 'target')
-const index = resolve(target, 'index.html')
-const indexWithRouting = resolve(target, 'index.html.js')
-const notFound = resolve(target, '404.html')
-const internalServerError = resolve(target, '500.html')
+const dir = publicPath.slice(1)
+const index = resolve(target, dir, 'index.html')
+const indexWithRouting = resolve(target, dir, 'index.html.js')
+const notFound = resolve(target, dir, '404.html')
+const internalServerError = resolve(target, dir, '500.html')
 
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
