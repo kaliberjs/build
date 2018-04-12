@@ -1,5 +1,5 @@
 module.exports = {
   kaliber: {
-    //publicPath: '/build/'
+    publicPath: '/build/'
   }
 }

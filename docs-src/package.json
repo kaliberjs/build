@@ -7,7 +7,7 @@
     "watch": "CONFIG_ENV=dev kaliber-watch",
     "build": "NODE_ENV=production CONFIG_ENV=prd kaliber-build",
     "generate": "run-s build copy",
-    "copy": "rm -Rf ../docs/ ; mkdir ../docs/ ; cp ./target/* ../docs ; rm ../docs/*.map ../docs/*.json"
+    "copy": "rm -Rf ../docs/ ; mkdir ../docs/ ; cp ./target/build/* ../docs ; rm ../docs/*.map ../docs/*.json"
   },
   "dependencies": {
     "@kaliber/build": "*",
