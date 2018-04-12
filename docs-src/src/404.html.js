@@ -5,7 +5,7 @@ export default (
       <title>@kaliber/build</title>
 
       <script type='text/javascript' dangerouslySetInnerHTML={{__html:
-        `document.location.replace('/#' + document.location.pathname.split('/')[1])`
+        `document.location.replace('/build/#' + document.location.pathname.split('/')[2])`
       }} />
     </head>
     <body><div>404</div></body>
