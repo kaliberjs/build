@@ -1,0 +1,18 @@
+{
+  "name": "docs",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "run-p watch serve.dev",
+    "serve.dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
+    "watch": "CONFIG_ENV=dev kaliber-watch",
+    "build": "NODE_ENV=production CONFIG_ENV=prd kaliber-build",
+    "generate": "run-s build copy",
+    "copy": "rm -Rf ../docs/ ; mkdir ../docs/ ; cp ./target/* ../docs ; rm ../docs/*.map ../docs/*.json"
+  },
+  "dependencies": {
+    "@kaliber/build": "*",
+    "npm-run-all": "^4.1.2",
+    "react-markdown": "^3.3.0",
+    "react-syntax-highlighter": "^7.0.2"
+  }
+}
