@@ -3,3 +3,4 @@ target/
 examples/**/yarn.lock
 local*
 *.log
+gh-pages/
