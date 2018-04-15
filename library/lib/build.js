@@ -1,4 +1,4 @@
-// Better logging for deprecation and other errors
+// @ts-ignore - Better logging for deprecation and other errors
 process.traceDeprecation = true
 process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled rejection of:\n', p, '\nReason:\n', reason)
@@ -279,7 +279,7 @@ module.exports = function build({ watch }) {
   function pluginsOptions() {
     return {
       all: () => [
-        new ProgressBarPlugin(),
+        ProgressBarPlugin(),
         watch && websocketCommunicationPlugin(),
         makeAdditionalEntriesPlugin(),
         new CaseSensitivePathsPlugin(),
