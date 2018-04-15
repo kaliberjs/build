@@ -1,0 +1,22 @@
+{
+  "name": "docs",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "run-p watch serve.dev",
+    "serve.dev": "PORT=8000 CONFIG_ENV=dev kaliber-serve",
+    "watch": "CONFIG_ENV=dev kaliber-watch",
+    "build": "NODE_ENV=production CONFIG_ENV=prd kaliber-build",
+    "deploy": "run-s build deploy.failIfGitIsDirty deploy.ensureWorktree deploy.copy deploy.commit deploy.push",
+    "deploy.failIfGitIsDirty": "echo 'fail if we have uncommitted changes' ; git diff-index --quiet HEAD",
+    "deploy.ensureWorktree": "git worktree add gh-pages/ gh-pages || true",
+    "deploy.copy": "rm -Rf ./gh-pages/* ; cp ./target/build/* ./gh-pages/ ; rm ./gh-pages/*.map ./gh-pages/*.json",
+    "deploy.commit": "COMMIT_MSG=`git log -1 --pretty=%B` ; cd gh-pages ; git add -A ; git commit -m \"$COMMIT_MSG\" ; cd ..",
+    "deploy.push": "cd gh-pages ; git push ; cd .."
+  },
+  "dependencies": {
+    "@kaliber/build": "*",
+    "npm-run-all": "^4.1.2",
+    "react-markdown": "^3.3.0",
+    "react-syntax-highlighter": "^7.0.2"
+  }
+}

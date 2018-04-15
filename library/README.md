@@ -130,6 +130,8 @@ import javascript from '@kaliber/build/lib/javascript'
 
 If you want to use the scripts in another language or framework, use the `chunk-manifest.json` file (saved to the `target` directory) to obtain the correct file names.
 
+You can create a 'static' `404.html.js` which will be served (with status `404`) if it exists. If it does not exist the 'static' `index.html.js` file will be served. This allows you to create a static site with client-side routing.
+
 ## Usage (dynamic pages)
 
 `src/index.html.js`
