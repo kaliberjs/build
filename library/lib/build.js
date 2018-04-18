@@ -68,6 +68,11 @@ const babelLoader = {
   }
 }
 
+const cssLoaderGlobalScope = {
+  loader: 'css-loader',
+  options: { globalScopeBehaviour: true }
+}
+
 const cssLoader = {
   loader: 'css-loader'
 }
@@ -213,7 +218,7 @@ module.exports = function build({ watch }) {
 
         {
           test: /\.entry\.css$/,
-          loaders: ['to-json-file-loader', cssLoader]
+          loaders: [cssLoaderGlobalScope]
         },
 
         {
