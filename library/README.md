@@ -2,7 +2,10 @@
 
 Breaking changes:
 
-- v0.0.51 - `chunk-manifest.json` changed. `*.entry.css` classnames are no longer hashed.
+- v0.0.51 -
+  - `chunk-manifest.json` changed.
+  - `*.entry.css` classnames are no longer hashed.
+  - CommonJS modules imported with async `import()` are wrapped into the default export (`await import('flickity')` becomes `await import('flickity').default`).
 - v0.0.47 - Universal apps no longer have an extra `<div />` around the root-app-node and the script-tag.
 - v0.0.44 - `*.entry.css` filenames are now also hashed, use `css-manifest.json` to obtain the filenames
 - v0.0.41 - `*.*.js` are no longer all treated as templates, by default only `.html.js`, `.txt.js` and `.json.js` are considered
