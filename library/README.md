@@ -2,13 +2,13 @@
 
 Breaking changes:
 
+- v0.0.51 - `chunk-manifest.json` changed. `*.entry.css` classnames are no longer hashed.
 - v0.0.47 - Universal apps no longer have an extra `<div />` around the root-app-node and the script-tag.
-- v0.0.44 - `*.entry.css` are now also hashed, use `css-manifest.json` to obtain the names
+- v0.0.44 - `*.entry.css` filenames are now also hashed, use `css-manifest.json` to obtain the filenames
 - v0.0.41 - `*.*.js` are no longer all treated as templates, by default only `.html.js`, `.txt.js` and `.json.js` are considered
 - v0.0.40 - `src` is no longer treated as `node_modules`, use absolute paths (`/x`) to retrieve modules from subdirectories
 - v0.0.40 - Javascripts are now hashes, they require an additional import to load
 - v0.0.35 - Stylesheets are now hashes, they require an additional import to load
-
 
 # Kaliber.js build
 
@@ -74,7 +74,7 @@ Ruby popularized 'convention over configuration', this library has a set of conv
 - `src` - Source files live in the `src` directory.
 - `target` - Compiled / processed files are stored in the `target` directory.
 - `src/**/*.entry.js` - Compiled as a separate `.js` webpack entry.
-- `src/**/*.entry.css` - Compiled as a separate `.css` webpack entry, for each CSS file a `.json` file is generated containing the class names.
+- `src/**/*.entry.css` - Compiled as a separate `.css` webpack entry (*without* hashed classnames).
 - `src/**/*.{type}.js` - Compiled as webpack entry using a renderer associated with the type.
   - `{type}` refers to the renderer that is used
     - `html` - Expects JSX to be returned from the template

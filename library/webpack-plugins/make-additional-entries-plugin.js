@@ -9,31 +9,39 @@
 
   Usage from other plugins:
 
-  compiler.plugin('make-additional-entries', (compilation, createEntries, done) => {
+  compiler.hooks.makeAdditionalEntries.tapAsync('plugin-name', (compilation, createEntries, callback) => {
 
     // if you want to add new entries
-    createEntries({ name: path }, done)
+    createEntries({ name: path }, callback)
 
     // If you don't want to create entries
-    done()
+    callback()
 
     // when you need to signal an error
-    done(err)
+    callback(err)
   })
 
   and
 
-  compiler.plugin('claim-entries', entries => {
+  compiler.hooks.claimEntries.tap('plugin-name', entries => {
     return unclaimedEntries
   })
 */
 
 const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency')
+const { AsyncSeriesHook, SyncWaterfallHook } = require('tapable')
 const { createDependency } = require('webpack/lib/SingleEntryPlugin')
+
+const p = 'make-additional-entries'
 
 module.exports = function makeAdditionalEntries() {
   return {
     apply: compiler => {
+
+      if (compiler.hooks.claimEntries) throw new Error('Hook `claimEntries` already in use')
+      compiler.hooks.claimEntries = new SyncWaterfallHook(['entries'])
+      if (compiler.hooks.makeAdditionalEntries) throw new Error('Hook `makeAdditionalEntries` already in use')
+      compiler.hooks.makeAdditionalEntries = new AsyncSeriesHook(['compilation', 'addEntries'])
 
       const entriesToMake = {}
 
@@ -41,16 +49,16 @@ module.exports = function makeAdditionalEntries() {
         claim the entries in the `entry` if it's object shaped and allow other plugins
         to claim certain entries, any leftover entries are added using this plugin
       */
-      compiler.plugin('entry-option', (context, entries) => {
+      compiler.hooks.entryOption.tap(p, (context, entries) => {
         if (typeof entries === 'object' && !Array.isArray(entries)) {
           const originalEntries = Object.assign({}, entries)
-          Object.assign(entriesToMake, compiler.applyPluginsWaterfall('claim-entries', originalEntries))
+          Object.assign(entriesToMake, compiler.hooks.claimEntries.call(originalEntries))
           return true
         }
       })
 
       // make sure the SingleEntryDependency has a factory
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
         compilation.dependencyFactories.set(SingleEntryDependency, normalModuleFactory)
       })
 
@@ -59,22 +67,13 @@ module.exports = function makeAdditionalEntries() {
         Note that plugins can depend on entries created in plugins registered
         before them.
       */
-      compiler.plugin('make', (compilation, done) => {
+      compiler.hooks.make.tapPromise(p, compilation => {
 
-        addEntries(entriesToMake)
+        return addEntries(entriesToMake)
           .then(makeAdditionalEntries)
-          .then(_ => { done() })
-          .catch(e => { done(e) })
 
         function makeAdditionalEntries() {
-          return new Promise((resolve, reject) => {
-            compiler.applyPluginsAsyncSeries(
-              'make-additional-entries',
-              compilation,
-              (entries, done) => { addEntries(entries || {}).then(_ => { done() }).catch(done) },
-              err => { err ? reject(err) : resolve() }
-            )
-          })
+          return compiler.hooks.makeAdditionalEntries.promise(compilation, addEntries)
         }
 
         function addEntries(entries) {
@@ -84,7 +83,7 @@ module.exports = function makeAdditionalEntries() {
         function addEntry(name, path) {
           return new Promise((resolve, reject) => {
             const entry = createDependency(path, name)
-            compilation.addEntry(compiler.context, entry, entry.loc, err => err ? reject(err) : resolve())
+            compilation.addEntry(compiler.context, entry, name, err => err ? reject(err) : resolve())
           })
         }
       })

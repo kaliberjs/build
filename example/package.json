@@ -13,13 +13,11 @@
     "@kaliber/build": "*"
   },
   "dependencies": {
-    "express-basic-auth": "^1.1.3",
-    "firebase": "^4.6.2",
-    "firebase-admin": "^5.5.1",
+    "express-basic-auth": "^1.1.4",
+    "firebase": "^4.12.1",
+    "firebase-admin": "^5.12.0",
     "mjml": "^4.0.3",
-    "normalize.css": "^7.0.0",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
+    "normalize.css": "^8.0.0",
     "xml": "^1.0.1"
   }
 }

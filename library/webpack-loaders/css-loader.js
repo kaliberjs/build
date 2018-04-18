@@ -4,7 +4,9 @@ const { relative, dirname } = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins(minifyOnly, { onExport, resolve, processUrl }) {
+function createPlugins(loaderOptions, { onExport, resolve, processUrl }) {
+  const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
+
   return [
     // these plugis need to run on each file individual file
     // look at the source of postcss-modules to see that it effectively runs all modules twice
@@ -13,6 +15,7 @@ function createPlugins(minifyOnly, { onExport, resolve, processUrl }) {
       require('postcss-import')({ glob: true, resolve }),
       require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
       require('postcss-modules')({
+        scopeBehaviour: globalScopeBehaviour ? 'global' : 'local',
         getJSON: (_, json) => { onExport(json) },
         generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
       })
@@ -40,10 +43,9 @@ module.exports = function CssLoader(source, map) {
       : Promise.resolve(url)
   }
 
-  const { minifyOnly = false } = loaderUtils.getOptions(this) || {}
-
-  const plugins = createPlugins(minifyOnly, handlers)
-  const filename = relative(this.options.context, this.resourcePath)
+  const loaderOptions = loaderUtils.getOptions(this) || {}
+  const plugins = createPlugins(loaderOptions, handlers)
+  const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
     to  : this.resourcePath,
@@ -61,9 +63,12 @@ module.exports = function CssLoader(source, map) {
 
       this.emitFile(filename, css, map.toJSON())
 
-      exports.cssHash = require('crypto').createHash('md5').update(css).digest('hex')
-
-      callback(null, exports)
+      if (loaderOptions.globalScopeBehaviour) {
+        callback(null, '// postcss-modules is disabled, no exports available')
+      } else {
+        exports.cssHash = require('crypto').createHash('md5').update(css).digest('hex')
+        callback(null, exports)
+      }
     })
     .catch(e => { callback(e) })
 
@@ -81,7 +86,7 @@ module.exports = function CssLoader(source, map) {
 
   function executeModuleAt(url) {
     return source => {
-      const completeSource = `const __webpack_public_path__ = '${self.options.output.publicPath || '/'}'\n` + source
+      const completeSource = `const __webpack_public_path__ = '${self._compiler.options.output.publicPath || '/'}'\n` + source
       return self.exec(completeSource, url)
     }
   }

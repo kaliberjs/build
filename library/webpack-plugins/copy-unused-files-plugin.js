@@ -6,11 +6,13 @@ const fs = require('fs-extra')
 const path = require('path')
 const walkSync = require('walk-sync')
 
+const p = 'copy-unused-files-plugin'
+
 module.exports = function copyUnusedFilesPlugin() {
   return {
     apply: compiler => {
 
-      compiler.plugin('after-emit', (compilation, done) => {
+      compiler.hooks.afterEmit.tapPromise(p, compilation => {
 
         const context = compiler.context
 
@@ -26,7 +28,7 @@ module.exports = function copyUnusedFilesPlugin() {
           walkSync(context).map(filePath => {
             const source = path.resolve(context, filePath)
 
-            if (compilation.fileDependencies.includes(source)) return null
+            if (compilation.fileDependencies.has(source)) return null
 
             const target = path.resolve(compiler.options.output.path, filePath)
             return stat(source)
@@ -46,7 +48,7 @@ module.exports = function copyUnusedFilesPlugin() {
           })
         )
 
-        filesCopied.then(_ => { done() }).catch(done)
+        return filesCopied
       })
     }
   }
