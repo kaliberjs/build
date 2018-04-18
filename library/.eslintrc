@@ -12,6 +12,12 @@
     "node": true
   },
 
+  "settings": {
+    "import/resolver": {
+      "@kaliber/build/eslint-resolver-plugins/absolute-path-resolver-plugin": { path: './src' }
+    }
+  },
+
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
@@ -193,7 +199,7 @@
     "import/no-duplicates": "warn",
     "import/export": "warn",
     "import/default": "warn",
-    // "import/no-unresolved": "warn", // we should write our own resolver https://github.com/benmosher/eslint-plugin-import#resolvers
+    "import/no-unresolved": "warn",
     "import/named": "warn", // Needs a custom resolver to work with non-relative imports
 
     // https://github.com/yannickcr/eslint-plugin-react/tree/master/docs/rules
