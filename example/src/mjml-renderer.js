@@ -1,4 +1,4 @@
-import { mjml2html } from 'mjml'
+import mjml2html from 'mjml'
 import htmlReactRenderer from '@kaliber/build/lib/html-react-renderer'
 
 export default function mjmlRenderer(template) {

@@ -3,7 +3,7 @@
 
   Plugins can get hold of the `send` method by adding the following hook:
 
-  compiler.plugin('websocket-send-available', send => {
+  compiler.hooks.websocketSendAvailable.tap('plugin-name', send => {
     ...
   })
 
@@ -12,16 +12,20 @@
   message from `send`.
 */
 
-const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
-const NullFactory = require('webpack/lib/NullFactory')
-const ParserHelpers = require('webpack/lib/ParserHelpers')
 const net = require('net')
 const ws = require('ws')
+const { SyncHook } = require('tapable')
+const { addBuiltInVariable } = require('../lib/webpack-utils')
+
+const p = 'websocket-communication-plugin'
 
 module.exports = function websocketCommunicationPlugin() {
 
   return {
     apply: compiler => {
+      if (compiler.hooks.websocketSendAvailable) throw new Error('Hook `websocketSendAvailable` already in use')
+      compiler.hooks.websocketSendAvailable = new SyncHook(['send'])
+
       const freePort = findFreePort()
       const webSocketServer = freePort.then(startWebSocketServer)
 
@@ -30,32 +34,23 @@ module.exports = function websocketCommunicationPlugin() {
       let port
 
       // provide the send function
-      compiler.plugin('environment', () => {
-        compiler.applyPlugins('websocket-send-available', send)
+      compiler.hooks.environment.tap(p, () => {
+        compiler.hooks.websocketSendAvailable.call(send)
       })
 
       // wait for a free port before we start compiling
-      compiler.plugin('before-compile', (params, done) => {
-        freePort.then(found => { port = found }).then(_ => { done() }).catch(done)
-      })
+      compiler.hooks.beforeCompile.tapPromise(p, params => freePort.then(found => { port = found }))
 
-      // make sure the __webpack_websocket_port__ is available in modules (code copied from ExtendedApiPlugin)
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
-        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
-        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
-          const buf = [
-            source,
-            '',
-            '// __webpack_websocket_port__',
-            `${this.requireFn}.wsp = ${port};`
-          ]
-          return this.asString(buf)
-        })
-        compilation.mainTemplate.plugin('global-hash', () => true)
-        normalModuleFactory.plugin('parser', (parser, parserOptions) => {
-          parser.plugin(`expression __webpack_websocket_port__`, ParserHelpers.toConstantDependency('__webpack_require__.wsp'))
-          parser.plugin(`evaluate typeof __webpack_websocket_port__`, ParserHelpers.evaluateToString('string'))
+      // make sure the __webpack_websocket_port__ is available in modules
+      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
+
+        addBuiltInVariable({
+          compilation, normalModuleFactory,
+          pluginName: p,
+          variableName: '__webpack_websocket_port__',
+          abbreviation: 'wsp',
+          type: 'number',
+          createValue: (source, chunk, hash) => port
         })
       })
     }
@@ -80,8 +75,14 @@ function findFreePort(retries = 2) {
 }
 
 function startWebSocketServer(port) {
-  console.log(`WebSocket opened on port ${port}`)
   const wss = new ws.Server({ port })
+  wss.on('connection', ws => {
+    ws.on('error', err => {
+      // Ignore network errors like `ECONNRESET`, `EPIPE`, etc., fixes https://github.com/kaliberjs/build/issues/106
+      if (err.errno) return
+      throw err
+    })
+  })
 
   return {
     send: message => {

@@ -7,32 +7,41 @@ const { access } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 
-const { kaliber: { serveMiddleware } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/' } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
 
 const app = express()
 
 const target = resolve(process.cwd(), 'target')
-const index = resolve(target, 'index.html.js')
-const notFound = resolve(target, '404.html')
-const internalServerError = resolve(target, '500.html')
+const dir = publicPath.slice(1)
+const index = resolve(target, dir, 'index.html')
+const indexWithRouting = resolve(target, dir, 'index.html.js')
+const notFound = resolve(target, dir, '404.html')
+const internalServerError = resolve(target, dir, '500.html')
 
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
 
-app.use(helmet())
+// hsts-headers are sent by our loadbalancer
+app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
-serveMiddleware && app.use(serveMiddleware)
+serveMiddleware && app.use(...[].concat(serveMiddleware))
 app.use(express.static(target))
 
 app.use((req, res, next) => {
-  fileExists(index)
-    .then(fileFound => fileFound ? serveIndex(req, res, next) : next())
+  fileExists(indexWithRouting)
+    .then(fileFound => fileFound ? serveIndexWithRouting(req, res, next) : next())
     .catch(next)
 })
 
 app.use((req, res, next) => {
   fileExists(notFound)
     .then(fileFound => fileFound ? res.status(404).sendFile(notFound) : next())
+    .catch(next)
+})
+
+app.use((req, res, next) => {
+  fileExists(index)
+    .then(fileFound => fileFound ? res.status(200).sendFile(index) : next())
     .catch(next)
 })
 
@@ -66,9 +75,9 @@ function fileExists (path) {
   }
 }
 
-function serveIndex (req, res, next) {
-  if (!isProduction) delete require.cache[require.resolve(index)]
-  const template = require(index)
+function serveIndexWithRouting (req, res, next) {
+  if (!isProduction) delete require.cache[require.resolve(indexWithRouting)]
+  const template = require(indexWithRouting)
 
   const routes = template.routes
   const location = parsePath(req.url)

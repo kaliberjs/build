@@ -20,6 +20,8 @@ const { RawSource } = require('webpack-sources')
 const { basename } = require('path')
 const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
+const p = 'template-plugin'
+
 module.exports = function templatePlugin(renderers) {
 
   const templatePattern = /\.([^./]+)\.js$/ // {name}.{template type}.js
@@ -49,8 +51,8 @@ module.exports = function templatePlugin(renderers) {
         file name. It will not do this to resources that have been marked with `?template-source`
         as it would cause infinite loops
       */
-      compiler.plugin('normal-module-factory', normalModuleFactory => {
-        normalModuleFactory.plugin('after-resolve', (data, done) => {
+      compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
+        normalModuleFactory.hooks.afterResolve.tap(p, data => {
           const { loaders, resourceResolveData: { query, path } } = data
           const renderInfo = getRenderInfo(path)
 
@@ -60,11 +62,11 @@ module.exports = function templatePlugin(renderers) {
             loaders.push({ loader: templateLoader, options: { renderer } })
           }
 
-          done(null, data)
+          return data
         })
       })
 
-      compiler.plugin('compilation', compilation => {
+      compiler.hooks.compilation.tap(p, compilation => {
 
         /*
           Determines if a given asset has the 'template pattern' and if so it
@@ -79,7 +81,7 @@ module.exports = function templatePlugin(renderers) {
           result (in `x.type.js`) is a simple function with one argument that can be called
           to obtain a rendered template.
         */
-        compilation.plugin('optimize-assets', (assets, done) => {
+        compilation.hooks.optimizeAssets.tapPromise(p, assets => {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
@@ -119,7 +121,7 @@ module.exports = function templatePlugin(renderers) {
             )
           }
 
-          Promise.all(renders).then(_ => { done() }).catch(done)
+          return Promise.all(renders)
         })
       })
     }

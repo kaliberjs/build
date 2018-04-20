@@ -12,6 +12,12 @@
     "node": true
   },
 
+  "settings": {
+    "import/resolver": {
+      "@kaliber/build/eslint-resolver-plugins/absolute-path-resolver-plugin": { path: './src' }
+    }
+  },
+
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
@@ -82,7 +88,7 @@
     "no-lone-blocks": "warn",
     "no-loop-func": "warn",
     "no-mixed-spaces-and-tabs": "warn",
-    "no-multi-spaces": ["warn", { "ignoreEOLComments": true,  "exceptions": { "Property": true, "VariableDeclarator": true, "ImportDeclaration": true } }],
+    // "no-multi-spaces": ["warn", { "ignoreEOLComments": true,  "exceptions": { "Property": true, "VariableDeclarator": true, "ImportDeclaration": true } }], // needs better config to fit our needs
     "no-path-concat": "warn",
     "no-proto": "warn",
     "no-return-assign": "warn",
@@ -193,13 +199,13 @@
     "import/no-duplicates": "warn",
     "import/export": "warn",
     "import/default": "warn",
-    // "import/no-unresolved": "warn", // we should write our own resolver https://github.com/benmosher/eslint-plugin-import#resolvers
+    "import/no-unresolved": "warn",
     "import/named": "warn", // Needs a custom resolver to work with non-relative imports
 
     // https://github.com/yannickcr/eslint-plugin-react/tree/master/docs/rules
     "react/jsx-boolean-value": "warn",
-    "react/jsx-closing-bracket-location": "warn",
-    "react/jsx-closing-tag-location": "warn",
+    // "react/jsx-closing-bracket-location": "warn", // needs better config to fit our needs
+    // "react/jsx-closing-tag-location": "warn", // needs better config to fit our needs
     "react/jsx-curly-spacing": "warn",
     "react/jsx-equals-spacing": "warn",
     "react/jsx-indent": ["warn", 2],
@@ -208,16 +214,16 @@
     "react/jsx-no-comment-textnodes": "warn",
     "react/jsx-no-duplicate-props": ["warn", { "ignoreCase": true }],
     "react/jsx-no-target-blank": "warn",
-    "react/jsx-no-undef": "warn",
+    "react/jsx-no-undef": ["warn", { "allowGlobals": true }],
     "react/jsx-pascal-case": ["warn", { "allowAllCaps": true }],
     "react/jsx-tag-spacing": "warn",
     "react/jsx-uses-react": "warn",
     "react/jsx-uses-vars": "warn",
-    "react/jsx-wrap-multilines": "warn",
+    // "react/jsx-wrap-multilines": "warn", // needs better config to fit our needs
     "react/no-danger-with-children": "warn",
     "react/no-deprecated": "warn",
     "react/no-direct-mutation-state": "warn",
-    "react/no-typos": "warn",
+    // "react/no-typos": "warn", // waiting for https://github.com/yannickcr/eslint-plugin-react/issues/1389
     "react/no-unused-prop-types": "warn",
     "react/prop-types": ["error", { "skipUndeclared": true }],
     "react/require-render-return": "warn",

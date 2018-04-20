@@ -1,3 +1,10 @@
+// @ts-ignore - Better logging for deprecation and other errors
+process.traceDeprecation = true
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled rejection of:\n', p, '\nReason:\n', reason)
+})
+
+const findYarnWorkspaceRoot = require('find-yarn-workspace-root')
 const fs = require('fs-extra')
 const nodeExternals = require('webpack-node-externals')
 const path = require('path')
@@ -12,9 +19,7 @@ const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replac
 const makeAdditionalEntriesPlugin = require('../webpack-plugins/make-additional-entries-plugin')
 const mergeCssPlugin = require('../webpack-plugins/merge-css-plugin')
 const reactUniversalPlugin = require('../webpack-plugins/react-universal-plugin')
-const sharedModulesPlugin = require('../webpack-plugins/shared-modules-plugin')
 const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
-const targetBasedPluginsPlugin = require('../webpack-plugins/target-based-plugins-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const websocketCommunicationPlugin = require('../webpack-plugins/websocket-communication-plugin')
@@ -25,10 +30,12 @@ const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-res
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
+const TimeFixPlugin = require('time-fix-plugin') // https://github.com/webpack/watchpack/issues/25
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { templateRenderers: configuredTemplateRendererd = {} } = {} } =
+const { kaliber: { publicPath = '/', templateRenderers: configuredTemplateRendererd = {} } = {} } =
   process.env.CONFIG_ENV ? require('@kaliber/config') : {}
 
 const templateRenderers = Object.assign({
@@ -45,7 +52,7 @@ const babelLoader = {
   loader: 'babel-loader',
   options: {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: [['es2015', { modules: false }], 'react'],
+    presets: [['env', { modules: false }], 'react'],
     plugins: [
       'syntax-dynamic-import',
       'transform-decorators-legacy',
@@ -59,6 +66,11 @@ const babelLoader = {
       }]
     ]
   }
+}
+
+const cssLoaderGlobalScope = {
+  loader: 'css-loader',
+  options: { globalScopeBehaviour: true }
 }
 
 const cssLoader = {
@@ -87,149 +99,227 @@ const imageSizeLoader = {
   options: { useImageMagick: true }
 }
 
+const urlLoader = {
+  loader: 'url-loader',
+  options: { limit: 5000 }
+}
+
 module.exports = function build({ watch }) {
 
-  const target = path.resolve(process.cwd(), 'target')
-  fs.removeSync(target)
+  const cwd = process.cwd()
 
-  const srcDir = path.resolve(process.cwd(), 'src')
+  const srcDir = path.resolve(cwd, 'src')
+  const yarnWorkspaceDir = findYarnWorkspaceRoot(cwd)
+  const targetDir = path.resolve(cwd, 'target')
+  fs.removeSync(targetDir)
 
-  // This needs to be a function, if this would be an object things might breack
-  // because webpack stores state in the options object :-(
-  function getOptions() {
+  const mode = isProduction ? 'production' : 'development'
+  const outputPath = path.join(targetDir, publicPath)
+
+  function nodeOptions() {
     return {
+      mode,
       target: 'node',
+      context: srcDir,
+      devtool: false,
       output: {
         filename: '[name]',
         chunkFilename: '[name]-[hash].js',
-        path: target,
-        publicPath: '/',
+        path: outputPath,
+        publicPath,
         libraryTarget: 'commonjs2'
       },
-      externals: nodeExternals({ whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/] }),
-      resolve: {
-        extensions: ['.js'],
-        modules: ['node_modules'],
-        plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
+      externals: [
+        nodeExternals(externalConfForModulesDir('node_modules')),
+        yarnWorkspaceDir && nodeExternals(externalConfForModulesDir(path.resolve(yarnWorkspaceDir, 'node_modules')))
+      ].filter(Boolean),
+      optimization: {
+        minimize: false,
+        namedChunks: false,
+        splitChunks: false
       },
-      resolveLoader: {
-        modules: [path.resolve(__dirname, '../webpack-loaders'), 'node_modules']
-      },
-      context: srcDir,
-      module: {
-        // noParse: https://webpack.js.org/configuration/module/#module-noparse
-        rules: [{ oneOf: [
-
-          {
-            test: /\.json$/,
-            loaders: []
-          },
-
-          {
-            test: /\.entry\.css$/,
-            loaders: ['to-json-file-loader', cssLoader]
-          },
-
-          {
-            test: /\.css$/,
-            loaders: ['json-loader', cssLoader],
-            exclude: /node_modules/
-          },
-
-          {
-            test: /\.css$/,
-            loaders: ['json-loader', cssLoaderMinifyOnly]
-          },
-
-          {
-            test: /\.js$/,
-            resourceQuery: /transpiled-javascript-string/,
-            loaders: ['raw-loader', babelLoader]
-          },
-
-          {
-            resource: {
-              test: /(\.html\.js|\.js)$/,
-              or: [{ exclude: /node_modules/ }, kaliberBuildClientModules],
-            },
-            loaders: [babelLoader]
-          },
-
-          {
-            test: /\.js$/
-          },
-
-          {
-            test: /\.svg$/,
-            resourceQuery: /fragment/,
-            loaders: ['fragment-loader']
-          },
-
-          {
-            test: /\.svg$/,
-            loaders: [
-              {
-                loader: 'url-loader',
-                options: { limit: 5000 }
-              },
-              imageLoader
-            ]
-          },
-
-          {
-            test: /\.(jpe?g|png|gif)$/,
-            loaders: [
-              {
-                loader: 'url-loader',
-                options: { limit: 5000 }
-              },
-              isProduction && imageLoader,
-              imageSizeLoader
-            ].filter(Boolean)
-          },
-
-          {
-            loader: 'file-loader'
-          }
-
-        ]}]
-      },
-      // server and compilation process plugins
+      resolve: resolveOptions(),
+      resolveLoader: resolveLoaderOptions(),
+      module: moduleOptions(),
       plugins: [
-        targetBasedPluginsPlugin({
-          all: [
-            new ProgressBarPlugin(),
-            watch && websocketCommunicationPlugin(),
-            makeAdditionalEntriesPlugin(),
-            new CaseSensitivePathsPlugin(),
-            new webpack.DefinePlugin({
-              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-              'process.env.WATCH': watch
-            }),
-            new webpack.ProvidePlugin({
-              React: 'react',
-              Component: ['react', 'Component']
-            }),
-            sourceMapPlugin(),
-          ].filter(Boolean),
-          node: [
-            watch && new ExtendedAPIPlugin(),
-            configLoaderPlugin(),
-            watchContextPlugin(),
-            reactUniversalPlugin(),            // claims .entry.js
-            templatePlugin(templateRenderers), // does work on .*.js
-            mergeCssPlugin(),
-            copyUnusedFilesPlugin(),
-            watch && hotCssReplacementPlugin()
-          ].filter(Boolean),
-          web: [
-            sharedModulesPlugin(),
-            chunkManifestPlugin(),
-            isProduction && new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
-            watch && hotModuleReplacementPlugin()
+        ...pluginsOptions().all(),
+        ...pluginsOptions().node()
+      ]
+    }
+  }
+
+  function webOptions() {
+    return {
+      mode,
+      target: 'web',
+      context: srcDir,
+      devtool: false,
+      entry: false,
+      output: {
+        filename: '[id].[hash].js',
+        chunkFilename: '[id].[hash].js',
+        path: outputPath,
+        publicPath
+      },
+      optimization: {
+        namedChunks: false,
+        runtimeChunk: 'single',
+        minimize: isProduction,
+        minimizer: [
+          new UglifyJsPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true
+          })
+        ],
+        splitChunks: {
+          chunks: 'all',
+          minSize: 10000
+        }
+      },
+      resolve: resolveOptions(),
+      resolveLoader: resolveLoaderOptions(),
+      module: Object.assign({
+        unsafeCache: false
+      }, moduleOptions()),
+      plugins: [
+        ...pluginsOptions().all(),
+        ...pluginsOptions().web()
+      ]
+    }
+  }
+
+  function resolveOptions() {
+    return {
+      extensions: ['.js'],
+      modules: ['node_modules'],
+      plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
+    }
+  }
+
+  function resolveLoaderOptions() {
+    return {
+      modules: [
+        path.resolve(__dirname, '../webpack-loaders'),
+        'node_modules'
+      ]
+    }
+  }
+
+  function moduleOptions() {
+    return {
+      rules: [{ oneOf: [
+
+        {
+          type: 'json',
+          test: /\.json$/,
+          loaders: []
+        },
+
+        {
+          test: /\.entry\.css$/,
+          loaders: [cssLoaderGlobalScope]
+        },
+
+        {
+          test: /\.css$/,
+          loaders: ['json-loader', cssLoader],
+          exclude: /node_modules/
+        },
+
+        {
+          test: /\.css$/,
+          loaders: ['json-loader', cssLoaderMinifyOnly]
+        },
+
+        {
+          test: /\.js$/,
+          resourceQuery: /transpiled-javascript-string/,
+          loaders: ['raw-loader', babelLoader]
+        },
+
+        {
+          resource: {
+            test: /(\.html\.js|\.js)$/,
+            or: [{ exclude: /node_modules/ }, kaliberBuildClientModules],
+          },
+          loaders: [babelLoader]
+        },
+
+        {
+          test: /\.js$/
+        },
+
+        {
+          test: /\.svg$/,
+          resourceQuery: /fragment/,
+          loaders: ['fragment-loader']
+        },
+
+        {
+          test: /\.svg$/,
+          loaders: [
+            urlLoader,
+            imageLoader
+          ]
+        },
+
+        {
+          test: /\.(jpe?g|png|gif)$/,
+          loaders: [
+            urlLoader,
+            isProduction && imageLoader,
+            imageSizeLoader
           ].filter(Boolean)
-        })
-      ],
+        },
+
+        {
+          loader: 'file-loader'
+        }
+
+      ]}]
+    }
+  }
+
+  function pluginsOptions() {
+    return {
+      all: () => [
+        ProgressBarPlugin(),
+        watch && websocketCommunicationPlugin(),
+        makeAdditionalEntriesPlugin(),
+        new CaseSensitivePathsPlugin(),
+        new webpack.DefinePlugin({
+          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+          'process.env.WATCH': watch
+        }),
+        new webpack.ProvidePlugin({
+          React: 'react',
+          Component: ['react', 'Component']
+        }),
+        sourceMapPlugin(),
+      ].filter(Boolean),
+      node: () => [
+        new TimeFixPlugin(),
+        watch && new ExtendedAPIPlugin(),
+        configLoaderPlugin(),
+        watchContextPlugin(),
+        reactUniversalPlugin(webOptions()),  // claims .entry.js
+        templatePlugin(templateRenderers), // does work on .*.js
+        mergeCssPlugin(),
+        copyUnusedFilesPlugin(),
+        watch && hotCssReplacementPlugin()
+      ].filter(Boolean),
+      web: () => [
+        chunkManifestPlugin(),
+        watch && hotModuleReplacementPlugin()
+      ].filter(Boolean)
+    }
+  }
+
+  function externalConfForModulesDir (modulesDir) {
+    return {
+      whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/],
+      modulesDir
     }
   }
 
@@ -238,10 +328,9 @@ module.exports = function build({ watch }) {
     else runOnce(compilationComplete)
 
     function createCompiler(entries) {
-      const options = getOptions()
-      options.entry = entries
-
-      return webpack(options)
+      return webpack(Object.assign({
+        entry: entries
+      }, nodeOptions()))
     }
 
     function compilationComplete(err, stats) {
@@ -286,11 +375,12 @@ module.exports = function build({ watch }) {
         const [oldKeys, newKeys] = [Object.keys(entries), Object.keys(newEntries)]
         const entriesChanged = !oldKeys.every(x => newKeys.includes(x)) || !newKeys.every(x => oldKeys.includes(x))
 
+        console.log('\nWaiting for file changes...\n')
+
         if (entriesChanged) {
           console.log('Entries changed, restarting watch')
           watching.close(() => { start(newEntries) })
         }
-        console.log('\nWaiting for file changes...\n')
       }
     }
   } catch (e) { console.error(e.message) }

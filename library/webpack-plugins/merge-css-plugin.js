@@ -6,100 +6,141 @@
   This plugin makes the __webpack_css_chunk_hash__ variable available to get the hash of the css that is linked
   from the current chunk.
 
-  It also adds a 'chunk-css-hash' hook which can be used by plugins to record the css hash of a chunk:
+  It also adds a 'chunkCssHashes' hook which can be used by plugins to record the css hash of a chunk:
 
-  compilation.plugin('chunk-css-hash', (chunkName, cssHash) => {
+  compilation.hooks.chunkCssHashes.tap('plugin-name', (chunkName, cssHashes) => {
     ...
   })
 */
 
-const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
-const NullFactory = require('webpack/lib/NullFactory')
-const ParserHelpers = require('webpack/lib/ParserHelpers')
 const crypto = require('crypto')
 const { ConcatSource, RawSource } = require('webpack-sources')
+const { SyncHook } = require('tapable')
+const { addBuiltInVariable } = require('../lib/webpack-utils')
+
+const p = 'merge-css-plugin'
 
 module.exports = function mergeCssPlugin() {
   return {
     apply: compiler => {
-      compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
-        const chunkCssAssets = {}
+      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
+
+        if (compilation.hooks.chunkCssHashes) throw new Error('Hook `chunkCssHashes` already in use')
+        compilation.hooks.chunkCssHashes = new SyncHook(['chunkName', 'cssHashes'])
+
+        const newChunksWithCssAssets = {}
+        const chunkCssHashes = new Map()
 
         // extract css assets
-        compilation.plugin('before-module-assets', () => {
+        compilation.hooks.beforeModuleAssets.tap(p, () => {
+          const cssAssetChunks = {}
+
+          // determine all css assets and record the chunks they're used in
           compilation.chunks.forEach(chunk => {
-            const currentChunkCssAssets = []
             const modules = chunk.getModules().sort(({ index: a }, { index: b }) => a - b)
-            modules.forEach(({ assets = {} }) => {
-              Object.keys(assets).filter(x => x.endsWith('.css')).forEach(asset => {
-                currentChunkCssAssets.push(asset)
+            modules.forEach(({ buildInfo: { assets = {} } }) => {
+              Object.keys(assets).filter(x => x.endsWith('.css')).forEach(assetName => {
+                const chunks = cssAssetChunks[assetName]
+                if (chunks) chunks.push(chunk)
+                else cssAssetChunks[assetName] = [chunk]
               })
             })
-            chunkCssAssets[chunk.name] = currentChunkCssAssets
+          })
+
+          // group the css assets that are used in the same chunks
+          Object.keys(cssAssetChunks).forEach(assetName => {
+            const chunks = cssAssetChunks[assetName]
+            const name = chunks.map(x => x.name).join(', ')
+
+            const { assetNames } = newChunksWithCssAssets[name] || {}
+            if (assetNames) assetNames.push(assetName)
+            else newChunksWithCssAssets[name] = { chunks, assetNames: [assetName] }
           })
         })
 
-        // remove assets that will be merged
-        compilation.plugin('before-chunk-assets', () => {
+        /*
+          {
+            ['chunk1.name, ..., chunkN.name']: {
+              chunks: [chunk1, ..., chunkN],
+              assetNames: [asset1, ..., assetN]
+            }
+          }
+        */
+        // remove assets that will be merged and add a hash and the actual assets
+        // to the new chunks
+        compilation.hooks.beforeChunkAssets.tap(p, () => {
           const assetsToRemove = []
-          Object.keys(chunkCssAssets).forEach(chunkName => {
-            const cssAssets = chunkCssAssets[chunkName]
+
+          Object.keys(newChunksWithCssAssets).forEach(chunkName => {
+            const newChunk = newChunksWithCssAssets[chunkName]
+            const { assetNames } = newChunk
             const hash = crypto.createHash('md5')
-            const actualCssAssets = cssAssets.map(x => {
+            const assets = assetNames.map(x => {
               const asset = compilation.assets[x]
               asset.updateHash(hash)
               return asset
             })
-            assetsToRemove.push(...cssAssets)
-            cssAssets.length = 0
-            cssAssets.push(...actualCssAssets)
+            assetsToRemove.push(...assetNames)
 
             const cssHash = hash.digest('hex')
-            compilation.applyPlugins('chunk-css-hash', chunkName, cssHash)
-            chunkCssAssets[chunkName] = { cssHash, cssAssets }
+
+            newChunk.cssHash = cssHash
+            newChunk.assets = assets
           })
+
           assetsToRemove.forEach(x => { delete compilation.assets[x] })
+
+          compilation.chunks.forEach(chunk => {
+            const cssHashes = Object.keys(newChunksWithCssAssets)
+              .map(name => newChunksWithCssAssets[name])
+              .filter(({ chunks }) => chunks.includes(chunk))
+              .sort(({ chunks: a }, { chunks: b }) => b.length - a.length)
+              .map(({ cssHash }) => cssHash)
+
+            chunkCssHashes.set(chunk, cssHashes)
+            compilation.hooks.chunkCssHashes.call(chunk.name, cssHashes)
+          })
         })
 
-        // make sure the __webpack_css_chunk_hash__ is available in modules (code copied from ExtendedApiPlugin)
-        compilation.dependencyFactories.set(ConstDependency, new NullFactory())
-        compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
-        compilation.mainTemplate.plugin('require-extensions', function(source, chunk, hash) {
-          const cssHash = (x => (x && x.cssHash) || 'no_css_files_in_chunk')(chunkCssAssets[chunk.name])
-          const buf = [
-            source,
-            '',
-            '// __webpack_css_chunk_hash__',
-            `${this.requireFn}.cch = ${JSON.stringify(cssHash)};`
-          ]
-          return this.asString(buf)
-        })
-        compilation.mainTemplate.plugin('global-hash', () => true)
-        normalModuleFactory.plugin('parser', (parser, parserOptions) => {
-          parser.plugin(`expression __webpack_css_chunk_hash__`, ParserHelpers.toConstantDependency('__webpack_require__.cch'))
-          parser.plugin(`evaluate typeof __webpack_css_chunk_hash__`, ParserHelpers.evaluateToString('string'))
+        // make sure the __webpack_css_chunk_hashes__ is available in modules
+        addBuiltInVariable({
+          compilation, normalModuleFactory,
+          pluginName: p,
+          variableName: '__webpack_css_chunk_hashes__',
+          abbreviation: 'cch',
+          type: 'array',
+          createValue: (source, chunk, hash) => chunkCssHashes.get(chunk) || []
         })
 
         // merge css assets
-        compilation.plugin('additional-chunk-assets', (chunks) => {
+        compilation.hooks.additionalChunkAssets.tap(p, chunks => {
 
-          const chunksByName = chunks.reduce(
-            (result, chunk) => ((result[chunk.name] = chunk), result),
+          // remove any css entry chunk assets
+          chunks.forEach(({ name }) => {
+            if (name && name.endsWith('.css')) delete compilation.assets[name]
+          })
+
+          // create a manifest
+          const manifest = chunks.reduce(
+            (result, chunk) => {
+              const cssHashes = chunkCssHashes.get(chunk) || []
+              if (!cssHashes.length) return result
+              result[chunk.name] = cssHashes.map(hash => hash + '.css')
+              return result
+            },
             {}
           )
+          compilation.assets['css-manifest.json'] = new RawSource(JSON.stringify(manifest, null, 2))
 
-          Object.keys(chunkCssAssets).forEach(chunkName => {
-            const { cssAssets, cssHash } = chunkCssAssets[chunkName]
-            if (cssAssets.length) {
-              const templatePattern = /\.([^./]+)\.css$/
-              const [, type] = templatePattern.exec(chunkName) || []
+          // create css assets
+          Object.keys(newChunksWithCssAssets).forEach(chunkName => {
+            const { chunks, assets, cssHash } = newChunksWithCssAssets[chunkName]
 
-              const newChunkName = type === 'entry' ? chunkName : cssHash
+            const chunkCssName = cssHash + '.css'
 
-              const chunkCssName = newChunkName + (newChunkName.endsWith('.css') ? '' : '.css')
-              if (chunkName !== chunkCssName) (x => x && x.files.push(chunkCssName))(chunksByName[chunkName])
-              compilation.assets[chunkCssName] = new ConcatSource(...cssAssets.map(createValidSource))
-            }
+            chunks.forEach(chunk => { chunk.files.push(chunkCssName) })
+
+            compilation.assets[chunkCssName] = new ConcatSource(...assets.map(createValidSource))
           })
         })
       })
