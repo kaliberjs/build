@@ -14,20 +14,19 @@ export function getSharedScriptsForAll(names) {
   names.forEach(name => {
     const info = manifest[name]
     if (!info) throw new Error(`Could not find information in manifest for ${name}`)
-    addParents(manifest[name].parents)
+    addChunk(info)
   })
 
   return sharedChunks.map(toScripts)
 
-  function addParents(parents) {
-    parents.map(x => manifest[x]).forEach(addFilenames)
+  function addChunk ({ dependencies = [], filename }) {
+    dependencies.map(x => manifest[x].filename).forEach(addFilename)
+    addFilename(filename)
   }
 
-  function addFilenames({ filename, hasRuntime, parents }) {
-    addParents(parents)
+  function addFilename(filename) {
     if (!sharedChunks.includes(filename)) {
-      if (hasRuntime) sharedChunks.unshift(filename)
-      else sharedChunks.push(filename)
+      sharedChunks.push(filename)
     }
   }
 }
