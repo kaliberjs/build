@@ -20,7 +20,7 @@ export function getSharedScriptsForAll(names) {
   return sharedChunks.map(toScripts)
 
   function addChunk ({ dependencies = [], filename }) {
-    dependencies.map(x => manifest[x].filename).forEach(addFilename)
+    dependencies.sort((a, b) => b === 'runtime' ? 1 : 0).map(x => manifest[x].filename).forEach(addFilename)
     addFilename(filename)
   }
 
