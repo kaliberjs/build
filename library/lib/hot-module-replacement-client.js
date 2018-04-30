@@ -3,7 +3,7 @@
 const ansiRegex = require('ansi-regex')
 
 console.log('Starting hot module reload client with port', __webpack_websocket_port__)
-const ws = new WebSocket('ws://localhost:' + __webpack_websocket_port__)
+const ws = new WebSocket('ws://' + window.location.hostname + ':' + __webpack_websocket_port__)
 
 ws.onopen = _ => { console.log('Waiting for signals') }
 ws.onmessage = ({ data }) => {
