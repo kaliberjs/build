@@ -9,7 +9,7 @@ function hotCssReplacementClient(port, cssHashes, chunkName, publicPath) { // es
 
   let previousCssHashes = cssHashes
 
-  const ws = new WebSocket('ws://localhost:' + port)
+  const ws = new WebSocket('ws://' + window.location.hostname + ':' + port)
   ws.onopen = _ => { console.log('Waiting for signals') }
   ws.onmessage = ({ data }) => {
     const { type, cssChunkHashes, errors } = JSON.parse(data)
