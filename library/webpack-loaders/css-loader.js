@@ -63,10 +63,12 @@ module.exports = function CssLoader(source, map) {
 
       this.emitFile(filename, css, map.toJSON())
 
+      const cssHash = require('crypto').createHash('md5').update(css).digest('hex')
+
       if (loaderOptions.globalScopeBehaviour) {
-        callback(null, '// postcss-modules is disabled, no exports available')
+        callback(null, `// postcss-modules is disabled, no exports available ${cssHash}`)
       } else {
-        exports.cssHash = require('crypto').createHash('md5').update(css).digest('hex')
+        exports.cssHash = cssHash
         callback(null, exports)
       }
     })
