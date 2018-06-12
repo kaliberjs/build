@@ -1,5 +1,6 @@
 import javascript from '@kaliber/build/lib/javascript'
 import App from '/App?universal'
+import config from '@kaliber/config'
 
 export default (
   <html lang='en'>
@@ -13,7 +14,7 @@ export default (
       {javascript}
     </head>
     <body>
-      <App />
+      <App publicPath={config.kaliber.publicPath} />
     </body>
   </html>
 )

@@ -1,6 +1,9 @@
+import example from './example.raw'
+import { JavaScript } from '/style/CodeBlock';
+
 export default (
   <div>
-    <h1>Plain html</h1>
     <p>Just checking</p>
+    <JavaScript>{example}</JavaScript>
   </div>
 )

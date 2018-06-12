@@ -1,3 +1,7 @@
+import config from '@kaliber/config'
+
+const { kaliber: { publicPath } } = config
+
 export default (
   <html lang='en'>
     <head>
@@ -5,7 +9,7 @@ export default (
       <title>@kaliber/build</title>
 
       <script type='text/javascript' dangerouslySetInnerHTML={{__html:
-        `document.location.replace('/build/#' + document.location.pathname.split('/')[2])`
+        `document.location.replace('${publicPath}#' + document.location.pathname.replace('${publicPath}', ''))`
       }} />
     </head>
     <body><div>404</div></body>

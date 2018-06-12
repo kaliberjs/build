@@ -18,7 +18,8 @@ export default class App extends Component {
     const { location } = this.state
     if (!location) return null
 
-    const [page, title, content] = pages.find(([page]) => page === location)
+    const [page = 'not-found', title = 'Not found', content = 'Sorry'] =
+      pages.find(([page]) => page + '/' === location) || []
 
     return (
       <div>
@@ -30,17 +31,21 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    const { publicPath } = this.props
     const self = this
+
     updateLocation()
     window.onpopstate = updateLocation
 
-    function getLocation() { return document.location.hash.slice(1) }
     function updateLocation() {
-      const location = getLocation()
-      if (location) {
+      const extractedLocation = locationFromHash() || locationFromPathname()
+      if (extractedLocation) {
+        const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
         self.setState({ location })
-        window.history.replaceState(null, null, location)
+        window.history.replaceState(null, null, publicPath + location)
       }
     }
+    function locationFromHash() { return document.location.hash.slice(1) }
+    function locationFromPathname() { return document.location.pathname.replace(publicPath, '') }
   }
 }
