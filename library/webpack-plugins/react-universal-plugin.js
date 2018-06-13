@@ -1,12 +1,13 @@
+const { addBuiltInVariable } = require('../lib/webpack-utils')
+const { RawSource } = require('webpack-sources')
+const { relative } = require('path')
+const { ReplaceSource } = require('webpack-sources')
 const Compiler = require('webpack/lib/Compiler')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const RawModule = require('webpack/lib/RawModule')
 const Stats = require('webpack/lib/Stats')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
-const { ReplaceSource } = require('webpack-sources')
-const { addBuiltInVariable } = require('../lib/webpack-utils')
-const { relative } = require('path')
 
 /*
   The idea is simple:
@@ -161,18 +162,28 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
           createValue: (source, chunk, hash) => {
             // get the manifest from the client compilation
             const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
-
-            // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
-            const universalChunkNames = chunk.getModules()
-              .filter(x => x.resource && x.resource.endsWith('?universal'))
-              .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
-
+            const universalChunkNames = getUniversalChunkNames(chunk, compiler)
             return { universalChunkNames, manifest }
           }
+        })
+
+        compilation.hooks.additionalChunkAssets.tap(p, chunks => {
+          const entryManifest = chunks
+            .filter(x => x.name)
+            .reduce((result, x) => ({ ...result, [x.name]: getUniversalChunkNames(x, compiler) }), {})
+
+          compilation.assets['entry-manifest.json'] = new RawSource(JSON.stringify(entryManifest, null, 2))
         })
       })
     }
   }
+}
+
+function getUniversalChunkNames(chunk, compiler) {
+  // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
+  return chunk.getModules()
+    .filter(x => x.resource && x.resource.endsWith('?universal'))
+    .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 }
 
 function createWebCompiler(compiler, options, getEntries) {
