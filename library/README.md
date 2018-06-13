@@ -2,8 +2,7 @@
 
 Breaking changes:
 
-- v0.0.54 -
-  - `chunk-manifest.json` changed.
+- v0.0.54 - `chunk-manifest.json` changed.
 - v0.0.51 -
   - `chunk-manifest.json` changed.
   - `*.entry.css` classnames are no longer hashed.
