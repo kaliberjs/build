@@ -17,12 +17,9 @@ function createServerCode({ importPath, id, filename }) {
           |assignStatics(WrapWithScript, Component)
           |
           |export default function WrapWithScript({ universalContainerProps, ...props }) {
-          |  const content = renderToString(<Component id='${id}' {...props} />)
+          |  const content = renderToString(<Component {...props} />)
           |  return (
-          |    <React.Fragment>
-          |      <div {...universalContainerProps} id='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }} />
-          |      <script defer src={__webpack_public_path__ + __webpack_js_chunk_information__.manifest['${filename}'].filename} />
-          |    </React.Fragment>
+          |    <div {...universalContainerProps} data-componentid='${id}' data-props={JSON.stringify(props)} dangerouslySetInnerHTML={{ __html: content }} />
           |  )
           |}
           |`.split(/^[ \t]*\|/m).join('')

@@ -13,13 +13,20 @@ function createClientCode({ importPath, id }) {
   return `|import Component from './${importPath}'
           |import { hydrate } from 'react-dom'
           |
-          |const element = document.getElementById('${id}')
-          |const props = JSON.parse(element.dataset.props)
-          |hydrate(<Component {...props} />, element)
+          |const elements = document.querySelectorAll('*[data-componentid="${id}"]')
+          |elements.forEach(element => {
+          |  const props = JSON.parse(element.dataset.props)
+          |  hydrate(<Component {...props} />, element)
+          |})
           |
           |if (module.hot) {
           |  require('@kaliber/build/lib/hot-module-replacement-client')
-          |  module.hot.accept('./${importPath}', () => { hydrate(<Component {...props} />, element) })
+          |  module.hot.accept('./${importPath}', () => {
+          |   elements.forEach(element => {
+          |     const props = JSON.parse(element.dataset.props)
+          |     hydrate(<Component {...props} />, element)
+          |  })
+          | })
           |}
           |`.split(/^[ \t]*\|/m).join('')
 }

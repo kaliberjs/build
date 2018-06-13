@@ -59,6 +59,9 @@ function main ({ location, data }) {
         </p>
         <SharedComponent />
         <span className={styles.test}>Something</span>
+        <h1>1.</h1>
+        <Test2 />
+        <h1>2.</h1>
         <Test2 />
         <Test soep='kip' initialMessage={data.message} clientConfig={config.client} />
 
