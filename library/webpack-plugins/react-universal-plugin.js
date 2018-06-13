@@ -170,7 +170,10 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {
           const entryManifest = chunks
             .filter(x => x.name)
-            .reduce((result, x) => ({ ...result, [x.name]: getUniversalChunkNames(x, compiler) }), {})
+            .reduce((result, x) => {
+              const names = getUniversalChunkNames(x, compiler)
+              return names.length ? { ...result, [x.name]: names } : result
+            }, {})
 
           compilation.assets['entry-manifest.json'] = new RawSource(JSON.stringify(entryManifest, null, 2))
         })
