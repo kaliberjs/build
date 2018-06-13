@@ -5,7 +5,8 @@
     'chunkName': {
       filename: 'public/path/to/chunk',
       hasRuntime: true/false,
-      parents: ['chunkName1', ..., 'chunkNameN']
+      group: ['chunkName1', ..., 'chunkNameN'],
+      isShared: true/false,
     }
   }
 
@@ -39,13 +40,33 @@ module.exports = function chunkManifestPlugin() {
           chunkAssets[chunk.name] = Object.assign({
             filename,
             hasRuntime: chunk.hasRuntime(),
-            isShared
-          }, !isShared && { group: group.chunks.filter(x => x !== chunk).map(x => x.name) })
+            isShared,
+            group: isShared ? [] : group.chunks.filter(x => x !== chunk).map(x => x.name)
+          })
         })
 
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {
-          compilation.hooks.chunkManifest.call(chunkAssets)
-          compilation.assets['chunk-manifest.json'] = new RawSource(JSON.stringify(chunkAssets, null, 2))
+          const chunkManifest = sortGroups(chunkAssets)
+          compilation.hooks.chunkManifest.call(chunkManifest)
+          compilation.assets['chunk-manifest.json'] = new RawSource(JSON.stringify(chunkManifest, null, 2))
+
+          function sortGroups (chunkAssets) {
+            return Object.keys(chunkAssets).reduce(
+              (result, key) => {
+                const group = []
+
+                chunkAssets[key].group.forEach(x => {
+                  if (chunkAssets[x].hasRuntime) group.unshift(x)
+                  else group.push(x)
+                })
+
+                return Object.assign(result, {
+                  [key]: Object.assign({}, chunkAssets[key], { group })
+                })
+              },
+              {}
+            )
+          }
         })
       })
     }

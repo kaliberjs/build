@@ -15,10 +15,7 @@ function getSharedChunkFileNames({ universalChunkNames, manifest }) {
 
   return sharedChunks
 
-  function addFilename({ filename, hasRuntime }) {
-    if (!sharedChunks.includes(filename)) {
-      if (hasRuntime) sharedChunks.unshift(filename)
-      else sharedChunks.push(filename)
-    }
+  function addFilename({ filename }) {
+    if (!sharedChunks.includes(filename)) sharedChunks.push(filename)
   }
 }
