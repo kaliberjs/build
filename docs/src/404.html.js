@@ -9,7 +9,7 @@ export default (
       <title>@kaliber/build</title>
 
       <script type='text/javascript' dangerouslySetInnerHTML={{__html:
-        `document.location.replace('${publicPath}#' + document.location.pathname.replace('${publicPath}', ''))`
+        `document.location.replace('${publicPath}#' + document.location.pathname.replace('${publicPath}', '') + document.location.hash)`
       }} />
     </head>
     <body><div>404</div></body>

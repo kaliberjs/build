@@ -11,22 +11,18 @@ const pages = [
 export default class App extends Component {
 
   state = {
-    location: 'introduction'
+    pageInfo: []
   }
 
   render() {
-    const { location } = this.state
-    if (!location) return null
-
-    const [page = 'not-found', title = 'Not found', content = 'Sorry'] =
-      pages.find(([page]) => page + '/' === location) || []
+    const { pageInfo: [page = 'not-found', title = 'Not found', content = 'Sorry'] = [] } = this.state
 
     return (
-      <div>
+      <React.Fragment>
         <h1>{title}</h1>
         <Menu {...{ pages, page }} />
         <Content>{content}</Content>
-      </div>
+      </React.Fragment>
     )
   }
 
@@ -38,14 +34,27 @@ export default class App extends Component {
     window.onpopstate = updateLocation
 
     function updateLocation() {
-      const extractedLocation = locationFromHash() || locationFromPathname()
-      if (extractedLocation) {
-        const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
-        self.setState({ location })
+      const result = pageInfoFromHash() || pageInfoFromPathname()
+      if (result) {
+        const { location, pageInfo } = result
+        self.setState({ pageInfo })
         window.history.replaceState(null, null, publicPath + location)
       }
     }
-    function locationFromHash() { return document.location.hash.slice(1) }
-    function locationFromPathname() { return document.location.pathname.replace(publicPath, '') }
+    function pageInfoFromHash() {
+      const [routingHash, userHash] = document.location.hash.slice(1).split('#')
+      return getPageInfo(routingHash, userHash ? '#' + userHash : '')
+    }
+
+    function pageInfoFromPathname() {
+      const location = document.location.pathname.replace(publicPath, '')
+      return getPageInfo(location, document.location.hash)
+    }
+
+    function getPageInfo(extractedLocation, userHash) {
+      const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
+      const pageInfo = pages.find(([page]) => page + '/' === location)
+      return pageInfo && { location: location + userHash, pageInfo }
+    }
   }
 }
