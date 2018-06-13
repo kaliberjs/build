@@ -40,7 +40,7 @@ module.exports = function chunkManifestPlugin() {
             filename,
             hasRuntime: chunk.hasRuntime(),
             isShared
-          }, !isShared && { dependencies: group.chunks.filter(x => x !== chunk).map(x => x.name) })
+          }, !isShared && { group: group.chunks.filter(x => x !== chunk).map(x => x.name) })
         })
 
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {
