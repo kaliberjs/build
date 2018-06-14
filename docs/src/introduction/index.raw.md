@@ -100,14 +100,81 @@ export default function index(({ location, data })) {
 }
 ```
 
+#### Just modern css and javascript
+
+In some cases you already have a framework in place to handle the rendering of your html. This
+library can also be used to simply enable you to write modern javascript and css. Simply create a
+`name.entry.js` or `name.entry.css` file and they will be picked up and transpiled along with
+all of their dependencies.
+
+#### Templating
+
+Javascript can be a great template language for any output format. This library provides a way to
+have javascript files turned into arbitrary other formats.
+
+It consists of two parts:
+1. The template renderer
+2. The template
+
+First step is to create a renderer (`/myRenderer.js`).
+
+```js
+export default function myRenderer(template) {
+  // in real life, use a csv library
+  return template.map(x => x.join(',')).join('\n') + '\n'
+}
+```
+
+Register the renderer in the configuration.
+
+```js
+{
+  kaliber: {
+    templateRenderers: { csv: '/myRenderer' }
+  }
+}
+```
+
+Create a template (`/my.csv.js`).
+
+```js
+export default [
+  ['a', 'b', 'c'],
+  ['d', 'e', 'f'],
+]
+```
+
+The result is a `my.csv` file.
+
+#### More
+
+This is the introduction page to give you a quick overview. There are quite a few use cases where
+this library can help you. Explore the docs to see if your use case is supported. If it's not
+please check the issues if it is not supported on purpose. No related issue? File one, we would love
+to hear about your use case!
+
 
 ### Features
 
 Some notable features:
 
-- Hot reloading
-- Fingerprinting
-- Server
+#### Hot reloading without a dev server
+
+The `kaliber-watch` process communicates directly with your browser. This means you can use hot
+reloading in the javascript that is hosted in another framework.
+
+#### Asset fingerprinting
+
+Caching is important and by far the best way to make sure the correct things are cached is by
+fingerprinting the assets with a content based hash as a name. We fingerprint all assets that move
+through the build tool. Don't worry, we also generate manifest files that allow you to obtain the
+file names based on the original file name.
+
+#### Server
+
+The library comes with a small node.js server. This server can be used both in development as in
+production.
+
 
 ### Technology
 
