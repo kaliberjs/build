@@ -1,11 +1,13 @@
-import introduction from '/introduction'
+import introduction from '/introduction/index.raw.md'
+import choices from '/choices/index.raw.md'
 import gettingStarted from '/getting-started'
 import Menu from '/Menu'
 import Content from '/Content'
 
 const pages = [
   ['introduction', 'Introduction', introduction],
-  ['getting-started', 'Getting started', gettingStarted]
+  ['getting-started', 'Getting started', gettingStarted],
+  ['choices', 'Choices', choices],
 ]
 
 export default class App extends Component {

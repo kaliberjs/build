@@ -158,6 +158,43 @@ to hear about your use case!
 
 Some notable features:
 
+#### Easy universal rendering
+
+What if I told you that making a component universal was as easy as adding `?universal` to it's
+import statement?
+
+Let's say you have the following static site:
+
+```jsx
+import MyComponent from '/MyComponent'
+
+export default (
+  <html>
+    <head>...</head>
+    <body>
+      <MyComponent someProp='value' />
+    </body>
+  </html>
+)
+```
+
+The contents of `MyComponent` are only rendered on the server and many of lifecycle methods that
+are triggered in the client never happen (most notably `componentDidMount`). The only change I need
+to make to be able to add dynamic stuff and start using `state` in my component is the following:
+
+```jsx
+import MyComponent from '/MyComponent?universal' // <--
+
+export default (
+  <html>
+    <head>...</head>
+    <body>
+      <MyComponent someProp='value' />
+    </body>
+  </html>
+)
+```
+
 #### Hot reloading without a dev server
 
 The `kaliber-watch` process communicates directly with your browser. This means you can use hot
@@ -175,7 +212,27 @@ file names based on the original file name.
 The library comes with a small node.js server. This server can be used both in development as in
 production.
 
+#### Copying of unused files
+
+The build tool copies all unused files in the source directory to the target directory. This allows
+you to keep all files together.
+
+#### Environment dependent configuration
+
+By setting the `CONFIG_ENV` environment variable you determine what configuration to load. We also
+support `default.js` and `local.js`.
+
 
 ### Technology
 
-Currently our
+Just a list.
+
+- React
+- Webpack
+- Node.js
+- Babel
+- Eslint
+- Postcss
+- CssNext
+- Express
+- @kaliber/config

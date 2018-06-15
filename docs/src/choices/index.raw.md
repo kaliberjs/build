@@ -1,0 +1,123 @@
+## Choices
+
+Creating a library like this means making choices. We made quite a few choices and while some are
+arbitrary or accidental, some of them are very conscious.
+
+If you don't agree with one of the choices we made please, check here or in the issues if it's a
+conscious choice. And after you understand our position and still disagree, please op an issue. We
+love to have these discussions as they will lead to one of two things:
+
+- We will get a better understanding of the choice we made and should be able to explain it better.
+- We will be convinced your opinion is better, change our opinion and learn something new.
+
+Another thing to note is that some choices come down to taste. The eslint settings we have addopted
+are a good example for this. With eslint we tried to only enable the settings that would prevent
+errors. As soon as we encounter a setting that is not worth more time to discuss, and there were no
+convincing arguments to one style or the other we allow both styles.
+
+{toc}
+
+### Open source
+
+We think this will be a hard one for you to argue with. If this wasn't open source we would not have
+this conversation.
+
+### React
+
+We like the React way of thinking and have seen it's effect on our productivity, consistency and
+quality. We are quite pleased with the team behind it, the documentation and it's release and
+migration management.
+
+React sparked a few similar alternatives, we however stick with the big one.
+
+Another reason is that React does not have a lot of magic. It does not have framework specific
+constructs to perform loops or display content. This does not mean the code is easily portable to
+another framework, but it does mean that developers can understand it fairly easy with javascript.
+
+### Modern javascript
+
+We try to keep up with the standard and are generally reluctant to add proposed experimental
+features. We do however have added some non-standard features that we feel make our lives better:
+
+- Dynamic import syntax
+- Decorators
+- Class properties
+- Object rest spread
+
+### Webpack
+
+We have extensively looked at the alternatives and even started building our own build tool. This
+however has convinced us that, even with it's flaws, Webpack is the right tool to use here.
+
+This choice was reaffirmed by the last few releases where two important things happened:
+
+1. The internals were improved massively with a new mechanism for hooks and some long overdue
+   cleanup of code.
+2. The defaults improved. It can now be used with a lot less configuration. On top of that we were
+   able to remove a custom plugin because Webpack came with a plugin that did the same thing.
+
+Still, some of the Webpack ecosystem is more complex than needed. This is why we have our own custom
+plugins and loaders other than the common choices or defaults:
+
+- Loading CSS
+- Merging CSS
+- Source maps
+
+We are not afraid to bend Webpack to our needs, Webpack is very flexible and once you get to know
+the source code of the beast this is quite doable.
+
+### Express
+
+There are alternatives for Express. But it is one of the libraries that is well known and most used.
+On top of that, we do not have a lot of Node.js server code, so the attractive features of other
+alternative frameworks have less weight.
+
+We made the server that came with this library small and restrictive because we believe backend
+processing should be done differently. The server is a component that you don't have to use,
+everything (including hot reloading) can be used when you use the library with another server. We
+did however provided you with an escape hatch that allows you to manipulate express using the
+configuration.
+
+### Convention over configuration
+
+Ruby popularized this idea and it greatly helped us to reduce the amount of configuration needed to
+create an application with only a bare minimum of configuration.
+
+We try to be zero-configuration and you will find we are very reluctant to make something
+configurable. In many cases we adopt a new convention rather than make something configurable.
+
+We believe that this attitude helps us making better decisions and provide more consistency. One
+example is a good illustration.
+
+> We had a project where were asked to supply some html and css that another company would copy and
+> paste into their server side code. This required us to abandon CSS module syntax with it's
+> generated class names. Since this was the first use case and we didn't expect it to be a common
+> occurence we just added `global(...)` to all of our class selectors.
+>
+> Some time later we encountered a similar situation and one of us asked if we could make it
+> configurable. The result of this was that we came to the conclusion that only certain types of css
+> files were most likely be used in this situation. And it was then that we decided that all
+> `*.entry.css` files should not use css modules at all. This new convention fits the use cases
+> perfectly.
+
+### Postcss and cssnext
+
+When we chose this we had enough experience with Sass and Less. While both alternatives had more
+features we felt that postcss in combination with cssnext was enough for us. On top of that, it
+fit very well with our vision for javascript: write in the code that will eventually become adopted.
+
+At time of writing there is a new candidate on the horizon: CSS in javascript. We are still not sure
+if we want to adopt this and to what degree. A few pro's and cons:
+
+- It is moving css in the opposite direction of javascript. Javascript is moving to a more static
+  and analyzable structure with it's import statements. CSS in js is moving towards a more dynamic
+  approach.
+- It makes communication between javascript and CSS significantly easier.
+- It allows you to render only the essential CSS on your server.
+- It moves the complications of supporting modern features from compile time to run time with impact
+  on performance and complexity.
+- It's quite young.
+- It's popular.
+
+If you think you can add to the discussion, feel free to help us gain more insight. Extensive
+experience with it would be awesome as you could help us figure out the practical trade-offs.
