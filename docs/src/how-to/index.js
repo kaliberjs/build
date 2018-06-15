@@ -1,0 +1,8 @@
+export { default as basicAuth } from './basicAuth.raw.md'
+export { default as dynamic } from './dynamic.raw.md'
+export { default as landingPage } from './landingPage.raw.md'
+export { default as mailTemplates } from './mailTemplates.raw.md'
+export { default as redirects } from './redirects.raw.md'
+export { default as singlePage } from './singlePage.raw.md'
+export { default as staticSite } from './staticSite.raw.md'
+export { default as wordpress } from './wordpress.raw.md'

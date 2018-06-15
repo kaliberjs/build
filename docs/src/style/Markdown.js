@@ -29,7 +29,6 @@ function RootWithTableOfContents({ children }) {
           if (text === '{toc}') return <Toc />
         }
         if (x.type === Heading) {
-          console.log(x)
           toc.push(x.props)
         }
         return x

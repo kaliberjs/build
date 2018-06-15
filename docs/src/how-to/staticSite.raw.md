@@ -1,0 +1,4 @@
+- when to use
+- index.html.js
+- styles
+- javascript in the browser (for dynamic elements)

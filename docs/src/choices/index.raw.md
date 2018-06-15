@@ -121,3 +121,17 @@ if we want to adopt this and to what degree. A few pro's and cons:
 
 If you think you can add to the discussion, feel free to help us gain more insight. Extensive
 experience with it would be awesome as you could help us figure out the practical trade-offs.
+
+### Root import using /
+
+In node.js you will find yourself using `../` if you want to import something from another sibling
+directory. This is fragile when moving around code. In the Webpack community it is common to add
+the `src` directory as a module directory. This however poses a potential problem when a node
+module shows up having the same name as one of the files or directories in your `src` directory.
+
+There would for example be no distinction between the `src/config.js` file and `node_modules/config`
+module. It solely depends on the resolution order what the result of `import 'config'` would be.
+
+We chose to adopt using `/config` to select a file from the `src` directory. This corresponds with
+the semantics of the browser where `/` also means the root of the website. This has the added
+advantage that it prevents importing from the root of the file system.

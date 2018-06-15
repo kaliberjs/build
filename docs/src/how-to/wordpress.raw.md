@@ -1,0 +1,5 @@
+- publicPath
+- directoryStructure
+- symlink
+- phpRenderer
+- loading styles and scripts
