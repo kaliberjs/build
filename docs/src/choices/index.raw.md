@@ -34,6 +34,11 @@ Another reason is that React does not have a lot of magic. It does not have fram
 constructs to perform loops or display content. This does not mean the code is easily portable to
 another framework, but it does mean that developers can understand it fairly easy with javascript.
 
+And because it's "just javascript" we can use functions and imports to reuse our html code.
+
+In order to make working with `React` even more pleasant we make sure that `React` and
+`React.Component` are available; you do not need to import them.
+
 ### Modern javascript
 
 We try to keep up with the standard and are generally reluctant to add proposed experimental

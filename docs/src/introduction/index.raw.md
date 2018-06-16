@@ -200,6 +200,8 @@ export default (
 The `kaliber-watch` process communicates directly with your browser. This means you can use hot
 reloading in the javascript that is hosted in another framework.
 
+As a side note, your CSS is also hot reloaded.
+
 #### Asset fingerprinting
 
 Caching is important and by far the best way to make sure the correct things are cached is by

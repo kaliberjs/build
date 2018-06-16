@@ -6,16 +6,17 @@ import Menu from '/Menu'
 import Content from '/Content'
 
 const pages = [
+  ['', '@kaliber/buid', '-- This is a work in progress --'],
   ['introduction', 'Introduction', introduction],
   ['getting-started', 'Getting started', gettingStarted],
   ['choices', 'Choices', choices],
   ['how-to', 'How to', [
+    ['static-site', 'Static site', staticSite],
     ['dynamic', 'Server side rendering', dynamic],
     ['landing-page', 'A page in a sub-directory', landingPage],
     ['mail-templates', 'Mail templates', mailTemplates],
     ['redirects', 'Redirects', redirects],
     ['single-page', 'Single page application', singlePage],
-    ['static-site', 'Static site', staticSite],
     ['wordpress', 'Integrate with WordPress', wordpress],
   ]],
 ]
@@ -28,7 +29,8 @@ const flattenedPages = pages.reduce(
         ? componentOrSubPage.map(([subId, title, component]) => [id + '/' + subId, title, component])
         : [[id, title, componentOrSubPage]]
     )
-  ]
+  ],
+  []
 )
 
 export default class App extends Component {
@@ -85,7 +87,8 @@ export default class App extends Component {
 
     function getPageInfo(extractedLocation, userHash) {
       const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
-      const pageInfo = flattenedPages.find(([page]) => console.log(page + '/', location) || page + '/' === location)
+      const pageInfo = flattenedPages.find(([page]) =>
+        console.log('searching:', page + '/', location) || page + '/' === location)
       return pageInfo && { location: location + userHash, pageInfo }
     }
   }
