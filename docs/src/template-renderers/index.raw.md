@@ -1,0 +1,1 @@
+- warn about sensitive configuration values, a renderer is available for download

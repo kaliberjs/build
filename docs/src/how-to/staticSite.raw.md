@@ -146,6 +146,8 @@ The server this library provides recognizes that static hosting often allows you
 When you create a `404.html` page, that page will automatically be served in case our server did not
 find the requested file. The `500.html` is served in case of an unexpected error.
 
+Note that if you do not supply a `404.html`, the `index.html` file is served with status code `200`.
+
 ### Static content sites - reducing boilerplate with a custom renderer
 
 It might be the case that a static site is really your best option, but the amount of pages you need

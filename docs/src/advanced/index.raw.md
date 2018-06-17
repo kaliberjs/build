@@ -1,0 +1,1 @@
+- variables - magic __webpack__ variables and process.env variables

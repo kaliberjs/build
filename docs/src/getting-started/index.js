@@ -9,6 +9,7 @@ export default (
       - project type
       - scaffold
       - manual
+      - overview of the documentation
     </Markdown>
     <JavaScript>{example}</JavaScript>
   </React.Fragment>

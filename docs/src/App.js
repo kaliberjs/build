@@ -1,7 +1,8 @@
 import introduction from '/introduction/index.raw.md'
 import choices from '/choices/index.raw.md'
 import gettingStarted from '/getting-started'
-import { dynamic, landingPage, mailTemplates, redirects, singlePage, staticSite, wordpress } from '/how-to'
+import configuration from '/configuration/index.raw.md'
+import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
 
@@ -9,14 +10,17 @@ const pages = [
   ['', '@kaliber/buid', '-- This is a work in progress --'],
   ['introduction', 'Introduction', introduction],
   ['getting-started', 'Getting started', gettingStarted],
+  ['configuration', 'Configuration', configuration],
   ['choices', 'Choices', choices],
   ['how-to', 'How to', [
     ['static-site', 'Static site', staticSite],
-    ['dynamic', 'Server side rendering', dynamic],
-    ['landing-page', 'A page in a sub-directory', landingPage],
+    ['server-side-rendering', 'Server side rendering', serverSideRendering],
+    ['single-page-application', 'Single page application', singlePageApplication],
+    ['page-in-sub-directory', 'Page in a sub-directory', pageInSubDirectory],
+    ['isomorphic-javascript', 'Isomorphic (Universal) javascript', isomorphicJavascript],
+    ['basic-auth', 'Basic authentication', basicAuth],
     ['mail-templates', 'Mail templates', mailTemplates],
     ['redirects', 'Redirects', redirects],
-    ['single-page', 'Single page application', singlePage],
     ['wordpress', 'Integrate with WordPress', wordpress],
   ]],
 ]
@@ -77,7 +81,7 @@ export default class App extends Component {
     }
     function pageInfoFromHash() {
       const [routingHash, userHash] = document.location.hash.slice(1).split('#')
-      return getPageInfo(routingHash, userHash ? '#' + userHash : '')
+      return routingHash && getPageInfo(routingHash, userHash ? '#' + userHash : '')
     }
 
     function pageInfoFromPathname() {
@@ -89,7 +93,10 @@ export default class App extends Component {
       const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
       const pageInfo = flattenedPages.find(([page]) =>
         console.log('searching:', page + '/', location) || page + '/' === location)
-      return pageInfo && { location: location + userHash, pageInfo }
+      return pageInfo && {
+        location: (location.startsWith('/') ? location.slice(1) : location) + userHash,
+        pageInfo
+      }
     }
   }
 }

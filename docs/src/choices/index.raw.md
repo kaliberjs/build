@@ -140,3 +140,12 @@ module. It solely depends on the resolution order what the result of `import 'co
 We chose to adopt using `/config` to select a file from the `src` directory. This corresponds with
 the semantics of the browser where `/` also means the root of the website. This has the added
 advantage that it prevents importing from the root of the file system.
+
+### No configuration in client side javascript
+
+We prevent imports of `@kaliber/config`, we do this to make sure no sensitive information ends up in
+the javascript bundle. In order to pass configuration to the client side javascript you need to pass
+it to the universal component as a prop.
+
+If you need configuration in an `{name}.entry.js` file, you can use the same mechanism employed by
+the universal system: put json in a data attribute and fetch it with javascript.

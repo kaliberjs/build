@@ -1,0 +1,6 @@
+- `?universal`
+- `window` and `componentDidMount`
+- initial data
+- routing - the general idea
+- page transitions
+- when to use
