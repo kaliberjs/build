@@ -300,7 +300,7 @@ module.exports = function build({ watch }) {
       ].filter(Boolean),
       node: () => [
         new TimeFixPlugin(),
-        watch && new ExtendedAPIPlugin(),
+        new ExtendedAPIPlugin(),
         configLoaderPlugin(),
         watchContextPlugin(),
         reactUniversalPlugin(webOptions()),  // claims .entry.js
