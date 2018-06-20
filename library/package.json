@@ -1,5 +1,5 @@
 {
-  "version": "0.0.57",
+  "version": "0.0.58",
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
