@@ -2,6 +2,8 @@ import introduction from '/introduction/index.raw.md'
 import choices from '/choices/index.raw.md'
 import gettingStarted from '/getting-started'
 import configuration from '/configuration/index.raw.md'
+import conventions from '/conventions/index.raw.md'
+import advanced from '/advanced/index.raw.md'
 import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
@@ -11,6 +13,7 @@ const pages = [
   ['introduction', 'Introduction', introduction],
   ['getting-started', 'Getting started', gettingStarted],
   ['configuration', 'Configuration', configuration],
+  ['conventions', 'Conventions', conventions],
   ['choices', 'Choices', choices],
   ['how-to', 'How to', [
     ['static-site', 'Static site', staticSite],
@@ -23,6 +26,7 @@ const pages = [
     ['redirects', 'Redirects', redirects],
     ['wordpress', 'Integrate with WordPress', wordpress],
   ]],
+  ['advanced', 'Advanced topics', advanced],
 ]
 
 const flattenedPages = pages.reduce(

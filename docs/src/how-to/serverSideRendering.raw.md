@@ -92,7 +92,7 @@ The server checks the existence of a `routes` object on the function returned fr
 and calls it's `match` function. The result of this function is used to set the `status` of http
 response and the `data` is supplied to the template function.
 
-Note that the location object is provided by a utility from the (`history`)[https://www.npmjs.com/package/history]
+Note that the location object is provided by a utility from the [`history`](https://www.npmjs.com/package/history)
 package. This library could be used to provide client side routing.
 
 
@@ -131,7 +131,7 @@ The `headers` can be used to supply a specific content type or to perform redire
 Note that if you return a 'falsy' response from the `match` method, or don't supply a `match` method
 at all it will default to `{ status: 200, data: null }`.
 
-### redirects
+#### redirects
 
 Redirects are nothing more than a status code in the [`3XX`](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3)
 range combined with a `Location` header.
