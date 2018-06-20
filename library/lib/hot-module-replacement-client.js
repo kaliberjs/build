@@ -18,7 +18,12 @@ ws.onmessage = ({ data }) => {
 
           module.hot.apply({
             ignoreErrored: true,
-            onErrored: ({ error }) => { logErrorWithoutColors(error) }
+            onErrored: ({ error }) => { logErrorWithoutColors(error) },
+            ignoreUnaccepted: true,
+            onUnaccepted: x => console.warn(
+              `Aborted because ${x.moduleId} is not accepted${x.chain ? `\nUpdate propagation: ${x.chain.join(` -> `)}` : '' }\n` +
+              `Pro-tip: you can enable hot-reloading by adding \`if (module.hot) { module.hot.accept(...) }\` in  your file.`
+            )
           }).then(renewedModules => {
               const ignoredModules = updatedModules.filter(x => !renewedModules.includes(x))
               if (ignoredModules.length) console.warn('Ignored modules: ' + ignoredModules.join(', '))

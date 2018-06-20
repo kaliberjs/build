@@ -1,3 +1,6 @@
+const path = require('path')
+const walkSync = require('walk-sync')
+
 /*
   Simply adds the context as a context dependency
 */
@@ -9,6 +12,9 @@ module.exports = function watchContextPlugin() {
     apply: compiler => {
       compiler.hooks.afterCompile.tap(p, compilation => {
         compilation.contextDependencies.add(compiler.options.context)
+        walkSync(compiler.options.context, { globs: ['**/']}).forEach(x => {
+          compilation.contextDependencies.add(path.join(compiler.options.context, x))
+        })
       })
     }
   }

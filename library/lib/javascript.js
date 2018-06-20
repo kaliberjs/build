@@ -8,19 +8,14 @@ function getSharedChunkFileNames({ universalChunkNames, manifest }) {
   const sharedChunks = []
 
   universalChunkNames.forEach(universalChunkName => {
-    addDependencies(manifest[universalChunkName].dependencies)
+    const chunkManifest = manifest[universalChunkName]
+    chunkManifest.group.forEach(x => addFilename(manifest[x]))
+    addFilename(chunkManifest)
   })
 
   return sharedChunks
 
-  function addDependencies(dependencies) {
-    dependencies.map(x => manifest[x]).forEach(addFilenames)
-  }
-
-  function addFilenames({ filename, hasRuntime }) {
-    if (!sharedChunks.includes(filename)) {
-      if (hasRuntime) sharedChunks.unshift(filename)
-      else sharedChunks.push(filename)
-    }
+  function addFilename({ filename }) {
+    if (!sharedChunks.includes(filename)) sharedChunks.push(filename)
   }
 }
