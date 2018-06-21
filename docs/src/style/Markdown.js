@@ -15,7 +15,11 @@ function Heading({ level, children }) {
   return React.createElement(`h${level}`, props, children)
 }
 
-Heading.id = function id(title) {
+Heading.id = function id(value) {
+  const title = typeof value === 'string'
+    ? value
+    : value.props.children
+
   return title.toLowerCase().replace(/ /g, '-')
 }
 
@@ -44,13 +48,13 @@ function RootWithTableOfContents({ children }) {
       return (
         <React.Fragment>
           <p><strong>On this page:</strong></p>
-          {list.filter(x => x.level >= minLevel).map(({ level, children }) => {
+          {list.filter(x => x.level >= minLevel).map(({ level, children }, i) => {
             const [title] = children
             const id = Heading.id(title)
 
             return (
-              <React.Fragment key={id}>
-                <a style={{ paddingLeft: ((level - minLevel) * 10) + 'px' }} href={'#' + id}>{title}</a>
+              <React.Fragment key={id + i}>
+                <a style={{ paddingLeft: ((level - minLevel) * 10) + 'px' }} href={'#' + encodeURIComponent(id)}>{title}</a>
                 <br />
               </React.Fragment>
             )

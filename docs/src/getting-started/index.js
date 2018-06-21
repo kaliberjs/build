@@ -10,6 +10,7 @@ export default (
       - scaffold
       - manual
       - overview of the documentation
+      - never import React and React.Component
     </Markdown>
     <JavaScript>{example}</JavaScript>
   </React.Fragment>
