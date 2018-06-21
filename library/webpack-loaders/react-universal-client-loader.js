@@ -22,10 +22,10 @@ function createClientCode({ importPath, id }) {
           |if (module.hot) {
           |  require('@kaliber/build/lib/hot-module-replacement-client')
           |  module.hot.accept('./${importPath}', () => {
-          |   elements.forEach(element => {
-          |     const props = JSON.parse(element.dataset.props)
-          |     hydrate(<Component {...props} />, element)
-          |  })
+          |  for (let i = 0; i < elements.length; i++) {
+          |     const props = JSON.parse(elements[i].dataset.props)
+          |     hydrate(<Component {...props} />, elements[i])
+          |  }
           | })
           |}
           |`.split(/^[ \t]*\|/m).join('')
