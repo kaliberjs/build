@@ -78,4 +78,24 @@ module.exports = {
 
 #### serveMiddleware
 
-...
+We try to keep our node server as simple as possible. Sometimes however we need to add something to
+the express server. In some prototypes we want to experiment with a technology and on most test and
+acceptance servers we want to enable basic authentication.
+
+```js
+module.exports = {
+  kaliber: {
+    serveMiddleware: xxx
+  }
+}
+```
+
+The value that is placed on the `xxx` will be injected into the following code:
+
+```js
+app.use(...[].concat(serveMiddleware))
+```
+
+This allows you to call the `use` function in any way you like. If you only need to supply a single
+argument you set the value of that argument to `serveMiddleware`. If you need multiple arguments you
+define `serveMiddleware` as an array corresponding to those arguments.
