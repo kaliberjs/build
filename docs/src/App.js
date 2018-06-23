@@ -4,6 +4,7 @@ import gettingStarted from '/getting-started'
 import configuration from '/configuration/index.raw.md'
 import conventions from '/conventions/index.raw.md'
 import advanced from '/advanced/index.raw.md'
+import importantChanges from '/important-changes/index.raw.md'
 import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
@@ -26,6 +27,7 @@ const pages = [
     ['redirects', 'Redirects', redirects],
     ['wordpress', 'Integrate with WordPress', wordpress],
   ]],
+  ['important-changes', 'Important changes', importantChanges],
   ['advanced', 'Advanced topics', advanced],
 ]
 

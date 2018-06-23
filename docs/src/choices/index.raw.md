@@ -149,3 +149,20 @@ it to the universal component as a prop.
 
 If you need configuration in an `{name}.entry.js` file, you can use the same mechanism employed by
 the universal system: put json in a data attribute and fetch it with javascript.
+
+### Fingerprint all assets
+
+Caching of browsers is great. And the best cache is one that never expires. In order to leverage
+this all assets that a processed by our library are stored as files that have a hash as name. This
+hash is a hash of the content and thus only changes when the content is different. This allows us to
+do long term caching.
+
+The downside is that you don't know how you need to load these files. We provide a few mechanisms
+that create the script and style tags required for the current module. These mechanisms are however
+only available when using this library to create the final html page.
+
+In case you need to use a different framework you can rely on the generated JSON manifest files:
+
+- `target/chunk-manifest.json`
+- `target/css-manifest.json`
+- `target/entry-manifest.json`
