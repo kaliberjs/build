@@ -18,6 +18,12 @@ A high level overview of the express modules and handlers we have defined:
 
 {toc}
 
+### Project types
+
+`index.html`, `404.html` and `500.html` - [Static site](/how-to/static-site)
+`index.html` - [Single page application](/how-to/single-page-application)
+`index.html.js` - [Server side rendering](/server-side-rendering) (might render a single page application)
+
 ### Port
 
 The server starts at the port defined by the environment variable named `PORT`.
@@ -39,8 +45,8 @@ This setting is used as follows: `app.use(...[].concat(serveMiddleware))`
 ### Helmet
 
 By default we have the `hsts` setting set to `false` because SSL offloading (and setting the `hsts`
-headers) is done (in our case) by the load balancer. Because this is not the case for every hoster
-we allow you to adjust the configuration:
+headers) is done (in our case) by the load balancer. Because this is not the case for every hosting
+service we allow you to adjust the configuration:
 
 ```js
 module.exports = {

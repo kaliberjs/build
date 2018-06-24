@@ -1,6 +1,6 @@
 import introduction from '/content/introduction/index.raw.md'
 import choices from '/content/choices/index.raw.md'
-import gettingStarted from '/content/getting-started'
+import gettingStarted from '/content/getting-started/index.raw.md'
 import configuration from '/content/configuration/index.raw.md'
 import conventions from '/content/conventions/index.raw.md'
 import advanced from '/content/advanced/index.raw.md'
@@ -10,6 +10,7 @@ import server from '/content/server/index.raw.md'
 import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/content/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
+import PublicPath from '/PublicPath'
 
 const pages = [
   ['', '@kaliber/buid', '-- This is a work in progress --'],
@@ -58,11 +59,11 @@ export default class App extends Component {
     const { pageInfo: [page = 'not-found', title = 'Not found', content = 'Sorry'] = [] } = this.state
 
     return (
-      <React.Fragment>
+      <PublicPath.Provider value={publicPath}>
         <h1>{title}</h1>
-        <Menu {...{ pages, page, publicPath }} />
+        <Menu {...{ pages, page }} />
         <Content>{content}</Content>
-      </React.Fragment>
+      </PublicPath.Provider>
     )
   }
 
@@ -76,6 +77,7 @@ export default class App extends Component {
     window.history.pushState = pushState
 
     function pushState(...args) {
+      window.scrollTo(0, 0)
       originalPushState.apply(window.history, args)
       updateLocation()
     }
@@ -102,7 +104,9 @@ export default class App extends Component {
     function getPageInfo(extractedLocation, userHash) {
       const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
       const pageInfo = flattenedPages.find(([page]) =>
-        console.log('searching:', page + '/', location) || page + '/' === location)
+        //console.log('searching:', page + '/', location) ||
+        page + '/' === location
+      )
       return pageInfo && {
         location: (location.startsWith('/') ? location.slice(1) : location) + userHash,
         pageInfo

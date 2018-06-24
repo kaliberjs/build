@@ -1,12 +1,21 @@
 import ReactMarkdown from 'react-markdown'
 import CodeBlock from '/style/CodeBlock'
+import Link from '/Link'
 
 export default function Markdown({ children }) {
   return <ReactMarkdown source={children} renderers={{
     root: RootWithTableOfContents,
     code: CodeBlock,
-    heading: Heading
+    heading: Heading,
+    link: A,
   }} />
+}
+
+function A({ href, children }) {
+  console.log(href, children)
+  return href.startsWith('/')
+    ? <Link to={href} title={React.Children.only(<React.Fragment>{children}</React.Fragment>)} />
+    : <a href={href}>{children}</a>
 }
 
 function Heading({ level, children }) {
