@@ -1,11 +1,13 @@
-import introduction from '/introduction/index.raw.md'
-import choices from '/choices/index.raw.md'
-import gettingStarted from '/getting-started'
-import configuration from '/configuration/index.raw.md'
-import conventions from '/conventions/index.raw.md'
-import advanced from '/advanced/index.raw.md'
-import importantChanges from '/important-changes/index.raw.md'
-import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/how-to'
+import introduction from '/content/introduction/index.raw.md'
+import choices from '/content/choices/index.raw.md'
+import gettingStarted from '/content/getting-started'
+import configuration from '/content/configuration/index.raw.md'
+import conventions from '/content/conventions/index.raw.md'
+import advanced from '/content/advanced/index.raw.md'
+import templateRenderers from '/content/template-renderers/index.raw.md'
+import importantChanges from '/content/important-changes/index.raw.md'
+import server from '/content/server/index.raw.md'
+import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/content/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
 
@@ -15,7 +17,6 @@ const pages = [
   ['getting-started', 'Getting started', gettingStarted],
   ['configuration', 'Configuration', configuration],
   ['conventions', 'Conventions', conventions],
-  ['choices', 'Choices', choices],
   ['how-to', 'How to', [
     ['static-site', 'Static site', staticSite],
     ['server-side-rendering', 'Server side rendering', serverSideRendering],
@@ -27,6 +28,9 @@ const pages = [
     ['redirects', 'Redirects', redirects],
     ['wordpress', 'Integrate with WordPress', wordpress],
   ]],
+  ['template-renderers', 'Template renderers', templateRenderers],
+  ['server', 'Server', server],
+  ['choices', 'Choices', choices],
   ['important-changes', 'Important changes', importantChanges],
   ['advanced', 'Advanced topics', advanced],
 ]
