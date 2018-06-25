@@ -59,6 +59,10 @@ through one of the [entries](#entries).
 The `target/` directory is where the compilation writes it's result to. It is recommended you add
 this directory to your `.gitignore` file.
 
+### Execution
+
+We assume the provided methods (`kaliber-watch`, `kaliber-build` and `kaliber-serve`) are being
+executed from the directory that contains the `src/` and `targe/` directory.
 
 ### Entries
 

@@ -12,7 +12,6 @@ export default function Markdown({ children }) {
 }
 
 function A({ href, children }) {
-  console.log(href, children)
   return href.startsWith('/')
     ? <Link to={href} title={React.Children.only(<React.Fragment>{children}</React.Fragment>)} />
     : <a href={href}>{children}</a>

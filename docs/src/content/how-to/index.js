@@ -8,3 +8,4 @@ export { default as singlePageApplication } from './singlePageApplication.raw.md
 export { default as staticSite } from './staticSite.raw.md'
 export { default as isomorphicJavascript } from './isomorphicJavascript.raw.md'
 export { default as wordpress } from './wordpress.raw.md'
+export { default as dynamicImport } from './dynamicImport.raw.md'

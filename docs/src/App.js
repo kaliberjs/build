@@ -7,14 +7,13 @@ import advanced from '/content/advanced/index.raw.md'
 import templateRenderers from '/content/template-renderers/index.raw.md'
 import importantChanges from '/content/important-changes/index.raw.md'
 import server from '/content/server/index.raw.md'
-import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress } from '/content/how-to'
+import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress, dynamicImport } from '/content/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
 import PublicPath from '/PublicPath'
 
 const pages = [
-  ['', '@kaliber/buid', '-- This is a work in progress --'],
-  ['introduction', 'Introduction', introduction],
+  ['', 'Introduction', introduction],
   ['getting-started', 'Getting started', gettingStarted],
   ['configuration', 'Configuration', configuration],
   ['conventions', 'Conventions', conventions],
@@ -28,6 +27,7 @@ const pages = [
     ['mail-templates', 'Mail templates', mailTemplates],
     ['redirects', 'Redirects', redirects],
     ['wordpress', 'Integrate with WordPress', wordpress],
+    ['dynamic-import', 'Dynamic import', dynamicImport],
   ]],
   ['template-renderers', 'Template renderers', templateRenderers],
   ['server', 'Server', server],
@@ -68,6 +68,8 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    this.mounted = true
+
     const { publicPath } = this.props
     const self = this
 
@@ -76,17 +78,24 @@ export default class App extends Component {
     const originalPushState = window.history.pushState
     window.history.pushState = pushState
 
-    function pushState(...args) {
+    function pushState(data, title, url) {
       window.scrollTo(0, 0)
-      originalPushState.apply(window.history, args)
+      originalPushState.call(window.history, data, title, url)
       updateLocation()
     }
 
     function updateLocation() {
+      if (!self.mounted) return
       const result = pageInfoFromHash() || pageInfoFromPathname()
       if (result) {
         const { location, pageInfo } = result
-        self.setState({ pageInfo })
+        self.setState({ pageInfo }, _ => {
+          const hash = window.location.hash
+          if (hash) {
+            const element = document.getElementById(hash.slice(1))
+            element && element.scrollIntoView()
+          }
+        })
         const [_, title = null] = pageInfo || []
         window.history.replaceState(null, title, publicPath + location)
       }
@@ -112,5 +121,9 @@ export default class App extends Component {
         pageInfo
       }
     }
+  }
+
+  componentWillUnmount() {
+    this.mounted = false
   }
 }

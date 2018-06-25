@@ -3,6 +3,8 @@
 We tend to lean towards zero configuration. There are however a few essentials that do require
 configuration.
 
+This library does provide a way to have environment specific configuration in your project.
+
 {toc}
 
 ### Environment variables
@@ -49,7 +51,12 @@ If you have a settings that is the same in all configuration environment you can
 `config/default.js` file. If you want to test something you can use `config/local.js` to override
 a setting. It's recommended to add `config/local.js` to your `.gitignore` file.
 
-All configuration of this library lives in the `kaliber` key.
+These different files are merged in the following order:
+1. `default.js`
+2. `${CONFIG_ENV}.js`
+3. `local.js`
+
+All configuration that is specific for this library lives in the `kaliber` key.
 
 ```js
 module.exports = {

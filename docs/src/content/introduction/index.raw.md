@@ -1,7 +1,8 @@
+
 ## Introduction
 
-The `@kaliber/build` is the single dependency you need to create a website. It contains a modern
-build stack and a small server. It's designed to function without any configuration.
+The `@kaliber/build` library is the single dependency you need to create a website. It contains a
+modern build stack and a small server. It's designed to function without any configuration.
 
 The consequence of this design decision is that this library is very opinionated and leans very
 heavily on conventions. We however embrace conversation, so if you think we need to change something
@@ -35,6 +36,8 @@ export default (
 )
 ```
 
+Read more at [how-to: static site](/how-to/static-site)
+
 #### A static site with javascript in the browser
 
 Server side rendering is the default, but switching to a universal component is very easy: simply
@@ -50,6 +53,8 @@ export default (
   </Page>
 )
 ```
+
+Read more at [how-to: isomorphic javascript](/how-to/isomorphic-javascript)
 
 #### A dynamic site with content based on the location
 
@@ -67,6 +72,8 @@ export default ({ location }) => (
   </Page>
 )
 ```
+
+Read more at [how-to: server side rendering](/how-to/server-side-rendering)
 
 #### A dynamic site with dynamic data
 
@@ -100,12 +107,16 @@ export default function index(({ location, data })) {
 }
 ```
 
+Read more at [how-to: server side rendering](/how-to/server-side-rendering)
+
 #### Just modern css and javascript
 
 In some cases you already have a framework in place to handle the rendering of your html. This
 library can also be used to simply enable you to write modern javascript and css. Simply create a
 `name.entry.js` or `name.entry.css` file and they will be picked up and transpiled along with
 all of their dependencies.
+
+Learn more at [conventions: entries](/conventions#entries)
 
 #### Templating
 
@@ -146,6 +157,8 @@ export default [
 
 The result is a `my.csv` file.
 
+Read more at [template renderers](/template-renderers)
+
 #### More
 
 This is the introduction page to give you a quick overview. There are quite a few use cases where
@@ -157,6 +170,14 @@ to hear about your use case!
 ### Features
 
 Some notable features:
+
+#### Watch, build, serve
+
+We provide 3 npm binaries that can be used in the `scripts` of your `package.json`:
+
+- `kaliber-watch` - Starts the build process that will recompile when a file changes.
+- `kaliber-build` - Creates a build (including minification)
+- `kaliber-serve` - Starts a simple express server, usable for both developement and production
 
 #### Easy universal rendering
 
@@ -195,6 +216,8 @@ export default (
 )
 ```
 
+Read more at [how-to: isomorphic javascript](/how-to/isomorphic-javascript)
+
 #### Hot reloading without a dev server
 
 The `kaliber-watch` process communicates directly with your browser. This means you can use hot
@@ -214,6 +237,8 @@ file names based on the original file name.
 The library comes with a small node.js server. This server can be used both in development as in
 production.
 
+Learn more at [server](/server)
+
 #### Copying of unused files
 
 The build tool copies all unused files in the source directory to the target directory. This allows
@@ -224,6 +249,7 @@ you to keep all files together.
 By setting the `CONFIG_ENV` environment variable you determine what configuration to load. We also
 support `default.js` and `local.js`.
 
+Read more at [configuration](/configuration)
 
 ### Technology
 
@@ -238,3 +264,5 @@ Just a list.
 - CssNext
 - Express
 - @kaliber/config
+
+If you want to know why we picked these, read the section on [choices](/choices)

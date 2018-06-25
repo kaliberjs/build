@@ -166,3 +166,7 @@ In case you need to use a different framework you can rely on the generated JSON
 - `target/chunk-manifest.json`
 - `target/css-manifest.json`
 - `target/entry-manifest.json`
+
+### Ask us
+
+If you want to hear why we have made a certain choice, please create an issue.

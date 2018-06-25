@@ -40,6 +40,12 @@ prop:
 <App universalContainerProps={{ className: styles.appContainer }} />
 ```
 
+Because of the 'universal' nature of the component, any props passed to the component other than
+`universalContainerProps` will be serialized to make sure they are available on the client as well.
+As a consequence, it's not possible to pass `children` and other data types that can not be
+serialized to JSON.
+
+
 ### window
 
 When using this library you have to take into account that all of your components are rendered using
