@@ -3,7 +3,9 @@
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
-    "lint": "eslint -c .eslintrc ."
+    "lint": "eslint -c .eslintrc .",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "bin": {
     "kaliber-build": "bin/build.js",
@@ -72,7 +74,8 @@
     "walk-sync": "^0.3.2",
     "webpack": "^4.5.0",
     "webpack-node-externals": "^1.7.2",
-    "ws": "^5.1.1"
+    "ws": "^5.1.1",
+    "snyk": "^1.85.0"
   },
   "keywords": [
     "webpack",
@@ -88,5 +91,6 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kaliberjs/build/issues"
-  }
+  },
+  "snyk": true
 }
