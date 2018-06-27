@@ -5,14 +5,14 @@ The `@kaliber/build` library is the single dependency you need to create a websi
 modern build stack and a small server. It's designed to function without any configuration.
 
 The consequence of this design decision is that this library is very opinionated and leans very
-heavily on conventions. We however embrace conversation, so if you think we need to change something
+heavily on conventions. However, we embrace conversation, so if you think we need to change something
 please open an issue.
 
 {toc}
 
 ### Use cases
 
-There a quite a lot of ways you can use this library. A handful of use cases:
+There are quite a lot of ways you can use this library. A handful of use cases:
 
 #### A simple static site
 
@@ -40,8 +40,8 @@ Read more at [how-to: static site](/how-to/static-site)
 
 #### A static site with javascript in the browser
 
-Server side rendering is the default, but switching to a universal component is very easy: simply
-add `?universal` to your import.
+Server side rendering is the default, but switching to a universal/isomorphic component is very
+easy: simply add `?universal` to your import.
 
 ```jsx
 import MyComponent from '/MyComponent?universal'
@@ -155,7 +155,13 @@ export default [
 ]
 ```
 
-The result is a `my.csv` file.
+The result is a `my.csv` file:
+
+```
+a,b,c
+d,e,f
+
+```
 
 Read more at [template renderers](/template-renderers)
 
