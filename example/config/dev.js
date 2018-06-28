@@ -12,12 +12,6 @@ router.get('/test2', function(req, res, next) {
 })
 
 module.exports = {
-  kaliber: {
-    serveMiddleware: router,
-    templateRenderers: {
-      xml: '/xmlRenderer',
-      mjml: '/mjml-renderer'
-    }
-  },
+  serveMiddleware: router,
   assetURL: 'http://images.here'
 }

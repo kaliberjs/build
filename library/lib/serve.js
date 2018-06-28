@@ -5,7 +5,16 @@ const { access } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 
+const templateRenderers = require('./getTemplateRenderers')
+
 const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/' } = {} } = require('@kaliber/config')
+
+const recognizedTemplates = Object.keys(templateRenderers)
+const blockedTemplateFiles = recognizedTemplates.reduce(
+  (result, type) => [...result, `.*\\.${type}\\.js`, `.*\\.template\\.${type}\\.js`, `.*\\.template\\.${type}\\.js.map`],
+  []
+)
+const blockedTemplatesRegex = new RegExp(`^(${blockedTemplateFiles.join('|')})$`)
 
 const app = express()
 
@@ -23,6 +32,12 @@ const isProduction = process.env.NODE_ENV === 'production'
 app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
 serveMiddleware && app.use(...[].concat(serveMiddleware))
+app.use((req, res, next) => {
+  if (blockedTemplatesRegex.test(req.path)) {
+    res.status(404)
+    res.send()
+  } else next()
+})
 app.use(express.static(target))
 
 app.use((req, res, next) => {

@@ -33,15 +33,11 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const TimeFixPlugin = require('time-fix-plugin') // https://github.com/webpack/watchpack/issues/25
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
+const templateRenderers = require('./getTemplateRenderers')
+
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { publicPath = '/', templateRenderers: configuredTemplateRendererd = {} } = {} } = require('@kaliber/config')
-
-const templateRenderers = Object.assign({
-  html: '@kaliber/build/lib/html-react-renderer',
-  txt: '@kaliber/build/lib/txt-renderer',
-  json: '@kaliber/build/lib/json-renderer'
-}, configuredTemplateRendererd)
+const { kaliber: { publicPath = '/' } = {} } = require('@kaliber/config')
 
 const recognizedTemplates = Object.keys(templateRenderers)
 
