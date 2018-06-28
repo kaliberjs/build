@@ -35,8 +35,7 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { publicPath = '/', templateRenderers: configuredTemplateRendererd = {} } = {} } =
-  process.env.CONFIG_ENV ? require('@kaliber/config') : {}
+const { kaliber: { publicPath = '/', templateRenderers: configuredTemplateRendererd = {} } = {} } = require('@kaliber/config')
 
 const templateRenderers = Object.assign({
   html: '@kaliber/build/lib/html-react-renderer',

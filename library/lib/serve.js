@@ -5,7 +5,7 @@ const { access } = require('fs')
 const { parsePath } = require('history/PathUtils')
 const { resolve } = require('path')
 
-const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/' } = {} } = (process.env.CONFIG_ENV ? require('@kaliber/config') : {})
+const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/' } = {} } = require('@kaliber/config')
 
 const app = express()
 

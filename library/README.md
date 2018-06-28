@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+- v0.0.60 - setting `CONFIG_ENV` is now required.
 - v0.0.54 - `chunk-manifest.json` changed.
 - v0.0.51 -
   - `chunk-manifest.json` changed.
