@@ -115,6 +115,10 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
             if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
           }
 
+          if (path.endsWith('.entry.js')) {
+            data.loaders = [{ loader: require.resolve('../webpack-loaders/ignore-content-loader') }]
+          }
+
           return data
         })
       })
@@ -162,8 +166,8 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
           createValue: (source, chunk, hash) => {
             // get the manifest from the client compilation
             const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
-            const universalChunkNames = getUniversalChunkNames(chunk, compiler)
-            return { universalChunkNames, manifest }
+            const javascriptChunkNames = getJavascriptChunkNames(chunk, compiler)
+            return { javascriptChunkNames, manifest }
           }
         })
 
@@ -171,7 +175,7 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
           const entryManifest = chunks
             .filter(x => x.name)
             .reduce((result, x) => {
-              const names = getUniversalChunkNames(x, compiler)
+              const names = getJavascriptChunkNames(x, compiler)
               return names.length ? { ...result, [x.name]: names } : result
             }, {})
 
@@ -182,10 +186,10 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
   }
 }
 
-function getUniversalChunkNames(chunk, compiler) {
+function getJavascriptChunkNames(chunk, compiler) {
   // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
   return chunk.getModules()
-    .filter(x => x.resource && x.resource.endsWith('?universal'))
+    .filter(x => x.resource && (x.resource.endsWith('?universal') || x.resource.endsWith('.entry.js')))
     .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 }
 
