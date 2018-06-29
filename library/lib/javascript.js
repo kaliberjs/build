@@ -4,11 +4,11 @@ export default getSharedChunkFileNames(__webpack_js_chunk_information__).map((fi
   <script key={`javascript_${index}`} defer src={__webpack_public_path__ + filename} />
 )
 
-function getSharedChunkFileNames({ universalChunkNames, manifest }) {
+function getSharedChunkFileNames({ javascriptChunkNames, manifest }) {
   const sharedChunks = []
 
-  universalChunkNames.forEach(universalChunkName => {
-    const chunkManifest = manifest[universalChunkName]
+  javascriptChunkNames.forEach(javascriptChunkName => {
+    const chunkManifest = manifest[javascriptChunkName]
     chunkManifest.group.forEach(x => addFilename(manifest[x]))
     addFilename(chunkManifest)
   })
