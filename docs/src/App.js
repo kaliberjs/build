@@ -7,7 +7,7 @@ import advanced from '/content/advanced/index.raw.md'
 import templateRenderers from '/content/template-renderers/index.raw.md'
 import importantChanges from '/content/important-changes/index.raw.md'
 import server from '/content/server/index.raw.md'
-import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress, dynamicImport } from '/content/how-to'
+import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress, dynamicImport, loadingEntries } from '/content/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
 import PublicPath from '/PublicPath'
@@ -28,6 +28,7 @@ const pages = [
     ['redirects', 'Redirects', redirects],
     ['wordpress', 'Integrate with WordPress', wordpress],
     ['dynamic-import', 'Dynamic import', dynamicImport],
+    ['loading-entries', 'Loading entries', loadingEntries],
   ]],
   ['template-renderers', 'Template renderers', templateRenderers],
   ['server', 'Server', server],
