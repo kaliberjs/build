@@ -2,7 +2,7 @@ import Link from '/Link'
 
 export default function Menu({ pages, page }) {
   return (
-    <ol>
+    <ul>
       {pages.map(([id, title, contentOrSubItems]) =>
         <li key={id}>
           {
@@ -10,7 +10,7 @@ export default function Menu({ pages, page }) {
               ? (
                 <React.Fragment>
                   {title}
-                  <ol>
+                  <ul>
                     {
                       contentOrSubItems.map(([subId, title]) =>
                         <li key={subId}>
@@ -18,14 +18,14 @@ export default function Menu({ pages, page }) {
                         </li>
                       )
                     }
-                  </ol>
+                  </ul>
                 </React.Fragment>
               )
               : <Link to={`/${id}`} title={title} active={page === id} />
           }
         </li>
       )}
-    </ol>
+    </ul>
   )
 }
 

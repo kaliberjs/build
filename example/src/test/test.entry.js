@@ -1,3 +1,3 @@
 import 'firebase'
 
-console.log('test entry');
+window.console.log('test entry');
