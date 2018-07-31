@@ -15,3 +15,11 @@ To publish a new version:
 
 >> git push --tags
 ```
+
+To deploy the documentation:
+
+```
+>> cd docs
+
+>> yarn deploy
+```
