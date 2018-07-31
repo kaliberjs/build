@@ -30,8 +30,9 @@ module.exports = function chunkManifestPlugin() {
         compilation.hooks.chunkManifest = new SyncHook(['chunkAssets'])
 
         const chunkAssets = {}
-        compilation.hooks.chunkAsset.tap(p, (chunk, filename) => {
+        compilation.hooks.chunkAsset.tap(p, (chunk, filename, _) => {
 
+          /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === "HotModuleReplacementPlugin") return
           if (filename.includes('hot-update')) return
 
           const groups = [...chunk.groupsIterable]
