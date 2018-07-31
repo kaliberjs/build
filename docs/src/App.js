@@ -12,6 +12,8 @@ import Menu from '/Menu'
 import Content from '/Content'
 import PublicPath from '/PublicPath'
 
+import styles from './style.css'
+console.log('styles', styles)
 const pages = [
   ['', 'Introduction', introduction],
   ['getting-started', 'Getting started', gettingStarted],
@@ -61,9 +63,14 @@ export default class App extends Component {
 
     return (
       <PublicPath.Provider value={publicPath}>
-        <h1>{title}</h1>
-        <Menu {...{ pages, page }} />
-        <Content>{content}</Content>
+        <div className={styles.container}>
+          <div className={styles.sidebar}>
+            <Menu  {...{ pages, page }} />
+          </div>
+          <div className={styles.content}>
+            <Content>{content}</Content>
+          </div>
+        </div>
       </PublicPath.Provider>
     )
   }
