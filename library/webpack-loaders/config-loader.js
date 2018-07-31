@@ -15,7 +15,6 @@ ConfigLoader.pitch = function ConfigLoaderPitch() {
   }
 
   const result = require('@kaliber/config')
-  delete result.kaliber
 
   return `module.exports = ${JSON.stringify(result)};`
 }

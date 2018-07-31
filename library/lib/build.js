@@ -206,6 +206,11 @@ module.exports = function build({ watch }) {
       rules: [{ oneOf: [
 
         {
+          test: /\.raw\.[^.]+$/,
+          loaders: ['raw-loader']
+        },
+
+        {
           type: 'json',
           test: /\.json$/,
           loaders: []
