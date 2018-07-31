@@ -41,7 +41,7 @@ module.exports = function chunkManifestPlugin() {
             filename,
             hasRuntime: chunk.hasRuntime(),
             isShared,
-            group: isShared ? [] : group.chunks.filter(x => x !== chunk).map(x => x.name)
+            group: isShared ? [] : group.chunks.filter(x => x.name && x !== chunk).map(x => x.name)
           })
         })
 
