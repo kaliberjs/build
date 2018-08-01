@@ -37,7 +37,7 @@ const templateRenderers = require('./getTemplateRenderers')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { publicPath = '/' } = {} } = require('@kaliber/config')
+const { externals, kaliber: { publicPath = '/' } = {} } = require('@kaliber/config')
 
 const recognizedTemplates = Object.keys(templateRenderers)
 
@@ -313,8 +313,9 @@ module.exports = function build({ watch }) {
 
   function externalConfForModulesDir (modulesDir) {
     return {
+      modulesDir,
       whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/],
-      modulesDir
+      externals: externals.map(externalPath => `${modulesDir}/${externalPath}`)
     }
   }
 
