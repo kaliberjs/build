@@ -5,6 +5,7 @@ module.exports = {
       mjml: '/mjml-renderer'
     }
   },
+  externals: ['firebase'],
   client: {
     someConfigKey: true
   },
