@@ -44,7 +44,7 @@ export default (
 
         <mj-section>
           <mj-column width='75%'>
-            <mj-text align='center' font-size='10' line-height='1.5' font-family='Lato, Helvetica, Arial' color='#929199'>
+            <mj-text align='center' font-size='10' line-height='1.5%' font-family='Lato, Helvetica, Arial' color='#929199'>
               You want this mail.<br />
               <a href="http://test.com" style={{ color: '#929199' }}>footer</a>
             </mj-text>
