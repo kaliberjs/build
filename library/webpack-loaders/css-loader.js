@@ -23,7 +23,7 @@ function createPlugins(loaderOptions, { onExport, resolve, processUrl }) {
     // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
     !minifyOnly && require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
     !minifyOnly && require('postcss-cssnext'),
-    isProduction && require('cssnano')({ autoprefixer: false, isSafe: true, /* in 4 this will be the similar (autoprefixer is disabled by default): */ preset: 'default' })
+    isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }
 
