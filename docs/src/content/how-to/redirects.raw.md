@@ -32,7 +32,7 @@ could configure middleware to perform the redirect:
 
 ```js
 module.exports = {
-  kaliner: {
+  kaliber: {
     serveMiddleware: [
       '/old-path',
       (req, res) => { res.status(301).set({ Location: '/new-path' }).send() }
