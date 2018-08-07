@@ -1,6 +1,6 @@
 module.exports = {
   kaliber: {
-    // compileWitBabel: ['firebase'],
+    // compileWitBabel: ['gsap'],
     templateRenderers: {
       xml: '/xmlRenderer',
       mjml: '/mjml-renderer'
