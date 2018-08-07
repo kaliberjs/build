@@ -1,6 +1,6 @@
 // Based on eslint-config-react-app; https://github.com/facebookincubator/create-react-app/blob/cd3d04b71e91f533bdbdc3856775e1da81d445cf/packages/eslint-config-react-app/index.js
 
-{
+module.exports = {
   "parser": "babel-eslint",
   "plugins": ["import", "jsx-a11y", "react"],
   "root": true,

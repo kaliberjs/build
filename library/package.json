@@ -3,7 +3,7 @@
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
-    "lint": "eslint -c .eslintrc ."
+    "lint": "eslint -c .eslintrc.js ."
   },
   "bin": {
     "kaliber-build": "bin/build.js",

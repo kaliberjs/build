@@ -32,7 +32,7 @@ module.exports = function chunkManifestPlugin() {
         const chunkAssets = {}
         compilation.hooks.chunkAsset.tap(p, (chunk, filename, _) => {
 
-          /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === "HotModuleReplacementPlugin") return
+          /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === 'HotModuleReplacementPlugin') return
           if (filename.includes('hot-update')) return
 
           const groups = [...chunk.groupsIterable]
