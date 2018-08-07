@@ -37,11 +37,12 @@ const templateRenderers = require('./getTemplateRenderers')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { externals, kaliber: { publicPath = '/' } = {} } = require('@kaliber/config')
+const { kaliber: { compileWitBabel: userDefinedCompileWitBabel = [], publicPath = '/' } = {} } = require('@kaliber/config')
 
 const recognizedTemplates = Object.keys(templateRenderers)
 
-const kaliberBuildClientModules = /(@kaliber\/build\/lib\/(stylesheet|javascript|hot-module-replacement-client)|ansi-regex)/
+const kaliberBuildClientModules = [/(@kaliber\/build\/lib\/(stylesheet|javascript|hot-module-replacement-client)|ansi-regex)/]
+const compileWitBabel = kaliberBuildClientModules.concat(userDefinedCompileWitBabel)
 
 const babelLoader = {
   loader: 'babel-loader',
@@ -236,7 +237,7 @@ module.exports = function build({ watch }) {
         {
           resource: {
             test: /(\.html\.js|\.js)$/,
-            or: [{ exclude: /node_modules/ }, kaliberBuildClientModules],
+            or: [{ exclude: /node_modules/ }, ...compileWitBabel],
           },
           loaders: [babelLoader]
         },
@@ -314,8 +315,7 @@ module.exports = function build({ watch }) {
   function externalConfForModulesDir (modulesDir) {
     return {
       modulesDir,
-      whitelist: ['@kaliber/config', kaliberBuildClientModules, /\.css$/],
-      externals: externals.map(externalPath => `${modulesDir}/${externalPath}`)
+      whitelist: ['@kaliber/config', ...compileWitBabel, /\.css$/]
     }
   }
 
