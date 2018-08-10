@@ -1,6 +1,6 @@
 module.exports = {
   kaliber: {
-    // compileWitBabel: ['gsap'],
+    compileWithBabel: [/node_modules\/subscribe-ui-event/],
     templateRenderers: {
       xml: '/xmlRenderer',
       mjml: '/mjml-renderer'
