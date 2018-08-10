@@ -22,7 +22,7 @@ export default class Test extends Component {
     return (
       <div>
         <img src={img} />
-        <Sticky enabled top={50} bottomBoundary={1200}>
+        <Sticky>
           <p>I am compiled with babel!</p>
         </Sticky>
         {this.props.soep}
