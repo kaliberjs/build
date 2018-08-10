@@ -4,7 +4,7 @@ import json from './test.json'
 import firebase from 'firebase'
 import shared from './shared'
 import img from '/bg2.jpg'
-
+import Sticky from 'react-stickynode'
 const extra = { x: 'x' }
 
 export default class Test extends Component {
@@ -22,6 +22,9 @@ export default class Test extends Component {
     return (
       <div>
         <img src={img} />
+        <Sticky>
+          <p>I am compiled with babel!</p>
+        </Sticky>
         {this.props.soep}
         <span className={styles.test}>{this.state.counter} - {this.state.message}</span>
         <Test2 />

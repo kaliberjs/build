@@ -79,6 +79,20 @@ module.exports = {
 }
 ```
 
+#### node externals
+
+In the case that you want to force a node_module to be parsed with Babel you can add them to
+`compileWithBabel`, The config works the same as the [`webpack configuration`](https://webpack.js.org/configuration/module/#condition)
+and whitelists node_modules using [`webpack-node-externals`](https://github.com/liady/webpack-node-externals#optionswhitelist-).
+
+```js
+module.exports = {
+  kaliber: {
+    compileWithBabel: [/node_modules\/subscribe-ui-event/]
+  }
+}
+```
+
 #### templateRenderers
 
 ...

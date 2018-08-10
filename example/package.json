@@ -21,6 +21,7 @@
     "gsap": "^2.0.1",
     "mjml": "^4.0.3",
     "normalize.css": "^8.0.0",
+    "react-stickynode": "^2.0.1",
     "xml": "^1.0.1"
   }
 }
