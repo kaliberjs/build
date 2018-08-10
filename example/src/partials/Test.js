@@ -53,6 +53,7 @@ export default class Test extends Component {
     this.interval = setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
 
     import('./dynamicImportTestFunction').then(({ default: test }) => console.log('import? ' + test()))
+    import('gsap').then(x => console.log('async import', x.default))
   }
 
   componentWillUnmount() {

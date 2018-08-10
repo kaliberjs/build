@@ -24,6 +24,8 @@ const p = 'template-plugin'
 
 module.exports = function templatePlugin(renderers) {
 
+  if (renderers['raw']) throw new Error(`Can not define a renderer with the type 'raw' as it is a reserved type`)
+
   const templatePattern = /\.([^./]+)\.js$/ // {name}.{template type}.js
 
   function createRenderInfo(type) {

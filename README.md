@@ -1,3 +1,25 @@
-Documentation can be found in the [library](/library) directory.
+## [Documention](https://kaliberjs.github.io/build/)
 
-Examples in the other directories (they are still a work in progress and may be outdated).
+https://kaliberjs.github.io/build/
+
+## Publish
+
+To publish a new version:
+
+```
+>> cd library
+
+>> yarn publish
+
+>> git push
+
+>> git push --tags
+```
+
+To deploy the documentation:
+
+```
+>> cd docs
+
+>> yarn deploy
+```
