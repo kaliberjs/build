@@ -51,7 +51,7 @@ module.exports = function CssLoader(source, map) {
     to  : this.resourcePath,
     map : { prev: map || false, inline: false, annotation: false }
   }
-
+console.log(filename)
   const result = postcss(plugins).process(source, options)
   result
     .then(({ css, map, messages }) => {

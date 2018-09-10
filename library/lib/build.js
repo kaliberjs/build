@@ -48,16 +48,15 @@ const babelLoader = {
   loader: 'babel-loader',
   options: {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: [['env', { modules: false }], 'react'],
+    presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
     plugins: [
-      'syntax-dynamic-import',
-      'transform-decorators-legacy',
-      'transform-class-properties',
-      'transform-object-rest-spread',
-      'transform-async-to-generator',
-      ['transform-runtime', {
+      '@babel/syntax-dynamic-import',
+      ['@babel/proposal-decorators', { legacy: true }],
+      '@babel/proposal-class-properties',
+      '@babel/proposal-object-rest-spread',
+      '@babel/transform-async-to-generator',
+      ['@babel/transform-runtime', {
         'helpers': false,
-        'polyfill': false,
         'regenerator': true
       }]
     ]
