@@ -13,7 +13,7 @@ import Content from '/Content'
 import PublicPath from '/PublicPath'
 
 import styles from './style.css'
-console.log('styles', styles)
+
 const pages = [
   ['', 'Introduction', introduction],
   ['getting-started', 'Getting started', gettingStarted],
@@ -121,7 +121,6 @@ export default class App extends Component {
     function getPageInfo(extractedLocation, userHash) {
       const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
       const pageInfo = flattenedPages.find(([page]) =>
-        //console.log('searching:', page + '/', location) ||
         page + '/' === location
       )
       return pageInfo && {
