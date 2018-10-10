@@ -4,7 +4,7 @@ import styles from './style.css'
 export default function Link({ title, to, active }) {
   return (
     <PublicPath.Consumer>
-      { publicPath => <a href={`${publicPath}${to.slice(1)}`} onClick={onClick} className={active && styles.active}>{title}</a> }
+      { publicPath => <a href={`${publicPath}${to.slice(1)}`} onClick={onClick} className={active ? styles.active : ''}>{title}</a> }
     </PublicPath.Consumer>
   )
 
