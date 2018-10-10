@@ -14,6 +14,7 @@ function createPlugins(loaderOptions, { onExport, resolve, processUrl }) {
       // postcss-import is advised to be the first
       require('postcss-import')({ glob: true, resolve }),
       require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
+      require('postcss-cssnext'),
       require('postcss-modules')({
         scopeBehaviour: globalScopeBehaviour ? 'global' : 'local',
         getJSON: (_, json) => { onExport(json) },
@@ -22,7 +23,6 @@ function createPlugins(loaderOptions, { onExport, resolve, processUrl }) {
     ]),
     // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
     !minifyOnly && require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
-    !minifyOnly && require('postcss-cssnext'),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }

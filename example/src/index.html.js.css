@@ -1,9 +1,15 @@
 @import './test/test.css';
 @import '/theme.css';
 
+@custom-selector :--enter :hover, :focus;
+
 .test {
   color: var(--color-green);
   z-index: 100000;
+}
+
+.test:--enter {
+  color: var(--color-red);
 }
 
 .clip {
