@@ -72,7 +72,7 @@ const React = require('react')
 
 const PHP_PROPS = '%PHP_PROPS%'
 
-module.exports = function phpReactRenderer (template) {
+module.exports = function phpReactRenderer(template) {
   if (!template) return template
 
   const templateWithPhpProps = React.cloneElement(template, { phpProps: PHP_PROPS })
