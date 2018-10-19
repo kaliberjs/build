@@ -1,6 +1,8 @@
 import './global.css'
 import 'normalize.css'
-import head from './partials/head'
+import stylesheet from '@kaliber/build/lib/stylesheet'
+import javascript from '@kaliber/build/lib/javascript'
+import withPolyfill from '@kaliber/build/lib/withPolyfill'
 import Test from './partials/Test?universal'
 import Test2 from './test/Test2?universal'
 import styles from './index.html.js.css'
@@ -40,13 +42,19 @@ function getMessage() {
   }
 }
 
-export default main
+export default withPolyfill(main)
 
-function main ({ location, data }) {
+function main ({ location, data, polyfill }) {
   if (!data) return null
   return (
     <html lang='en'>
-      { head('Rendered on server') }
+      <head>
+        <title>Rendered on server</title>
+        {stylesheet}
+        {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
+        {javascript}
+      </head>
+
       <body>
         <div className={styles.background} />
         <p className={styles.test2}>
