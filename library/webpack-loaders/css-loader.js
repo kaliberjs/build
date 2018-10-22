@@ -14,7 +14,7 @@ function createPlugins(loaderOptions, { onExport, resolve, processUrl }) {
       // postcss-import is advised to be the first
       require('postcss-import')({ glob: true, resolve }),
       require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
-      require('postcss-cssnext'),
+      require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
       require('postcss-modules')({
         scopeBehaviour: globalScopeBehaviour ? 'global' : 'local',
         getJSON: (_, json) => { onExport(json) },
