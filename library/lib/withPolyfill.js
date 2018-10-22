@@ -21,8 +21,8 @@ export default function withPolyfill(Wrapped) {
     }
   }
 
-  function WithPolyfill({ location, data: { polyfill, uaString, originalData } }) {
-    return polyfill || <Wrapped location={location} data={originalData} polyfill={getPolyfill} />
+  function WithPolyfill({ location, data: { polyfill, uaString, originalData }, ...props }) {
+    return polyfill || <Wrapped {...props} location={location} data={originalData} polyfill={getPolyfill} />
 
     function getPolyfill(features = [], { minify = true } = {}) {
       const path = minify ? pathnameMinified : pathname
