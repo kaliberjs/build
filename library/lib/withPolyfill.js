@@ -1,4 +1,6 @@
 const { getPolyfillString } = require('polyfill-service')
+
+const isProduction = process.env.NODE_ENV === 'production'
 const pathname = '/polyfill.js'
 const pathnameMinified = '/polyfill.min.js'
 
@@ -24,8 +26,8 @@ export default function withPolyfill(Wrapped) {
   function WithPolyfill({ location, data: { polyfill, uaString, originalData }, ...props }) {
     return polyfill || <Wrapped {...props} location={location} data={originalData} polyfill={getPolyfill} />
 
-    function getPolyfill(features = [], { minify = true } = {}) {
-      const path = minify ? pathnameMinified : pathname
+    function getPolyfill(features = []) {
+      const path = isProduction ? pathnameMinified : pathname
       return (<script defer src={`${path}?features=${features.join(',')}&cache=${encodeURIComponent(uaString)}`} />)
     }
   }
