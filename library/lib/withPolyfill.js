@@ -41,7 +41,6 @@ async function polyfillResponse({uaString, minify, query = {} }) {
   const polyfill = await getPolyfillString({ uaString, minify, features })
   const headers = {
     'Content-Type': 'application/javascript;charset=utf-8',
-    'Content-Length': polyfill.length,
     ...cache && { 'Cache-Control': 'max-age=31536000' }, // 365 days
   }
 
