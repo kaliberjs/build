@@ -41,7 +41,7 @@ const { kaliber: { compileWithBabel: userDefinedcompileWithBabel = [], publicPat
 
 const recognizedTemplates = Object.keys(templateRenderers)
 
-const kaliberBuildClientModules = [/(@kaliber\/build\/lib\/(stylesheet|javascript|hot-module-replacement-client)|ansi-regex)/]
+const kaliberBuildClientModules = [/(@kaliber\/build\/lib\/(stylesheet|javascript|polyfill|withPolyfill|hot-module-replacement-client)|ansi-regex)/]
 const compileWithBabel = kaliberBuildClientModules.concat(userDefinedcompileWithBabel)
 
 const babelLoader = {
