@@ -9,7 +9,7 @@
     "deploy": "run-s build deploy.failIfGitIsDirty deploy.ensureWorktree deploy.copy deploy.commit deploy.push",
     "deploy.failIfGitIsDirty": "echo 'fail if we have uncommitted changes' ; git diff-index --quiet HEAD",
     "deploy.ensureWorktree": "git worktree add gh-pages/ gh-pages || true",
-    "deploy.copy": "rm -Rf ./gh-pages/* ; cp ./target/build/* ./gh-pages/ ; rm ./gh-pages/*.map ./gh-pages/*.json",
+    "deploy.copy": "rm -Rf ./gh-pages/* ; cp -R ./target/build/. ./gh-pages ; rm ./gh-pages/*.map ./gh-pages/*.json",
     "deploy.commit": "COMMIT_MSG=`git log -1 --pretty=%B` ; cd gh-pages ; git add -A ; git commit -m \"$COMMIT_MSG\" ; cd ..",
     "deploy.push": "cd gh-pages ; git push ; cd .."
   },
