@@ -3,9 +3,8 @@ import '/test/test.entry'
 import '/test/test.css'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 import javascript from '@kaliber/build/lib/javascript'
-import polyfill from '@kaliber/build/lib/polyfill'
 
-export default function (title) {
+export default function (title, polyfill) {
   return (
     <head>
       <title>{title}</title>

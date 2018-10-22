@@ -1,7 +1,6 @@
 import './global.css'
 import 'normalize.css'
-import stylesheet from '@kaliber/build/lib/stylesheet'
-import javascript from '@kaliber/build/lib/javascript'
+import head from '/partials/head'
 import withPolyfill from '@kaliber/build/lib/withPolyfill'
 import Test from './partials/Test?universal'
 import Test2 from './test/Test2?universal'
@@ -48,12 +47,7 @@ function main ({ location, data, polyfill }) {
   if (!data) return null
   return (
     <html lang='en'>
-      <head>
-        <title>Rendered on server</title>
-        {stylesheet}
-        {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
-        {javascript}
-      </head>
+      {head('Rendered on server', polyfill)}
 
       <body>
         <div className={styles.background} />
