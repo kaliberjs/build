@@ -1,6 +1,6 @@
 import './global.css'
 import 'normalize.css'
-import head from './partials/head'
+import head from '/partials/head'
 import Test from './partials/Test?universal'
 import Test2 from './test/Test2?universal'
 import styles from './index.html.js.css'
@@ -40,13 +40,12 @@ function getMessage() {
   }
 }
 
-export default main
-
-function main ({ location, data }) {
+export default function main ({ location, data }) {
   if (!data) return null
   return (
     <html lang='en'>
-      { head('Rendered on server') }
+      {head('Rendered on server')}
+
       <body>
         <div className={styles.background} />
         <p className={styles.test2}>
