@@ -1,4 +1,4 @@
-import 'firebase'
+import 'firebase/app'
 import gsap from 'gsap'
 
 console.log('sync import', gsap)
