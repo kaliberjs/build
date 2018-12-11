@@ -4,25 +4,29 @@ const { relative, dirname } = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins(loaderOptions, { onExport, resolve, processUrl }) {
+function createPlugins(loaderOptions, { resolve, processUrl }) {
   const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
 
   return [
-    // these plugis need to run on each file individual file
-    // look at the source of postcss-modules to see that it effectively runs all modules twice
-    !minifyOnly && require('../postcss-plugins/postcss-plugin-composition')([
+    ...(minifyOnly
+      ? []
+      : [
       // postcss-import is advised to be the first
       require('postcss-import')({ glob: true, resolve }),
       require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
       require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
+      require('postcss-modules-values'),
+      !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
+      require('postcss-modules-scope')({ generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]' }),
+      require('../postcss-plugins/postcss-export-parser'),
+
       require('postcss-modules')({
         scopeBehaviour: globalScopeBehaviour ? 'global' : 'local',
         getJSON: (_, json) => { onExport(json) },
         generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
-      })
-    ]),
-    // these plugins need to run on final result (note, they may still be merged with other files by the merge css plugin)
-    !minifyOnly && require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
+      }),
+      require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
+    ].filter(Boolean)),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }
@@ -32,10 +36,8 @@ module.exports = function CssLoader(source, map) {
   const self = this
   const callback = this.async()
 
-  let exports = {}
   const handlers = {
     resolve: (id, basedir, importOptions) => resolve(basedir, id),
-    onExport: locals => { exports = locals },
     processUrl: (url, file) => isDependency(url)
       ? resolve(dirname(file), url).then(resolved =>
           loadModule(resolved).then(executeModuleAt(resolved))
@@ -60,6 +62,10 @@ module.exports = function CssLoader(source, map) {
       messages
         .filter(({ type }) => type === 'dependency')
         .forEach(x => self.addDependency(x.file))
+
+      const exports = messages
+        .filter(({ type }) => type === 'export')
+        .reduce((result, { item }) => ({ ...result, [item.key]: item.value }), {})
 
       this.emitFile(filename, css, map.toJSON())
 
