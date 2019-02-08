@@ -3,6 +3,7 @@
 {toc}
 
 ### Breaking changes
+- v0.0.74? - css `color()` function is not `color-mod()`
 - v0.0.71 - server side rendered polyfills (`withPolyfill`) have been removed
 - v0.0.63 - `raw` is no longer accepted as a template type
 - v0.0.60 - setting `CONFIG_ENV` is now required.
