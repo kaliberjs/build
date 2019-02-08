@@ -15,7 +15,23 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
         // postcss-import is advised to be the first
         require('postcss-import')({ glob: true, resolve }),
         require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
-        require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
+        require('postcss-preset-env')({
+          features: {
+            'custom-properties': true,
+            'custom-media-queries': true,
+            'media-query-ranges': true,
+            'custom-selectors': true,
+            'nesting-rules': true,
+            'color-functional-notation': true,
+            'font-variant-property': true,
+            'all-property': true,
+            'any-link-pseudo-class': true,
+            'matches-pseudo-class': true,
+            'not-pseudo-class': true,
+            'overflow-wrap-property': true,
+          },
+        }),
+        //require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
 
         // no support for css-modules feature 'composes'
         require('postcss-modules-values'),
@@ -24,7 +40,8 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
         require('../postcss-plugins/postcss-export-parser'),
 
         require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
-      ].filter(Boolean)),
+      ].filter(Boolean)
+    ),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }
