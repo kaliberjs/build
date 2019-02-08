@@ -23,6 +23,7 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
             'custom-selectors': true,
             'nesting-rules': true,
             'color-functional-notation': true,
+            'color-mod-function': true,
             'font-variant-property': true,
             'all-property': true,
             'any-link-pseudo-class': true,
