@@ -32,7 +32,6 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
             'overflow-wrap-property': true,
           },
         }),
-        //require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
 
         // no support for css-modules feature 'composes'
         require('postcss-modules-values'),
