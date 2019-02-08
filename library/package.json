@@ -1,5 +1,5 @@
 {
-  "version": "0.0.72",
+  "version": "0.0.73",
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
@@ -23,7 +23,7 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "@babel/runtime": "^7.1.2",
-    "@kaliber/config": "^0.0.6",
+    "@kaliber/config": "^0.0.7",
     "ansi-regex": "^4.0.0",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.2",

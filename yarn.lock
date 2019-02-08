@@ -937,10 +937,10 @@
     lodash.camelcase "^4.3.0"
     protobufjs "^6.8.6"
 
-"@kaliber/config@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@kaliber/config/-/config-0.0.6.tgz#01442f1be32732d9b43e829307a0f8e2ebdf6ae6"
-  integrity sha512-qtmEuBYsLpLVMDb76Tbw6x3WfSxVXNX6+oOHDCnSzKEV35VUxIatQ1WH8Y6N4S6YSey2p7yyLGcvbcxcoWs76Q==
+"@kaliber/config@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@kaliber/config/-/config-0.0.7.tgz#450199172fb60464abaa665a78894800be509431"
+  integrity sha512-Nzqn+bWNNkwd2Mp4fxdoYdl9evBE7dIwjaEe3fMDfaYxA+AhuZIFTWhXkvJo9qqYv1dzAuOIwU238RI0UvUKVQ==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
