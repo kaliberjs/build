@@ -31,7 +31,7 @@ const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const TimeFixPlugin = require('time-fix-plugin') // https://github.com/webpack/watchpack/issues/25
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 const templateRenderers = require('./getTemplateRenderers')
 
@@ -161,7 +161,7 @@ module.exports = function build({ watch }) {
         runtimeChunk: 'single',
         minimize: isProduction,
         minimizer: [
-          new UglifyJsPlugin({
+          new TerserPlugin({
             cache: true,
             parallel: true,
             sourceMap: true
