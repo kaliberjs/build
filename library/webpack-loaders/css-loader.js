@@ -1,6 +1,7 @@
 const loaderUtils = require('loader-utils')
 const postcss = require('postcss')
 const { relative, dirname } = require('path')
+const genericNames = require('generic-names')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -11,22 +12,19 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
     ...(minifyOnly
       ? []
       : [
-      // postcss-import is advised to be the first
-      require('postcss-import')({ glob: true, resolve }),
-      require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
-      require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
-      require('postcss-modules-values'),
-      !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
-      require('postcss-modules-scope')({ generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]' }),
-      require('../postcss-plugins/postcss-export-parser'),
+        // postcss-import is advised to be the first
+        require('postcss-import')({ glob: true, resolve }),
+        require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
+        require('postcss-cssnext')({ features: { autoprefixer: { grid: true } } }),
 
-      require('postcss-modules')({
-        scopeBehaviour: globalScopeBehaviour ? 'global' : 'local',
-        getJSON: (_, json) => { onExport(json) },
-        generateScopedName: isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]'
-      }),
-      require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
-    ].filter(Boolean)),
+        // no support for css-modules feature 'composes'
+        require('postcss-modules-values'),
+        !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
+        require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]') }),
+        require('../postcss-plugins/postcss-export-parser'),
+
+        require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
+      ].filter(Boolean)),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }
