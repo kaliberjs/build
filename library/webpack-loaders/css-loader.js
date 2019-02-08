@@ -17,7 +17,7 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
         require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
         require('postcss-preset-env')({
           features: {
-            'custom-properties': true,
+            'custom-properties': { preserve: false },
             'custom-media-queries': true,
             'media-query-ranges': true,
             'custom-selectors': true,
