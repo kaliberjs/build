@@ -64,6 +64,7 @@
     "raw-loader": "^0.5.1",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
+    "rollbar": "^2.5.2",
     "source-map": "^0.6.1",
     "tapable": "^1.0.0",
     "time-fix-plugin": "^2.0.0",
