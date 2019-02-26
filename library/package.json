@@ -1,5 +1,5 @@
 {
-  "version": "0.0.74-rc4",
+  "version": "0.0.76",
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
@@ -64,9 +64,10 @@
     "postcss-modules-values": "^2.0.0",
     "postcss-preset-env": "^6.5.0",
     "progress-bar-webpack-plugin": "^1.11.0",
-    "raw-loader": "^1.0.0",
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0",
+    "raw-loader": "^0.5.1",
+    "react": "^16.8.1",
+    "react-dom": "^16.8.1",
+    "rollbar": "^2.5.2",
     "source-map": "^0.6.1",
     "tapable": "^1.0.0",
     "terser-webpack-plugin": "^1.2.2",
