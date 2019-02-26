@@ -1,6 +1,6 @@
 ## Rollbar error reporting
 
-Our error tracking service of choice is Rollbar. To make life easier there's a convenient helper to render the rollbar-config and -snippet inside your head component.
+Our error reporting service of choice is Rollbar. To make life easier there's a convenient helper to render the rollbar-config and -snippet inside your head component.
 
 ## Usage
 
