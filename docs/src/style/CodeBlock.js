@@ -1,19 +1,19 @@
-import SyntaxHighlighter, { registerLanguage } from 'react-syntax-highlighter/prism-light'
-import prism from 'react-syntax-highlighter/styles/prism/prism'
+import SyntaxHighlighter from 'react-syntax-highlighter/dist/cjs/prism-light'
+import prism from 'react-syntax-highlighter/dist/cjs/styles/prism/prism'
 
-import js from 'react-syntax-highlighter/languages/prism/javascript'
-import css from 'react-syntax-highlighter/languages/prism/css'
-import jsx from 'react-syntax-highlighter/languages/prism/jsx'
-import php from 'react-syntax-highlighter/languages/prism/php'
-import markupTemplating from 'react-syntax-highlighter/languages/prism/markup-templating'
-import json from 'react-syntax-highlighter/languages/prism/json'
+import js from 'react-syntax-highlighter/dist/cjs/languages/prism/javascript'
+import css from 'react-syntax-highlighter/dist/cjs/languages/prism/css'
+import jsx from 'react-syntax-highlighter/dist/cjs/languages/prism/jsx'
+import php from 'react-syntax-highlighter/dist/cjs/languages/prism/php'
+import markupTemplating from 'react-syntax-highlighter/dist/cjs/languages/prism/markup-templating'
+import json from 'react-syntax-highlighter/dist/cjs/languages/prism/json'
 
-registerLanguage('js', js)
-registerLanguage('css', css)
-registerLanguage('jsx', jsx)
-registerLanguage('php', php)
-registerLanguage('markup-templating', markupTemplating) // for php
-registerLanguage('json', json)
+SyntaxHighlighter.registerLanguage('js', js)
+SyntaxHighlighter.registerLanguage('css', css)
+SyntaxHighlighter.registerLanguage('jsx', jsx)
+SyntaxHighlighter.registerLanguage('php', php)
+SyntaxHighlighter.registerLanguage('markup-templating', markupTemplating) // for php
+SyntaxHighlighter.registerLanguage('json', json)
 
 export default function CodeBlock({ language, value, ...props }) {
   return <SyntaxHighlighter language={language} style={prism} {...props}>{value}</SyntaxHighlighter>
