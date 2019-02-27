@@ -1,4 +1,8 @@
 {
   "private": true,
-  "workspaces": ["example", "library", "docs"]
+  "workspaces": [
+    "example",
+    "library",
+    "docs"
+  ]
 }

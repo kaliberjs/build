@@ -123,7 +123,6 @@ export default class App extends Component {
     function getPageInfo(extractedLocation, userHash) {
       const location = extractedLocation.endsWith('/') ? extractedLocation : extractedLocation + '/'
       const pageInfo = flattenedPages.find(([page]) =>
-        //console.log('searching:', page + '/', location) ||
         page + '/' === location
       )
       return pageInfo && {

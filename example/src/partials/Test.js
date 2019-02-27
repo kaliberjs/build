@@ -1,10 +1,11 @@
 import Test2 from './Test2'
 import styles from './test.css'
 import json from './test.json'
-import firebase from 'firebase'
 import shared from './shared'
 import img from '/bg2.jpg'
 import Sticky from 'react-stickynode'
+import firebase from 'firebase/app'
+import 'firebase/database'
 const extra = { x: 'x' }
 
 export default class Test extends Component {
@@ -20,7 +21,7 @@ export default class Test extends Component {
 
   render() {
     return (
-      <div>
+      <>
         <img src={img} />
         <Sticky>
           <p>I am compiled with babel!</p>
@@ -34,7 +35,7 @@ export default class Test extends Component {
         <br />
         <p>Client config:</p>
         <pre>{JSON.stringify(this.props.clientConfig, null, 2)}</pre>
-      </div>
+      </>
     )
   }
 
