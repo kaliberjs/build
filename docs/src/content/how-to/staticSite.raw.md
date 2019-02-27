@@ -206,9 +206,9 @@ react renderer.
 export default {
   title: 'Awesome content',
   content: (
-    <React.Fragment>
+    <>
       <strong>The world</strong> is a strange place
-    <React.Fragment>
+    </>
   )
 }
 ```

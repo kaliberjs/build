@@ -13,7 +13,7 @@ export default function Markdown({ children }) {
 
 function A({ href, children }) {
   return href.startsWith('/')
-    ? <Link to={href} title={React.Children.only(<React.Fragment>{children}</React.Fragment>)} />
+    ? <Link to={href} title={React.Children.only(<>{children}</>)} />
     : <a href={href}>{children}</a>
 }
 
@@ -34,18 +34,18 @@ Heading.id = function id(value) {
 function RootWithTableOfContents({ children }) {
   const toc = []
   return (
-    <React.Fragment>
+    <>
       {React.Children.map(children, x => {
         if (x.type === 'p') {
           const [text] = x.props.children
-          if (text === '{toc}') return <Toc />
+          if (text.props.value === '{toc}') return <Toc />
         }
         if (x.type === Heading) {
           toc.push(x.props)
         }
         return x
       })}
-    </React.Fragment>
+    </>
   )
 
   function Toc() {
@@ -54,7 +54,7 @@ function RootWithTableOfContents({ children }) {
     function TocList({ list }) {
       const minLevel = 3
       return (
-        <React.Fragment>
+        <>
           <p><strong>On this page:</strong></p>
           {list.filter(x => x.level >= minLevel).map(({ level, children }, i) => {
             const [title] = children
@@ -67,7 +67,7 @@ function RootWithTableOfContents({ children }) {
               </React.Fragment>
             )
           })}
-        </React.Fragment>
+        </>
       )
     }
   }

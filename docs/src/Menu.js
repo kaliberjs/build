@@ -8,7 +8,7 @@ export default function Menu({ pages, page }) {
           {
             Array.isArray(contentOrSubItems)
               ? (
-                <React.Fragment>
+                <>
                   {title}
                   <ul>
                     {
@@ -19,7 +19,7 @@ export default function Menu({ pages, page }) {
                       )
                     }
                   </ul>
-                </React.Fragment>
+                </>
               )
               : <Link to={`/${id}`} title={title} active={page === id} />
           }
