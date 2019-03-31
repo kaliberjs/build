@@ -2,7 +2,7 @@
 
 {
   "parser": "babel-eslint",
-  "plugins": ["import", "jsx-a11y", "react"],
+  "plugins": ["import", "jsx-a11y", "react", "react-hooks"],
   "root": true,
    "env": {
     "browser": true,
@@ -229,6 +229,10 @@
     "react/require-render-return": "warn",
     "react/self-closing-comp": "warn",
     "react/void-dom-elements-no-children": "warn",
+
+    // https://www.npmjs.com/package/eslint-plugin-react-hooks
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
 
     // https://github.com/evcohen/eslint-plugin-jsx-a11y/tree/master/docs/rules
     "jsx-a11y/accessible-emoji": "warn",

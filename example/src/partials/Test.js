@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Test2 from './Test2'
 import styles from './test.css'
 import json from './test.json'
@@ -26,6 +27,7 @@ export default class Test extends Component {
         <Sticky>
           <p>I am compiled with babel!</p>
         </Sticky>
+        <Hooks foo={this.state.counter} />
         {this.props.soep}
         <span className={styles.test}>{this.state.counter} - {this.state.message}</span>
         <Test2 />
@@ -74,4 +76,11 @@ function getDecorator() {
   function decorator(Class) {
     return class Decorator { x = 'a decorator' }
   }
+}
+
+function Hooks({ foo }) {
+  useEffect(() => {
+    console.log(foo)
+  }, [])
+  return null
 }
