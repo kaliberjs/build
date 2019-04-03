@@ -2,7 +2,7 @@ const compression = require('compression')
 const express = require('express')
 const helmet = require('helmet')
 const { access } = require('fs')
-const { parsePath } = require('history/PathUtils')
+const { parsePath } = require('history')
 const { resolve } = require('path')
 
 const templateRenderers = require('./getTemplateRenderers')
