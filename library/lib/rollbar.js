@@ -12,8 +12,8 @@ const defaultOptions = {
   autoInstrument: { log: process.env.NODE_ENV === 'production' },
 }
 
-export default function rollbar(options) {
+export default function rollbar(options, nonSerializableRollbarConfig = '/* no non-serializable config */') {
   const config = JSON.stringify(merge(defaultOptions, options))
-  const __html = `var _rollbarConfig = ${config};${snippet}`
+  const __html = `var _rollbarConfig = ${config};${nonSerializableRollbarConfig};${snippet}`
   return <script dangerouslySetInnerHTML={{ __html }} />
 }
