@@ -85,7 +85,7 @@ const imageLoader = {
     // mozjpeg: {}, // https://github.com/imagemin/imagemin-mozjpeg#options
     // pngquant: {}, // https://github.com/imagemin/imagemin-pngquant#options
     // optipng: {}, // https://github.com/imagemin/imagemin-optipng#options
-    // svgo: {} // https://github.com/imagemin/imagemin-svgo#options
+    svgo: { enabled: false } // https://github.com/imagemin/imagemin-svgo#options
   }
 }
 
