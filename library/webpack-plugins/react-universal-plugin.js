@@ -34,6 +34,36 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
         return addEntries(clientEntries)
       })
 
+      // check the parent compiler before creating a module, it might have already
+      // been processed
+      let compilation
+      compiler.hooks.compilation.tap(p, c => { compilation = c })
+      webCompiler.hooks.compilation.tap(p, (webCompilation, { normalModuleFactory }) => {
+        normalModuleFactory.hooks.createModule.tap(p, data => {
+          const { path } = data.resourceResolveData
+          if (!path.endsWith('.js') && !path.endsWith('.json')) {
+            const parentCompilationModule = compilation.findModule(data.request)
+            if (parentCompilationModule) {
+              // mutation in webpack internals is a minefield, tread carefully
+              const dependencies = parentCompilationModule.dependencies.slice()
+              const parentSource = new ReplaceSource(parentCompilationModule.originalSource())
+
+              const { dependencyTemplates, outputOptions, moduleTemplates: { javascript: { requestShortener } } } = webCompilation
+
+              // from NormalModule.sourceDependency
+              dependencies.forEach(dependency => {
+                const template = dependencyTemplates.get(dependency.constructor)
+                if (template) template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
+              })
+
+              const result = new RawModule(parentSource.source())
+              result.dependencies = dependencies
+              return result
+            }
+          }
+        })
+      })
+
       // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
       compiler.hooks.beforeCompile.tap(p, params => {
         webCompiler.fileTimestamps = compiler.fileTimestamps
