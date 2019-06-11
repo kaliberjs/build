@@ -5,7 +5,7 @@ const genericNames = require('generic-names')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins(loaderOptions, { resolve, processUrl }) {
+function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, resolveForImportExportParser }) {
   const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
 
   return [
@@ -13,7 +13,7 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
       ? []
       : [
         // postcss-import is advised to be the first
-        require('postcss-import')({ glob: true, resolve }),
+        require('postcss-import')({ glob: true, resolve: resolveForImport }),
         require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
         require('postcss-preset-env')({
           features: {
@@ -37,9 +37,9 @@ function createPlugins(loaderOptions, { resolve, processUrl }) {
         require('postcss-modules-values'),
         !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
         require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]') }),
-        require('../postcss-plugins/postcss-export-parser'),
+        require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
-        require('../postcss-plugins/postcss-url-replace')({ replace: (url, file) => processUrl(url, file) }),
+        require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace }),
       ].filter(Boolean)
     ),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
@@ -52,12 +52,11 @@ module.exports = function CssLoader(source, map) {
   const callback = this.async()
 
   const handlers = {
-    resolve: (id, basedir, importOptions) => resolve(basedir, id),
-    processUrl: (url, file) => isDependency(url)
-      ? resolve(dirname(file), url).then(resolved =>
-          loadModule(resolved).then(executeModuleAt(resolved))
-        )
-      : Promise.resolve(url)
+    resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
+    resolveForUrlReplace: (url, file) => isDependency(url)
+      ? resolveAndExecute(dirname(file), url)
+      : Promise.resolve(url),
+    resolveForImportExportParser: url => resolveAndExecute(this.context, url),
   }
 
   const loaderOptions = loaderUtils.getOptions(this) || {}
@@ -95,10 +94,16 @@ module.exports = function CssLoader(source, map) {
     })
     .catch(e => { callback(e) })
 
+  function resolveAndExecute(context, request) {
+    return resolve(context, request).then(resolved =>
+      loadModule(resolved).then(executeModuleAt(resolved))
+    )
+  }
+
   function resolve(context, request) {
     return new Promise((resolve, reject) => {
       self.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
-    }).catch(e => { callback(e) }) // this should not be required, by it seems postcss-plugin-composition does not pass along 'warnings' (more commonly known as 'errors') - this should be tested again
+    })
   }
 
   function loadModule(url) {

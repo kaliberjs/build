@@ -1,3 +1,6 @@
+@value test from "./values.css";
+
 .test2 {
   content: 'soepkip';
+  background-color: test;
 }
