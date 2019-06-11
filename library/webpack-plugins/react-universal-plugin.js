@@ -44,20 +44,16 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
           if (!path.endsWith('.js') && !path.endsWith('.json')) {
             const parentCompilationModule = compilation.findModule(data.request)
             if (parentCompilationModule) {
-              // mutation in webpack internals is a minefield, tread carefully
-              const dependencies = parentCompilationModule.dependencies.slice()
-              const parentSource = new ReplaceSource(parentCompilationModule.originalSource())
+              const { dependencyTemplates, moduleTemplates } = webCompilation
 
-              const { dependencyTemplates, outputOptions, moduleTemplates: { javascript: { requestShortener } } } = webCompilation
+              const generated = parentCompilationModule.generator.generate(
+                parentCompilationModule,
+                dependencyTemplates,
+                moduleTemplates.javascript.runtimeTemplate
+              )
 
-              // from NormalModule.sourceDependency
-              dependencies.forEach(dependency => {
-                const template = dependencyTemplates.get(dependency.constructor)
-                if (template) template.apply(dependency, parentSource, outputOptions, requestShortener, dependencyTemplates)
-              })
-
-              const result = new RawModule(parentSource.source())
-              result.dependencies = dependencies
+              const result = new RawModule(generated.source(), data.request, data.rawRequest)
+              result.dependencies = parentCompilationModule.dependencies.slice()
               return result
             }
           }
