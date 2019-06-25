@@ -53,6 +53,9 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
               )
 
               const result = new RawModule(generated.source(), data.request, data.rawRequest)
+              result.updateCacheModule = function updateCacheModule(module) {
+                result.sourceStr = module.source().source()
+              }
               result.dependencies = parentCompilationModule.dependencies.slice()
               return result
             }
