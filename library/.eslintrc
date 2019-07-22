@@ -104,6 +104,7 @@
     "no-useless-return": "warn",
     "object-shorthand": ["warn", "always"],
     "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
+    "semi": ["warn", "never"],
     "semi-spacing": ["warn", { "before": false, "after": true }],
     "space-before-blocks": "warn",
     "space-before-function-paren": ["warn", { "anonymous": "ignore", "named": "ignore", "asyncArrow": "always" }],
