@@ -102,6 +102,7 @@
     "no-unneeded-ternary": "warn",
     "no-unsafe-negation": "warn",
     "no-useless-return": "warn",
+    "object-shorthand": ["warn", "always"],
     "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "semi-spacing": ["warn", { "before": false, "after": true }],
     "space-before-blocks": "warn",
