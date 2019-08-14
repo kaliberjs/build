@@ -7,6 +7,7 @@ import img from '/bg2.jpg'
 import Sticky from 'react-stickynode'
 import firebase from 'firebase/app'
 import 'firebase/database'
+import { testCalc } from '/partials/values.css'
 const extra = { x: 'x' }
 
 export default class Test extends Component {
@@ -52,6 +53,7 @@ export default class Test extends Component {
     console.log(this.state)
     console.log(json)
     console.log(new (getDecorator())().x)
+    console.log('The following value should be -1rem:', testCalc)
     this.asyncFunction()
     this.interval = setInterval(() => this.setState(({ counter }) => ({ counter: counter + 1 })), 1000)
 

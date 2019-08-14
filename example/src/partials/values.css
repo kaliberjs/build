@@ -1,1 +1,3 @@
 @value test: goldenrod;
+@value test2: 1rem;
+@value testCalc: calc(-1 * test2);

@@ -37,6 +37,7 @@ function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, 
         require('postcss-modules-values'),
         !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
         require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]') }),
+        require('postcss-calc'),
         require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
         require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace }),

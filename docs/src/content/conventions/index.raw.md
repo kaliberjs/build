@@ -154,18 +154,23 @@ modules plugin is configured with `global` as it's scope behavior.
 
 #### `*.css (excluding node_modules)`
 
-The css files from your project are loaded using or own CSS loader. This loader uses postcss which
+The css files from your project are loaded using our own CSS loader. This loader uses postcss which
 is configured to use the following plugins:
 
-- `postcss-import`      - Allows for `@import` statements in CSS.
-- `postcss-apply`       - Allows for `@apply` statements in CSS.
-- `postcss-modules`     - Adds module support to CSS. Importing a CSS file into javascript provides
-                          an object that contains the original class names as key and locally scoped
-                          class names as value.
-- `postcss-url-replace` - Our own plugin that makes sure all `url` references are loaded using the
-                          defined Webpack loaders.
-- `postcss-next`        - Use the CSS of tomorrow today.
-- `cssnano`             - Is only used when `NODE_ENV=production` and minifies the javascript.
+- `postcss-import`                    - Allows for `@import` statements in CSS.
+- `postcss-apply`                     - Allows for `@apply` statements in CSS.
+- `postcss-preset-env`                - Use tomorrow’s CSS today.
+- `postcss-modules-values`            - Pass arbitrary values between your module files.
+- `postcss-modules-local-by-default`  - Make :local scope the default.
+- `postcss-modules-scope`             - A CSS Modules transform to extract export statements from local-scope 
+                                        classes. Importing a CSS file into javascript provides an object that 
+                                        contains the original class names as key and locally scoped class names
+                                        as value.
+- `postcss-calc`                      - Reduce calc() references whenever it's possible.
+- `postcss-url-replace`               - Our own plugin that makes sure all `url` references are loaded using the
+                                        defined Webpack loaders.
+- `postcss-import-export-parser`      - CSS imports and exports parser.
+- `cssnano`                           - Is only used when `NODE_ENV=production` and minifies the javascript.
 
 #### `*.css (if not matched by another pattern)`
 
