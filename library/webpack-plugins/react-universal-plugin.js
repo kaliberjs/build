@@ -57,6 +57,21 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
                 result.sourceStr = module.source().source()
               }
               result.dependencies = parentCompilationModule.dependencies.slice()
+
+              // These values are set by plugins like HarmonyDetectionParserPlugin and should be made available
+              // on the raw module
+              let { buildInfo = {}, buildMeta = {} } = result
+              Object.defineProperty(result, 'buildInfo', {
+                get() { return { ...parentCompilationModule.buildInfo, ...buildInfo } },
+                set(x) { buildInfo = x }
+              })
+              Object.defineProperty(result, 'buildMeta', {
+                get() { return { ...parentCompilationModule.buildMeta, ...buildMeta } },
+                set(x) { buildMeta = x }
+              })
+              Object.defineProperty(result, 'exportsArgument', { get() { return parentCompilationModule.exportsArgument } })
+              Object.defineProperty(result, 'moduleArgument', { get() { return parentCompilationModule.moduleArgument } })
+
               return result
             }
           }

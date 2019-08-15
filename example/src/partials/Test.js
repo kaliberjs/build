@@ -8,6 +8,9 @@ import Sticky from 'react-stickynode'
 import firebase from 'firebase/app'
 import 'firebase/database'
 import { testCalc } from '/partials/values.css'
+import checkIgnoreString from '/rollbarCheckIgnore.raw'
+import testString from './test.raw.txt'
+
 const extra = { x: 'x' }
 
 export default class Test extends Component {
@@ -28,6 +31,10 @@ export default class Test extends Component {
         <Sticky>
           <p>I am compiled with babel!</p>
         </Sticky>
+        <pre>
+          {testString}
+          {checkIgnoreString}
+        </pre>
         <Hooks foo={this.state.counter} />
         {this.props.soep}
         <span className={styles.test}>{this.state.counter} - {this.state.message}</span>
