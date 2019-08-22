@@ -15,6 +15,7 @@ function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, 
         // postcss-import is advised to be the first
         require('postcss-import')({ glob: true, resolve: resolveForImport }),
         require('postcss-apply')(), // https://github.com/kaliberjs/build/issues/34
+        require('postcss-modules-values'),
         require('postcss-preset-env')({
           features: {
             'custom-properties': { preserve: false },
@@ -34,7 +35,6 @@ function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, 
         }),
 
         // no support for css-modules feature 'composes'
-        require('postcss-modules-values'),
         !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
         require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]') }),
         require('postcss-calc')(),
