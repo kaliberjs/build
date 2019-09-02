@@ -1,7 +1,6 @@
 #!/usr/bin/env kaliber-node
 
-const checkInternationalization = require('../lib/checkInternationalization')
-checkInternationalization()
+require('../lib/checkInternationalization')
 
 const build = require('../lib/build')
 build({ watch: false })
