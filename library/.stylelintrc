@@ -1,0 +1,9 @@
+{
+  "extends": "stylelint-config-standard",
+  "plugins": ["stylelint-use-nesting", "./stylelint-plugins/kaliber.js"],
+  "rules": {
+    "unit-whitelist": ["em", "rem", "px", "%", "vh", "ms", "vw", "s", "deg"],
+    "csstools/use-nesting": "always",
+    "kaliber/stylelint": true
+  }
+}
