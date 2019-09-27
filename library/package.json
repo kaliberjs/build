@@ -3,10 +3,10 @@
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
-    "lint": "npm-run-all --parallel lint:javascript lint:styles",
-    "lint:javascript": "eslint -c .eslintrc .",
-    "lint:styles": "stylelint --config .stylelintrc .",
-    "test:stylelint": "stylelint-tape --plugin ./stylelint-plugins/kaliber.js"
+    "lint": "npm-run-all --parallel lint.javascript lint.styles",
+    "lint.javascript": "eslint -c .eslintrc .",
+    "lint.styles": "stylelint --config .stylelintrc .",
+    "test.stylelint": "stylelint-tape --plugin ./stylelint-plugins/kaliber.js"
   },
   "bin": {
     "kaliber-build": "bin/build.js",

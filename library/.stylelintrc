@@ -4,6 +4,11 @@
   "rules": {
     "unit-whitelist": ["em", "rem", "px", "%", "vh", "ms", "vw", "s", "deg"],
     "csstools/use-nesting": "always",
-    "kaliber/stylelint": true
+    "kaliber/valid-stacking-context-in-root": true,
+    "kaliber/require-stacking-context-in-parent": true,
+    "kaliber/no-layout-related-props-in-root": true,
+    "kaliber/no-double-nesting": true,
+    "kaliber/absolute-has-relative-parent": true,
+    "kaliber/only-layout-related-props-in-nested": true
   }
 }
