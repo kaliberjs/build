@@ -1,3 +1,5 @@
-#!/usr/bin/env node
+#!/usr/bin/env kaliber-node
+
+require('../lib/checkInternationalization')
 
 require('../lib/serve')
