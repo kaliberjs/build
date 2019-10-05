@@ -3,6 +3,7 @@
   "workspaces": [
     "example",
     "library",
-    "docs"
+    "docs",
+    "eslint-plugin"
   ]
 }

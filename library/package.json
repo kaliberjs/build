@@ -27,6 +27,7 @@
     "@babel/preset-react": "^7.0.0",
     "@babel/runtime": "^7.5.4",
     "@kaliber/config": "^0.0.7",
+    "@kaliber/eslint-plugin": "*",
     "ansi-regex": "^4.1.0",
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
