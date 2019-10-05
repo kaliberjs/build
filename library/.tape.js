@@ -6,6 +6,21 @@ function message(key) {
 }
 
 module.exports = {
+  /*
+    no component class name in child selector
+    & > .componentX
+
+    no nested child selectors
+    & > .one > .two
+
+    no nested element selectors
+    & > svg
+    use class selector
+
+    only direct child selector
+    & .something
+    disable this rule for third party with comment explaining why
+  */
   'kaliber/valid-stacking-context-in-root': [
     {
       source: '.bad { z-index: 0; }',

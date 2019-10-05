@@ -5,6 +5,23 @@ const messages = {
 module.exports = {
   messages,
   rules: {
+    /*
+      no-custom-component-class-name
+      <Test className='...' />
+      Upper case jsx, allow xyzBase
+
+      no-export-base
+      export function ComponentBase
+
+      child-no-layout-class-name
+      <div><div className={layoutClassName} /></div>
+
+      component-names-start-with-file-name
+      Test.js
+        export function Test()
+        export function TestX()
+      Only for Upper case file name. Not sure if this one is realistic
+    */
     'root-component-class-name': {
       meta: { fixable: 'code' },
       create(context) {
