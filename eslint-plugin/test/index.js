@@ -20,6 +20,7 @@ test('no-export-base')
 test('child-no-layout-class-name')
 test('component-name-starts-with-file-name')
 test('force-css-file-name')
+test('force-css-variable-name')
 
 function test(name) {
   const rule = rules[name]

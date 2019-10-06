@@ -8,11 +8,11 @@ const messages = {
   'no layoutClassName': 'layoutClassName can not be used on child components\n\nset the layoutClassName as the className of the root node',
   'invalid component name': expected => `invalid component name\n\nexpected '${expected}'`,
   'invalid css file name': expected => `invalid css file name\n\nexpected '${expected}'`,
+  'invalid styles variable name': `invalid variable name\n\nexpected name to be 'styles'`,
 }
 module.exports = {
   messages,
   rules: {
-    // Test.js -> import notStyles from './Test.css'
     'root-component-class-name': {
       create(context) {
         const checked = new Set()
@@ -143,6 +143,28 @@ module.exports = {
             context.report({
               message: messages['invalid css file name'](expected),
               node: node.source,
+            })
+          }
+        }
+      }
+    },
+    'force-css-variable-name': {
+      create(context) {
+        return {
+          [`ImportDeclaration`](node) {
+            const source = node.source.value
+            if (!source.endsWith('.css')) return
+
+            const name = getBaseFilename(context)
+            const mainCss = `./${name}.css`
+            if (source !== mainCss) return
+
+            const specifier = node.specifiers[0].local
+            if (specifier.name === 'styles') return
+
+            context.report({
+              message: messages['invalid styles variable name'],
+              node: specifier,
             })
           }
         }
