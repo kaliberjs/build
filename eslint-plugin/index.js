@@ -1,7 +1,8 @@
 const messages = {
   'invalid className': expected => `invalid className\n\nexpected '${expected}'`,
   'no component className': `invalid className\n\nonly root nodes can have a className that starts with 'component'`,
-  'no className': 'className is not allowed on custom components\n\nonly native (lower case) elements can have a className'
+  'no className': 'className is not allowed on custom components\n\nonly native (lower case) elements can have a className',
+  'no export base': 'base components can not be exported\n\nremove the `export` keyword',
 }
 module.exports = {
   messages,
@@ -66,9 +67,8 @@ module.exports = {
         function noClassName(node) {
           const jsxElement = getParentJSXElement(node)
           const name = getJSXElementName(jsxElement)
-          const firstLetter = name.slice(0, 1)
 
-          if (firstLetter.toLowerCase() === firstLetter || name.endsWith('Base')) return
+          if (firstLetterLowerCase(name) || name.endsWith('Base')) return
 
           context.report({
             message: messages['no className'],
@@ -77,7 +77,30 @@ module.exports = {
         }
       }
     },
+    'no-export-base': {
+      meta: { fixable: 'code' },
+      create(context) {
+        return {
+          'ExportNamedDeclaration > FunctionDeclaration'(node) {
+            const { name } = node.id
+            if (!name.endsWith('Base') || firstLetterLowerCase(name)) return
+
+            const exportNode = node.parent
+            context.report({
+              message: messages['no export base'],
+              node: exportNode,
+              fix: fixer => fixer.removeRange([exportNode.start, node.start])
+            })
+          }
+        }
+      }
+    },
   }
+}
+
+function firstLetterLowerCase(word) {
+  const firstLetter = word.slice(0, 1)
+  return firstLetter.toLowerCase() === firstLetter
 }
 
 function getJSXElementName(jsxElement) {
