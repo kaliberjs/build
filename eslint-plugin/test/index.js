@@ -19,6 +19,7 @@ test('no-custom-component-class-name')
 test('no-export-base')
 test('child-no-layout-class-name')
 test('component-name-starts-with-file-name')
+test('force-css-file-name')
 
 function test(name) {
   const rule = rules[name]

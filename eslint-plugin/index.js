@@ -7,11 +7,12 @@ const messages = {
   'no export base': 'base components can not be exported\n\nremove the `export` keyword',
   'no layoutClassName': 'layoutClassName can not be used on child components\n\nset the layoutClassName as the className of the root node',
   'invalid component name': expected => `invalid component name\n\nexpected '${expected}'`,
+  'invalid css file name': expected => `invalid css file name\n\nexpected '${expected}'`,
 }
 module.exports = {
   messages,
   rules: {
-    // Test.js -> import styles from './Test.css'
+    // Test.js -> import notStyles from './Test.css'
     'root-component-class-name': {
       create(context) {
         const checked = new Set()
@@ -116,8 +117,7 @@ module.exports = {
             const { name } = node.id
             if (firstLetterLowerCase(name)) return
 
-            const filename = context.getFilename()
-            const expectedPrefix = path.basename(filename, '.js')
+            const expectedPrefix = getBaseFilename(context)
             if (name.startsWith(expectedPrefix)) return
 
             const expected = `${expectedPrefix}${name}`
@@ -128,8 +128,32 @@ module.exports = {
           }
         }
       }
-    }
-  },
+    },
+    'force-css-file-name': {
+      create(context) {
+        return {
+          [`ImportDeclaration[specifiers.0.local.name = 'styles']`](node) {
+            const source = node.source.value
+            if (!source.endsWith('.css')) return
+
+            const name = getBaseFilename(context)
+            const expected = `./${name}.css`
+            if (source === expected) return
+
+            context.report({
+              message: messages['invalid css file name'](expected),
+              node: node.source,
+            })
+          }
+        }
+      }
+    },
+  }
+}
+
+function getBaseFilename(context) {
+  const filename = context.getFilename()
+  return path.basename(filename, '.js')
 }
 
 function firstLetterLowerCase(word) {

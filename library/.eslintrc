@@ -46,6 +46,7 @@
     "@kaliber/no-export-base": "warn",
     "@kaliber/child-no-layout-class-name": "warn",
     "@kaliber/component-name-starts-with-file-name": "warn",
+    "@kaliber/force-css-file-name": "warn",
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
 
