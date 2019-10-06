@@ -89,6 +89,10 @@ module.exports = {
             context.report({
               message: messages['no export base'],
               node: exportNode,
+              loc: {
+                start: exportNode.loc.start,
+                end: node.loc.start
+              },
               fix: fixer => fixer.removeRange([exportNode.start, node.start])
             })
           }
