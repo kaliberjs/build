@@ -17,6 +17,7 @@ test('root-component-class-name')
 test('child-no-component-class-name')
 test('no-custom-component-class-name')
 test('no-export-base')
+test('child-no-layout-class-name')
 
 function test(name) {
   const rule = rules[name]

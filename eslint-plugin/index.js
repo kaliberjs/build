@@ -3,17 +3,12 @@ const messages = {
   'no component className': `invalid className\n\nonly root nodes can have a className that starts with 'component'`,
   'no className': 'className is not allowed on custom components\n\nonly native (lower case) elements can have a className',
   'no export base': 'base components can not be exported\n\nremove the `export` keyword',
+  'no layoutClassName': 'layoutClassName can not be used on child components\n\nset the layoutClassName as the className of the root node',
 }
 module.exports = {
   messages,
   rules: {
     /*
-      no-export-base
-      export function ComponentBase
-
-      child-no-layout-class-name
-      <div><div className={layoutClassName} /></div>
-
       component-names-start-with-file-name
       Test.js
         export function Test()
@@ -99,6 +94,25 @@ module.exports = {
         }
       }
     },
+    'child-no-layout-class-name': {
+      create(context) {
+        const checked = new Set()
+        return {
+          [`ReturnStatement JSXAttribute[name.name = 'className'] Identifier[name = 'layoutClassName']`](node) {
+            const jsxElement = getParentJSXElement(node)
+            if (checked.has(jsxElement)) return
+            else checked.add(jsxElement)
+
+            if (isRootJSXElement(jsxElement)) return
+
+            context.report({
+              message: messages['no layoutClassName'],
+              node,
+            })
+          }
+        }
+      }
+    }
   }
 }
 
