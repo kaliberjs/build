@@ -20,6 +20,8 @@ module.exports = {
     only direct child selector
     & .something
     disable this rule for third party with comment explaining why
+
+    add other layout related props (top, margin, flex, ...)
   */
   'kaliber/valid-stacking-context-in-root': [
     {
