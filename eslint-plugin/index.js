@@ -1,15 +1,12 @@
 const messages = {
   'invalid className': expected => `invalid className\n\nexpected '${expected}'`,
   'no component className': `invalid className\n\nonly root nodes can have a className that starts with 'component'`,
+  'no className': 'className is not allowed on custom components\n\nonly native (lower case) elements can have a className'
 }
 module.exports = {
   messages,
   rules: {
     /*
-      no-custom-component-class-name
-      <Test className='...' />
-      Upper case jsx, allow xyzBase
-
       no-export-base
       export function ComponentBase
 
@@ -58,8 +55,33 @@ module.exports = {
           },
         }
       }
-    }
+    },
+    'no-custom-component-class-name': {
+      create(context) {
+        return {
+          [`JSXSpreadAttribute Property[key.name = 'className']`]: noClassName,
+          [`JSXAttribute[name.name = 'className']`]: noClassName,
+        }
+
+        function noClassName(node) {
+          const jsxElement = getParentJSXElement(node)
+          const name = getJSXElementName(jsxElement)
+          const firstLetter = name.slice(0, 1)
+
+          if (firstLetter.toLowerCase() === firstLetter || name.endsWith('Base')) return
+
+          context.report({
+            message: messages['no className'],
+            node,
+          })
+        }
+      }
+    },
   }
+}
+
+function getJSXElementName(jsxElement) {
+  return jsxElement.openingElement.name.name
 }
 
 function getFunctionName(context) {

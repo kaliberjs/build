@@ -42,6 +42,7 @@
     // http://eslint.org/docs/rules/
     "@kaliber/root-component-class-name": "warn",
     "@kaliber/child-no-component-class-name": "warn",
+    "@kaliber/no-custom-component-class-name": "warn",
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
 
