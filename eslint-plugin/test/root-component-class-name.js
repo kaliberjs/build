@@ -32,11 +32,6 @@ module.exports = {
         }
       `,
       errors: [{ message: messages['invalid className']('componentTest'), type: 'Identifier' }],
-      output: `
-        function Test() {
-          return <div className={styles.componentTest} />
-        }
-      `,
     },
     {
       code: `
@@ -49,15 +44,6 @@ module.exports = {
         }
       `,
       errors: [{ message: messages['invalid className']('componentTest2'), type: 'Identifier' }],
-      output: `
-        function Test2() {
-          return (
-            <div className={styles.componentTest2}>
-              <div className={styles.test2} />
-            </div>
-          )
-        }
-      `,
     },
   ]
 }

@@ -16,7 +16,6 @@ module.exports = {
         column: 1,
         endColumn: 8,
       }],
-      output: `function TestBase() {}`
     },
   ]
 }

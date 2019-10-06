@@ -13,7 +13,6 @@ module.exports = {
   rules: {
     // Test.js -> import styles from './Test.css'
     'root-component-class-name': {
-      meta: { fixable: 'code' },
       create(context) {
         const checked = new Set()
 
@@ -28,7 +27,6 @@ module.exports = {
             if (node.property.name !== expected) context.report({
               message: messages['invalid className'](expected),
               node: node.property,
-              fix: fixer => fixer.replaceText(node, `styles.${expected}`)
             })
           }
         }
@@ -70,7 +68,6 @@ module.exports = {
       }
     },
     'no-export-base': {
-      meta: { fixable: 'code' },
       create(context) {
         return {
           'ExportNamedDeclaration > FunctionDeclaration'(node) {
@@ -85,7 +82,6 @@ module.exports = {
                 start: exportNode.loc.start,
                 end: node.loc.start
               },
-              fix: fixer => fixer.removeRange([exportNode.start, node.start])
             })
           }
         }
