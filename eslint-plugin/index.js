@@ -1,20 +1,17 @@
+const path = require('path')
+
 const messages = {
   'invalid className': expected => `invalid className\n\nexpected '${expected}'`,
   'no component className': `invalid className\n\nonly root nodes can have a className that starts with 'component'`,
   'no className': 'className is not allowed on custom components\n\nonly native (lower case) elements can have a className',
   'no export base': 'base components can not be exported\n\nremove the `export` keyword',
   'no layoutClassName': 'layoutClassName can not be used on child components\n\nset the layoutClassName as the className of the root node',
+  'invalid component name': expected => `invalid component name\n\nexpected '${expected}'`,
 }
 module.exports = {
   messages,
   rules: {
-    /*
-      component-names-start-with-file-name
-      Test.js
-        export function Test()
-        export function TestX()
-      Only for Upper case file name. Not sure if this one is realistic
-    */
+    // Test.js -> import styles from './Test.css'
     'root-component-class-name': {
       meta: { fixable: 'code' },
       create(context) {
@@ -112,8 +109,28 @@ module.exports = {
           }
         }
       }
+    },
+    'component-name-starts-with-file-name': {
+      create(context) {
+        return {
+          'ExportNamedDeclaration > FunctionDeclaration'(node) {
+            const { name } = node.id
+            if (firstLetterLowerCase(name)) return
+
+            const filename = context.getFilename()
+            const expectedPrefix = path.basename(filename, '.js')
+            if (name.startsWith(expectedPrefix)) return
+
+            const expected = `${expectedPrefix}${name}`
+            context.report({
+              message: messages['invalid component name'](expected),
+              node: node.id,
+            })
+          }
+        }
+      }
     }
-  }
+  },
 }
 
 function firstLetterLowerCase(word) {
