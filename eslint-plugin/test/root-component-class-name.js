@@ -4,13 +4,13 @@ module.exports = {
   valid: [
     `
       function Test() {
-        return <div className={styles.componentTest} />
+        return <div className={styles.component} />
       }
     `,
     `
       function Test2() {
         return (
-          <div className={styles.componentTest2}>
+          <div className={styles.component2}>
             <div className={styles.test} />
           </div>
         )
@@ -19,7 +19,7 @@ module.exports = {
     `
       function Test() {
         return (
-          <div className={cx(styles.componentTest, test && styles.test)} />
+          <div className={cx(styles.component, test && styles.test)} />
         )
       }
     `,
@@ -31,7 +31,7 @@ module.exports = {
           return <div className={styles.test} />
         }
       `,
-      errors: [{ message: messages['invalid className']('componentTest'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('component'), type: 'Identifier' }],
     },
     {
       code: `
@@ -43,7 +43,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['invalid className']('componentTest2'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('component2'), type: 'Identifier' }],
     },
   ]
 }
