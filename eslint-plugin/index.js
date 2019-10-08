@@ -24,7 +24,9 @@ module.exports = {
             else checked.add(jsxElement)
 
             if (!isRootJSXElement(jsxElement)) return
-            const expected = `component${getFunctionName(context)}`
+
+            const prefix = new RegExp(`^${getBaseFilename(context)}`)
+            const expected = `component${getFunctionName(context).replace(prefix, '')}`
             if (node.property.name === expected) return
 
             context.report({
