@@ -56,7 +56,20 @@ module.exports = {
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
       ])
     },
-    { source: '.good { & > .test { width: 100%; height: 100%; position: absolute; } }', warnings: 0 }
+    {
+      source: `
+        .good {
+          & > .test {
+            width: 100%; height: 100%;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: 0
+    }
   ],
   'kaliber/no-double-nesting': [
     {
