@@ -12,6 +12,8 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   absoluteHasRelativeParent(),
   onlyLayoutRelatedPropsInNested(),
   noComponentNameInNested(),
+  noChildSelectorsInRoot(),
+  noDoubleChildSelectorsInNested(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -172,6 +174,48 @@ function noComponentNameInNested() {
           if (className.startsWith('component'))
             report(rule, messages['nested - no component class name in nested'](className), x.sourceIndex)
         })
+      })
+    }
+  })
+}
+
+function noChildSelectorsInRoot() {
+  const messages = {
+    'root - no child selectors':
+      `no child selector at root level\n\n` +
+      `it is not allowed to use child selectors on root level - ` +
+      `write the child selector nested using the \`&\``
+  }
+  return createPlugin({
+    ruleName: 'kaliber/no-child-selectors-in-root',
+    messages,
+    plugin: ({ root, report }) => {
+      withRootRules(root, rule => {
+        selectorParser().astSync(rule).walkCombinators(x => {
+          if (x.value === '>')
+            report(rule, messages['root - no child selectors'], x.sourceIndex)
+        })
+      })
+    }
+  })
+}
+
+function noDoubleChildSelectorsInNested() {
+  const messages = {
+    'nested - no double child selectors':
+      `no double child selector in nested selector\n\n` +
+      `it is not allowed to select the child of a child - ` +
+      `write a separate root rule and select the child from there`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/no-double-child-selectorors-in-nested',
+    messages,
+    plugin: ({ root, report }) => {
+      withNestedRules(root, (rule, parent) => {
+        const root = selectorParser().astSync(rule)
+        const [, double] = root.first.filter(x => x.type === 'combinator')
+        if (double)
+          report(rule, messages['nested - no double child selectors'], double.sourceIndex)
       })
     }
   })

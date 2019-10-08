@@ -7,9 +7,6 @@ function message(key) {
 
 module.exports = {
   /*
-    no nested child selectors
-    & > .one > .two
-
     no nested element selectors
     & > svg
     use class selector
@@ -86,5 +83,19 @@ module.exports = {
     },
     { source: '.componentGood { & > .test { } }', warnings: 0 },
     { source: '.good { & > .test { } }', warnings: 0 },
+  ],
+  'kaliber/no-child-selectors-in-root': [
+    {
+      source: '.bad > .test { }',
+      warnings: [message('root - no child selectors')]
+    },
+    { source: '.good { & > .test { } }', warnings: 0 }
+  ],
+  'kaliber/no-double-child-selectorors-in-nested': [
+    {
+      source: '.bad { & > .one > .two { } }',
+      warnings: [message('nested - no double child selectors')]
+    },
+    { source: '.good { & > .one { } }\n\n.one { & > .two }'},
   ],
 }
