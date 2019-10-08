@@ -8,6 +8,7 @@
     "kaliber/no-double-nesting": true,
     "kaliber/absolute-has-relative-parent": true,
     "kaliber/only-layout-related-props-in-nested": true,
+    "kaliber/no-component-class-name-in-nested": true,
 
     "at-rule-empty-line-before": [
       "always",

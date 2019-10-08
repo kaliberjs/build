@@ -1,4 +1,5 @@
 const stylelint = require('stylelint')
+const selectorParser = require('postcss-selector-parser')
 
 const layoutRelatedProps = ['width', 'height', ['position', 'absolute']]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
@@ -10,6 +11,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noDoubleNesting(),
   absoluteHasRelativeParent(),
   onlyLayoutRelatedPropsInNested(),
+  noComponentNameInNested(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -153,6 +155,28 @@ function onlyLayoutRelatedPropsInNested() {
   })
 }
 
+function noComponentNameInNested() {
+  const messages = {
+    'nested - no component class name in nested': className =>
+      `illegal class name\n\n` +
+      `\`${className}\` can not be used in nested selectors - ` +
+      `remove \`component\` from the name`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/no-component-class-name-in-nested',
+    messages,
+    plugin: ({ root, report }) => {
+      withNestedRules(root, (rule, parent) => {
+        selectorParser().astSync(rule).walkClasses(x => {
+          const className = x.value
+          if (className.startsWith('component'))
+            report(rule, messages['nested - no component class name in nested'](className), x.sourceIndex)
+        })
+      })
+    }
+  })
+}
+
 function extractPropsWithValues(props) {
   return props.reduce(
     (result, x) => {
@@ -194,8 +218,8 @@ function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {
   rule.each(node => {
     if (
       node.type !== 'decl' ||
-      onlyInvalidTargets && !invalidTarget(normalizedTargets, node) ||
-      !onlyInvalidTargets && invalidTarget(normalizedTargets, node)
+      (onlyInvalidTargets && !invalidTarget(normalizedTargets, node)) ||
+      (!onlyInvalidTargets && invalidTarget(normalizedTargets, node))
     ) return
 
     result.push(node)
@@ -242,7 +266,9 @@ function createPlugin({ ruleName, messages, plugin }) {
 
       plugin({ root, report })
 
-      function report(node, message) { stylelint.utils.report({ message, node, result, ruleName }) }
+      function report(node, message, index) {
+        stylelint.utils.report({ message, index, node, result, ruleName })
+      }
     }
   }
 }

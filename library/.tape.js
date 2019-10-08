@@ -7,9 +7,6 @@ function message(key) {
 
 module.exports = {
   /*
-    no component class name in child selector
-    & > .componentX
-
     no nested child selectors
     & > .one > .two
 
@@ -81,5 +78,13 @@ module.exports = {
     },
     { source: '.good { & > .test { width: 100%; } }', warnings: 0 },
     { source: '.good { padding: 100px; }', warnings: 0 }
-  ]
+  ],
+  'kaliber/no-component-class-name-in-nested': [
+    {
+      source: '.bad { & > .componentTest { } }',
+      warnings: [message('nested - no component class name in nested')('componentTest')]
+    },
+    { source: '.componentGood { & > .test { } }', warnings: 0 },
+    { source: '.good { & > .test { } }', warnings: 0 },
+  ],
 }
