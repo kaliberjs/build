@@ -5,18 +5,12 @@ function message(key) {
   return x || `programming error, message with key '${key}' not found`
 }
 
+function createMessages(key, values) {
+  const x = messages[key]
+  return values.map(x)
+}
+
 module.exports = {
-  /*
-    no nested element selectors
-    & > svg
-    use class selector
-
-    only direct child selector
-    & .something
-    disable this rule for third party with comment explaining why
-
-    add other layout related props (top, margin, flex, ...)
-  */
   'kaliber/valid-stacking-context-in-root': [
     {
       source: '.bad { z-index: 0; }',
@@ -45,12 +39,22 @@ module.exports = {
   ],
   'kaliber/no-layout-related-props-in-root': [
     {
-      source: '.bad { width: 100%; height: 100%; position: absolute; }',
-      warnings: [
-        message('root - no layout related props')('width'),
-        message('root - no layout related props')('height'),
-        message('root - no layout related props')('position: absolute'),
-      ]
+      source: `
+        .bad {
+          width: 100%; height: 100%;
+          position: absolute;
+          top: 0; right: 0; bottom: 0; left: 0;
+          margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+          flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+        }
+      `.replace(/        /g, ''),
+      warnings: createMessages('root - no layout related props', [
+        'width', 'height',
+        'position: absolute',
+        'top', 'right', 'bottom', 'left',
+        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+      ])
     },
     { source: '.good { & > .test { width: 100%; height: 100%; position: absolute; } }', warnings: 0 }
   ],

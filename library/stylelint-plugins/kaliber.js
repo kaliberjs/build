@@ -1,7 +1,13 @@
 const stylelint = require('stylelint')
 const selectorParser = require('postcss-selector-parser')
 
-const layoutRelatedProps = ['width', 'height', ['position', 'absolute']]
+const layoutRelatedProps = [
+  'width', 'height',
+  ['position', 'absolute'],
+  'top', 'right', 'bottom', 'left',
+  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
 
 const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
@@ -14,6 +20,19 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noComponentNameInNested(),
   noChildSelectorsInRoot(),
   noDoubleChildSelectorsInNested(),
+  /*
+    no nested element selectors
+    & > svg
+    use class selector
+
+    only direct child selector
+    & .something
+    disable this rule for third party with comment explaining why
+
+    flex child / parent relation
+
+    width and height are allowed in root with px, rem, em and !important
+  */
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
