@@ -154,4 +154,30 @@ module.exports = {
     { source: '.good { &.test { } }', warnings: 0 },
     { source: '.good { & > .test { } }', warnings: 0 },
   ],
+  'kaliber/valid-flex-context-in-root': [
+    {
+      source: `
+        .bad {
+          & > .test {
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: createMessages('nested - require display flex in parent', [
+        'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order'
+      ])
+    },
+    {
+      source: `
+        .good {
+          display: flex;
+
+          & > .test {
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: 0
+    }
+  ],
 }

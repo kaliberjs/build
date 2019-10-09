@@ -2,12 +2,16 @@ const stylelint = require('stylelint')
 const createParser = require('postcss-selector-parser')
 const selectorParser = createParser()
 
+const flexChildProps = [
+  'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
+]
+
 const layoutRelatedProps = [
   'width', 'height',
   ['position', 'absolute'],
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-  'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+  ...flexChildProps,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
 
@@ -34,9 +38,8 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noDoubleChildSelectorsInNested(),
   noChildElementSelectors(),
   onlyDirectChildSelectors(),
+  requireDisplayFlexInParent(),
   /*
-    flex child / parent relation
-
     width and height are allowed in root with px, rem, em and !important
 
     disallow this: & > .test::before
@@ -103,7 +106,7 @@ function requireStackingContextInParent() {
         if (!decl) return
 
         if (missingProps(parent, { 'z-index': '0', 'position': 'relative' }))
-        report(decl, messages['nested - missing stacking context in parent'])
+          report(decl, messages['nested - missing stacking context in parent'])
       })
     },
   })
@@ -290,6 +293,30 @@ function onlyDirectChildSelectors() {
         const [combinator] = root.first.filter(x => x.type === 'combinator' && x.value !== '>')
         if (combinator)
           report(rule, messages['only direct child selectors'](combinator.value), combinator.sourceIndex)
+      })
+    }
+  })
+}
+
+function requireDisplayFlexInParent() {
+  const messages = {
+    'nested - require display flex in parent': prop =>
+      `missing \`display: flex;\`\n\n` +
+      `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` - ` +
+      `add \`display: flex;\` to the containing root rule`,
+  }
+  return createPlugin({
+    ruleName: 'kaliber/valid-flex-context-in-root',
+    messages,
+    plugin: ({ root, report }) => {
+      withNestedRules(root, (rule, parent) => {
+        const decls = findDecls(rule, flexChildProps)
+        if (!decls.length) return
+
+        if (missingProps(parent, { 'display': 'flex' }))
+          decls.forEach(decl => {
+            report(decl, messages['nested - require display flex in parent'](decl.prop))
+          })
       })
     }
   })
