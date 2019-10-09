@@ -133,6 +133,19 @@ module.exports = {
       `.replace(/        /g, ''),
       warnings: 0
     },
+    {
+      source: '.bad { & > .test::after { } }',
+      warnings: [message('nested - no double child selectors')]
+    },
+    {
+      source: `
+        .good { & > .one { } }
+
+        .one { &::after { } }
+      `.replace(/        /g, ''),
+      warnings: 0
+    },
+    { source: '.good { & > *:not(:first-child) { } }', warnings: 0 },
   ],
   'kaliber/no-child-tag-selectors': [
     {

@@ -42,9 +42,6 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noChildElementSelectors(),
   onlyDirectChildSelectors(),
   requireDisplayFlexInParent(),
-  /*
-    disallow this: & > .test::before
-  */
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -260,9 +257,15 @@ function noDoubleChildSelectorsInNested() {
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
         const root = selectorParser.astSync(rule)
-        const [, double] = root.first.filter(x => x.type === 'combinator')
-        if (double)
-          report(rule, messages['nested - no double child selectors'], double.sourceIndex)
+        const [, double] = root.first.filter(x =>
+          x.type === 'combinator' ||
+          (x.type === 'pseudo' && x.value.startsWith('::'))
+        )
+        if (double) {
+          const i = double.sourceIndex
+          const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
+          report(rule, messages['nested - no double child selectors'], correctSourceIndex)
+        }
       })
     }
   })
