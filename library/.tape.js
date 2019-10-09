@@ -91,7 +91,8 @@ module.exports = {
       warnings: [message('nested - only layout related props in nested')('padding')]
     },
     { source: '.good { & > .test { width: 100%; } }', warnings: 0 },
-    { source: '.good { padding: 100px; }', warnings: 0 }
+    { source: '.good { padding: 100px; }', warnings: 0 },
+    { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },
   ],
   'kaliber/no-component-class-name-in-nested': [
     {

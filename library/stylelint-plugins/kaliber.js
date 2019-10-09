@@ -1,5 +1,6 @@
 const stylelint = require('stylelint')
-const selectorParser = require('postcss-selector-parser')
+const createParser = require('postcss-selector-parser')
+const selectorParser = createParser()
 
 const layoutRelatedProps = [
   'width', 'height',
@@ -32,6 +33,8 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
     flex child / parent relation
 
     width and height are allowed in root with px, rem, em and !important
+
+    disallow this: & > .test::before
   */
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
@@ -167,6 +170,9 @@ function onlyLayoutRelatedPropsInNested() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
+        const root = selectorParser.astSync(rule)
+        const pseudos = root.first.filter(x => x.type === 'pseudo')
+        if (pseudos.length) return
         const decls = findDecls(rule, layoutRelatedProps, { onlyInvalidTargets: true })
         decls.forEach(decl => {
           report(decl, messages['nested - only layout related props in nested'](decl.prop))
@@ -188,7 +194,7 @@ function noComponentNameInNested() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        selectorParser().astSync(rule).walkClasses(x => {
+        selectorParser.astSync(rule).walkClasses(x => {
           const className = x.value
           if (className.startsWith('component'))
             report(rule, messages['nested - no component class name in nested'](className), x.sourceIndex)
@@ -210,7 +216,7 @@ function noChildSelectorsInRoot() {
     messages,
     plugin: ({ root, report }) => {
       withRootRules(root, rule => {
-        selectorParser().astSync(rule).walkCombinators(x => {
+        selectorParser.astSync(rule).walkCombinators(x => {
           if (x.value === '>')
             report(rule, messages['root - no child selectors'], x.sourceIndex)
         })
@@ -231,7 +237,7 @@ function noDoubleChildSelectorsInNested() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        const root = selectorParser().astSync(rule)
+        const root = selectorParser.astSync(rule)
         const [, double] = root.first.filter(x => x.type === 'combinator')
         if (double)
           report(rule, messages['nested - no double child selectors'], double.sourceIndex)
