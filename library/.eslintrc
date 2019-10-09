@@ -4,7 +4,7 @@
   "parser": "babel-eslint",
   "plugins": ["import", "jsx-a11y", "react", "react-hooks"],
   "root": true,
-   "env": {
+  "env": {
     "browser": true,
     "commonjs": true,
     "es6": true,
@@ -102,6 +102,7 @@
     "no-unneeded-ternary": "warn",
     "no-unsafe-negation": "warn",
     "no-useless-return": "warn",
+    "object-curly-spacing": ["warn", "always"],
     "object-shorthand": ["warn", "always"],
     "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "semi": ["warn", "never"],
@@ -213,7 +214,7 @@
     "react/jsx-boolean-value": "warn",
     // "react/jsx-closing-bracket-location": "warn", // needs better config to fit our needs
     // "react/jsx-closing-tag-location": "warn", // needs better config to fit our needs
-    "react/jsx-curly-spacing": "warn",
+    "react/jsx-curly-spacing": ["warn", "never"],
     "react/jsx-equals-spacing": "warn",
     "react/jsx-indent": ["warn", 2],
     "react/jsx-indent-props": ["warn", 2],
