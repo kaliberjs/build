@@ -57,6 +57,14 @@ module.exports = {
       ])
     },
     {
+      source: '.bad { width: 10px; height: 10px; }',
+      warnings: createMessages('root - no layout related props', ['width', 'height'])
+    },
+    {
+      source: '.bad { width: 10% !important; height: 10% !important; }',
+      warnings: createMessages('root - no layout related props', ['width', 'height'])
+    },
+    {
       source: `
         .good {
           & > .test {
@@ -69,7 +77,10 @@ module.exports = {
         }
       `.replace(/        /g, ''),
       warnings: 0
-    }
+    },
+    { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
+    { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
+    { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
   ],
   'kaliber/no-double-nesting': [
     {

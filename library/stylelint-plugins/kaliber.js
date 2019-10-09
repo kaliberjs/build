@@ -1,6 +1,9 @@
 const stylelint = require('stylelint')
-const createParser = require('postcss-selector-parser')
-const selectorParser = createParser()
+const createSelectorParser = require('postcss-selector-parser')
+const createValueParser = require('postcss-values-parser')
+const selectorParser = createSelectorParser()
+
+function parseValue(value) { return createValueParser(value).parse() }
 
 const flexChildProps = [
   'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
@@ -40,8 +43,6 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   onlyDirectChildSelectors(),
   requireDisplayFlexInParent(),
   /*
-    width and height are allowed in root with px, rem, em and !important
-
     disallow this: & > .test::before
   */
 ])
@@ -143,11 +144,18 @@ function validStackingContextInRoot() {
 }
 
 function noLayoutRelatedPropsInRoot() {
+  const intrinsicUnits = ['px', 'em', 'rem']
+  const intrinsicProps = ['width', 'height']
   const messages = {
     'root - no layout related props': prop =>
       `illegal layout related prop\n\n` +
       `\`${prop}\` can only be used by root rules in nested selectors - ` +
-      `move to a nested selector in a another root rule`
+      `move to a nested selector in a another root rule` + (
+        intrinsicProps.includes(prop)
+        ? `\n\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
+          `one of \`${intrinsicUnits.join('`, `')}\` and add \`!important\``
+        : ''
+      )
   }
   return createPlugin({
     ruleName: 'kaliber/no-layout-related-props-in-root',
@@ -158,12 +166,18 @@ function noLayoutRelatedPropsInRoot() {
         const decls = findDecls(rule, layoutRelatedProps)
         decls.forEach(decl => {
           const { prop } = decl
+          if (intrinsicProps.includes(prop) && isIntrinsicValue(decl)) return
           const value = layoutRelatedPropsWithValues[prop]
           report(decl, messages['root - no layout related props'](prop + (value ? `: ${value}` : '')))
         })
       })
     }
   })
+
+  function isIntrinsicValue({ important, value }) {
+    const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
+    return important && number && intrinsicUnits.includes(number.unit)
+  }
 }
 
 function onlyLayoutRelatedPropsInNested() {
