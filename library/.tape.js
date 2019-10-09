@@ -109,11 +109,25 @@ module.exports = {
     },
     { source: '.good { & > .test { } }', warnings: 0 }
   ],
-  'kaliber/no-double-child-selectorors-in-nested': [
+  'kaliber/no-double-child-selectors-in-nested': [
     {
       source: '.bad { & > .one > .two { } }',
       warnings: [message('nested - no double child selectors')]
     },
-    { source: '.good { & > .one { } }\n\n.one { & > .two }'},
+    {
+      source: `
+        .good { & > .one { } }
+
+        .one { & > .two { } }
+      `.replace(/        /g, ''),
+      warnings: 0
+    },
+  ],
+  'kaliber/no-child-tag-selectors': [
+    {
+      source: '.bad { & > div { } }',
+      warnings: [message('nested - no child element selectors')]
+    },
+    { source: '.good { & > .test { } }', warnings: 0 },
   ],
 }

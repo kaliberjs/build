@@ -11,6 +11,17 @@ const layoutRelatedProps = [
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
 
+/*
+  Motivation
+
+  Without these (and some eslint) rules html and css will be tied together in a way
+  that prevents reuse. Every html element in the code is a potential component, without
+  these rules it becomes quite tricky to turn a select set of tags into a component. The
+  css often ties it together in a way that makes it quite hard to extract the correct parts
+  for the component. This results in people copy/pasting large sections and adjusting them
+  to their needs.
+*/
+
 const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   requireStackingContextInParent(),
   validStackingContextInRoot(),
@@ -21,11 +32,8 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noComponentNameInNested(),
   noChildSelectorsInRoot(),
   noDoubleChildSelectorsInNested(),
+  noChildElementSelectors(),
   /*
-    no nested element selectors
-    & > svg
-    use class selector
-
     only direct child selector
     & .something
     disable this rule for third party with comment explaining why
@@ -233,7 +241,7 @@ function noDoubleChildSelectorsInNested() {
       `write a separate root rule and select the child from there`
   }
   return createPlugin({
-    ruleName: 'kaliber/no-double-child-selectorors-in-nested',
+    ruleName: 'kaliber/no-double-child-selectors-in-nested',
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
@@ -241,6 +249,27 @@ function noDoubleChildSelectorsInNested() {
         const [, double] = root.first.filter(x => x.type === 'combinator')
         if (double)
           report(rule, messages['nested - no double child selectors'], double.sourceIndex)
+      })
+    }
+  })
+}
+
+function noChildElementSelectors() {
+  const messages = {
+    'nested - no child element selectors':
+      `no element child selector in nested selector\n\n` +
+      `it is not allowed to select a child element - ` +
+      `give the element a class and select on that`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/no-child-tag-selectors',
+    messages,
+    plugin: ({ root, report }) => {
+      withNestedRules(root, (rule, parent) => {
+        const root = selectorParser.astSync(rule)
+        const [tag] = root.first.filter(x => x.type === 'tag')
+        if (tag)
+          report(rule, messages['nested - no child element selectors'], tag.sourceIndex)
       })
     }
   })

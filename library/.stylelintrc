@@ -10,7 +10,8 @@
     "kaliber/only-layout-related-props-in-nested": true,
     "kaliber/no-component-class-name-in-nested": true,
     "kaliber/no-child-selectors-in-root": true,
-    "kaliber/no-double-child-selectorors-in-nested": true,
+    "kaliber/no-double-child-selectors-in-nested": true,
+    "kaliber/no-child-tag-selectors": true,
 
     "at-rule-empty-line-before": [
       "always",
