@@ -33,11 +33,8 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noChildSelectorsInRoot(),
   noDoubleChildSelectorsInNested(),
   noChildElementSelectors(),
+  onlyDirectChildSelectors(),
   /*
-    only direct child selector
-    & .something
-    disable this rule for third party with comment explaining why
-
     flex child / parent relation
 
     width and height are allowed in root with px, rem, em and !important
@@ -270,6 +267,29 @@ function noChildElementSelectors() {
         const [tag] = root.first.filter(x => x.type === 'tag')
         if (tag)
           report(rule, messages['nested - no child element selectors'], tag.sourceIndex)
+      })
+    }
+  })
+}
+
+function onlyDirectChildSelectors() {
+  const messages = {
+    'only direct child selectors': type =>
+     `no \`${type}\` selector combinator\n\n` +
+     `it is only only allowed to use direct child selectors - ` +
+     `restructure the css in a way that does not require this, if a third library forces ` +
+     `you to use this type of selector, disable the rule for this line and add a comment ` +
+     `stating the reason`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/only-direct-child-selectors',
+    messages,
+    plugin: ({ root, report }) => {
+      root.walkRules(rule => {
+        const root = selectorParser.astSync(rule)
+        const [combinator] = root.first.filter(x => x.type === 'combinator' && x.value !== '>')
+        if (combinator)
+          report(rule, messages['only direct child selectors'](combinator.value), combinator.sourceIndex)
       })
     }
   })

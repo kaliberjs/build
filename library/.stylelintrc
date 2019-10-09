@@ -12,6 +12,7 @@
     "kaliber/no-child-selectors-in-root": true,
     "kaliber/no-double-child-selectors-in-nested": true,
     "kaliber/no-child-tag-selectors": true,
+    "kaliber/only-direct-child-selectors": true,
 
     "at-rule-empty-line-before": [
       "always",

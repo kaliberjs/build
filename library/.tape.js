@@ -130,4 +130,28 @@ module.exports = {
     },
     { source: '.good { & > .test { } }', warnings: 0 },
   ],
+  'kaliber/only-direct-child-selectors': [
+    {
+      source: '.bad .test { }',
+      warnings: [message('only direct child selectors')(' ')]
+    },
+    {
+      source: '.bad { & .test { } }',
+      warnings: [message('only direct child selectors')(' ')]
+    },
+    {
+      source: '.bad { & > .test .one { } }',
+      warnings: [message('only direct child selectors')(' ')]
+    },
+    {
+      source: '.bad + .test { }',
+      warnings: [message('only direct child selectors')('+')]
+    },
+    {
+      source: '.bad { & + * { } }',
+      warnings: [message('only direct child selectors')('+')]
+    },
+    { source: '.good { &.test { } }', warnings: 0 },
+    { source: '.good { & > .test { } }', warnings: 0 },
+  ],
 }
