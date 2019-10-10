@@ -296,7 +296,7 @@ function onlyDirectChildSelectors() {
   const messages = {
     'only direct child selectors': type =>
      `no \`${type}\` selector combinator\n\n` +
-     `it is only only allowed to use direct child selectors - ` +
+     `it is only allowed to use direct child selectors - ` +
      `restructure the css in a way that does not require this, if a third library forces ` +
      `you to use this type of selector, disable the rule for this line and add a comment ` +
      `stating the reason`
