@@ -16,7 +16,20 @@
     "kaliber/only-direct-child-selectors": true,
     "kaliber/valid-flex-context-in-root": true,
 
-    "at-rule-empty-line-before": null,
+    "at-rule-empty-line-before": [
+      "always", {
+        "except": [
+          "blockless-after-same-name-blockless",
+          "first-nested"
+        ],
+        "ignore": [
+          "after-comment"
+        ],
+        "ignoreAtRules": [
+          "media"
+        ]
+      }
+    ],
     "at-rule-name-case": "lower",
     "at-rule-name-space-after": "always-single-line",
     "at-rule-no-unknown": [
