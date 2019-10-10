@@ -1,4 +1,15 @@
 const { messages } = require('./stylelint-plugins/kaliber')
+const stylelint = require('stylelint')
+
+// patch in order to add support for filenames to tape
+const originalLint = stylelint.lint.bind(stylelint)
+stylelint.lint = function lint({ code, ...otherOptions }) {
+  const options = (typeof code === 'object')
+    ? { code: code.source, codeFilename: code.filename }
+    : { code }
+  return originalLint({ ...options, ...otherOptions })
+}
+
 
 function message(key) {
   const x = messages[key]
@@ -10,6 +21,7 @@ function createMessages(key, values) {
   return values.map(x)
 }
 
+// TODO: add @media query tests
 module.exports = {
   'kaliber/valid-stacking-context-in-root': [
     {
@@ -20,7 +32,39 @@ module.exports = {
       source: '.bad { position: relative; z-index: 1; }',
       warnings: [message('root - z-index not 0')]
     },
+    {
+      source: `
+        .bad {
+          @media x {
+            z-index: 0;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: [message('root - z-index not 0')]
+      },
     { source: '.good { position: relative; z-index: 0; }', warnings: 0 },
+    {
+      source: `
+        .good {
+          position: relative;
+          @media x {
+            z-index: 0;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: 0
+    },
+    {
+      source: `
+        .good {
+          @media x {
+            z-index: 0;
+            position: relative;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: 0
+    },
   ],
   'kaliber/require-stacking-context-in-parent': [
     {
@@ -78,16 +122,51 @@ module.exports = {
       `.replace(/        /g, ''),
       warnings: 0
     },
+    {
+      title: 'allow some layout related props in root in reset.css',
+      source: {
+        filename: 'reset.css',
+        source: `
+          div {
+            width: 100%;
+            margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+          }
+        `.replace(/        /g, ''),
+      },
+      warnings: 0
+    },
+    {
+      title: 'prevent some layout related props in root in reset.css',
+      source: {
+        filename: 'reset.css',
+        source: `
+          div {
+            height: 100%;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          }
+        `.replace(/        /g, ''),
+      },
+      warnings: createMessages('root - no layout related props', [
+        'height',
+        'position: absolute',
+        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+      ])
+    },
     { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
     { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
+    { source: '.good { z-index: 0; position: relative; }', warnings: 0 },
+    { source: '.good { &::before { position: absolute; } }', warnings: 0 },
   ],
   'kaliber/no-double-nesting': [
     {
       source: '.bad { & > .test1 { & > .test2 { } } }',
       warnings: [message('nested - no double nesting')]
     },
-    { source: '.good { & > .test { } }', warnings: 0 }
+    { source: '.good { & > .test { } }', warnings: 0 },
+    { source: '.good { & > .test { &:not(:last-child) { } } }', warnings: 0 },
   ],
   'kaliber/absolute-has-relative-parent': [
     {
@@ -204,4 +283,52 @@ module.exports = {
       warnings: 0
     }
   ],
+  'kaliber/media-no-child': [
+    {
+      source: `
+        .bad {
+          @media x {
+            & > {
+              width: 10px;
+            }
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: ['?']
+    },
+    {
+      source: `
+        .good {
+          & > {
+            @media x {
+              width: 10px;
+            }
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: 0
+    }
+  ],
+  'kaliber/only-element-selectors-in-reset': [
+    {
+      title: 'invalid - no tag in selector',
+      source: { filename: 'other.css', source: `div { }` },
+      warnings: ['?']
+    },
+    {
+      title: 'valid - allow tag in reset.css',
+      source: { filename: 'reset.css', source: `div { }` },
+      warnings: 0
+    }
+  ],
+  'kaliber/no-media-in-root': [
+    {
+      source: `.bad { } @media x { }`,
+      warnings: ['?']
+    },
+    {
+      source: `.good { @media x { } }`,
+      warnings: 0
+    }
+  ]
 }
