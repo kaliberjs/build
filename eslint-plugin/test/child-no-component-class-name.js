@@ -11,6 +11,15 @@ module.exports = {
         )
       }
     `,
+    `
+      function Test() {
+        return (
+          <MyWrapper>
+            <div className={styles.component} />
+          </MyWrapper>
+        )
+      }
+    `,
   ],
   invalid: [
     {
@@ -24,6 +33,6 @@ module.exports = {
         }
       `,
       errors: [ { message: messages['no component className'], type: 'Identifier' }]
-    }
+    },
   ],
 }

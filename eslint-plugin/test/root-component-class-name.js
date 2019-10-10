@@ -51,7 +51,19 @@ module.exports = {
           )
         }
       `,
-    }
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test() {
+          return (
+            <Wrapper>
+              <div className={styles.component} />
+            </Wrapper>
+          )
+        }
+      `,
+    },
   ],
   invalid: [
     {
@@ -71,6 +83,19 @@ module.exports = {
             <div className={styles.test}>
               <div className={styles.test2} />
             </div>
+          )
+        }
+      `,
+      errors: [{ message: messages['invalid className']('component2'), type: 'Identifier' }],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
+            <Wrapper>
+              <div className={styles.test} />
+            </Wrapper>
           )
         }
       `,

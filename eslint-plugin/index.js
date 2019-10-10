@@ -23,7 +23,7 @@ module.exports = {
             if (checked.has(jsxElement)) return
             else checked.add(jsxElement)
 
-            if (!isRootJSXElement(jsxElement)) return
+            if (hasParentsWithClassName(jsxElement)) return
 
             const prefix = new RegExp(`^${getBaseFilename(context)}`)
             const expected = `component${getFunctionName(context).replace(prefix, '')}`
@@ -43,7 +43,7 @@ module.exports = {
           [`ReturnStatement JSXAttribute[name.name = 'className'] MemberExpression[object.name = 'styles']`](node) {
             const jsxElement = getParentJSXElement(node)
 
-            if (isRootJSXElement(jsxElement) || !node.property.name.startsWith('component')) return
+            if (!hasParentsWithClassName(jsxElement) || !node.property.name.startsWith('component')) return
 
             context.report({
               message: messages['no component className'],
@@ -195,6 +195,20 @@ function getFunctionName(context) {
 
 function isRootJSXElement(jsxElement) {
   return !getParentJSXElement(jsxElement)
+}
+
+function hasParentsWithClassName(jsxElement) {
+  return getParentJSXElements(jsxElement).some(hasClassName)
+
+  function hasClassName(jsxElement) {
+    return jsxElement.openingElement.attributes.some(x => x.name.name === 'className')
+  }
+}
+
+function getParentJSXElements(jsxElement) {
+  const parent = getParentJSXElement(jsxElement)
+  if (!parent) return []
+  else return [parent, ...getParentJSXElements(parent)]
 }
 
 function getParentJSXElement({ parent }) {
