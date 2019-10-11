@@ -1,2 +1,0 @@
-#!/bin/sh +x
-exec node --icu-data-dir="$( node -e 'process.stdout.write(require(`path`).dirname(require.resolve(`full-icu`)))' )" "$1" "$@"
