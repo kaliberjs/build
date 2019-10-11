@@ -472,7 +472,7 @@ function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {
 
 function invalidTarget(targets, { prop, value }) {
   const hasProp = targets.hasOwnProperty(prop)
-  const targetValue = targets[value]
+  const targetValue = targets[prop]
   return !hasProp || (targetValue && targetValue !== value)
 }
 
