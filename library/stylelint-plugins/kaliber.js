@@ -2,8 +2,14 @@ const stylelint = require('stylelint')
 const createSelectorParser = require('postcss-selector-parser')
 const createValueParser = require('postcss-values-parser')
 const selectorParser = createSelectorParser()
+const path = require('path')
 
 function parseValue(value) { return createValueParser(value).parse() }
+
+const allowedInReset = [
+  'width', 'height',
+  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+]
 
 const flexChildProps = [
   'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
@@ -164,6 +170,7 @@ function noLayoutRelatedPropsInRoot() {
         decls.forEach(decl => {
           const { prop } = decl
           if (intrinsicProps.includes(prop) && isIntrinsicValue(decl)) return
+          if (isReset(root) && allowedInReset.includes(prop)) return
           const value = layoutRelatedPropsWithValues[prop]
           report(decl, messages['root - no layout related props'](prop + (value ? `: ${value}` : '')))
         })
@@ -537,4 +544,8 @@ function getProps(node) {
     if (x.type === 'decl') result[x.prop] = x.value
   })
   return result
+}
+
+function isReset({ source: { input } }) {
+  return !!input.file && path.basename(input.file) === 'reset.css'
 }
