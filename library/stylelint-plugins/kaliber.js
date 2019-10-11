@@ -339,6 +339,68 @@ function requireDisplayFlexInParent() {
   })
 }
 
+function splitByMediaQueries(root) {
+  const mediaQueries = gatherMediaQueries(root)
+
+  const clone = root.clone()
+  clone.walkAtRules('media', x => { x.remove() })
+
+  const byMediaQueries = mediaQueries.reduce(
+    (result, params) => {
+      const clone = root.clone()
+
+      extractAndRemoveMediaRules(clone, params)
+        .forEach(({ parent, rule }) => { merge(rule, parent) })
+
+      return { ...result, [params]: clone }
+    },
+    { '': clone }
+  )
+
+  return byMediaQueries
+
+  function gatherMediaQueries(root) {
+    const mediaQueries = {}
+    root.walkAtRules('media', ({ params }) => { mediaQueries[params] = true })
+    return Object.keys(mediaQueries)
+  }
+
+  function extractAndRemoveMediaRules(container, params) {
+    const atRules = []
+    container.walkAtRules('media', rule => {
+      const { parent } = rule
+      rule.remove()
+      if (rule.params === params) atRules.push({ parent, rule })
+    })
+    return atRules
+  }
+
+  function merge(source, target) {
+    const ruleLookup = {}
+    const declLookup = {}
+    target.each(x => {
+      if (x.type === 'rule') ruleLookup[x.selector] = x
+      if (x.type === 'decl') declLookup[x.prop] = x
+    })
+
+    source.each(x => {
+      if (x.type === 'decl') {
+        const existing = declLookup[x.prop]
+        if (existing) existing.replaceWith(x)
+        else target.append(x)
+      }
+
+      if (x.type === 'rule') {
+        const existing = ruleLookup[x.selector]
+        if (existing) merge(x, existing)
+        else target.append(x)
+      }
+
+      if (x.type === 'atrule') target.append(x)
+    })
+  }
+}
+
 function extractPropsWithValues(props) {
   return props.reduce(
     (result, x) => {
@@ -426,7 +488,36 @@ function createPlugin({ ruleName, messages, plugin }) {
       const check = { actual: primaryOption, possible: [true] }
       if (!stylelint.utils.validateOptions(result, ruleName, check)) return
 
-      plugin({ root, report })
+      /*
+        We create new root nodes for each applicable media query.
+
+        This is not a complete solution. Multiple media queries apply, and we now only check for
+        'same param queries'. This means that we might falsly report or miss some errors. We can
+        only make a full solution if we have a string params policy that allows us to sort and apply
+        the correct queries. An example (assuming that when y applies, x applies as well):
+
+          .test {
+            @media x {
+              position: relative;
+            }
+            @media y {
+              z-index: 0;
+
+              & > * {
+                position: absolute;
+                z-index: 1;
+              }
+            }
+          }
+
+        This implementation splits it for each plugin. This might be a performance problem. The easy
+        solution would be to create a `kaliber/style-lint` plugin/rule. That rule would be the only
+        rule that is configured in .stylelintrc. It would split the root once and then run the
+        different rules manually (stylelint.rules['kaliber/xyz'](...)(splitRoot, result)).
+      */
+      Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
+        plugin({ root, report })
+      })
 
       function report(node, message, index) {
         stylelint.utils.report({ message, index, node, result, ruleName })
@@ -434,13 +525,6 @@ function createPlugin({ ruleName, messages, plugin }) {
     }
   }
 }
-
-  // onlyTopLevel: prop => `'${prop}' should only appear in top level rules`,
-  // invalidPositionAbsoluteValueAtRoot: 'position can not be absolute at root, set from parent',
-
-  // if (getParent(parent)) report(rule, messages.doubleNesting)
-  // if (x.prop === 'padding') report(x, messages.onlyTopLevel('padding'))
-  // if (x.prop === 'position' && x.value === 'absolute') report(x, messages.invalidPositionAbsoluteValueAtRoot)
 
 function getParentRule({ parent }) {
   return parent.type !== 'root' &&

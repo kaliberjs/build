@@ -40,7 +40,7 @@ module.exports = {
           }
         }
       `.replace(/        /g, ''),
-      warnings: [message('root - z-index not 0')]
+      warnings: [message('root - z-index without position relative')]
       },
     { source: '.good { position: relative; z-index: 0; }', warnings: 0 },
     {
