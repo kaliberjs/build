@@ -531,12 +531,27 @@ function createPlugin({ ruleName, messages, plugin }) {
         rule that is configured in .stylelintrc. It would split the root once and then run the
         different rules manually (stylelint.rules['kaliber/xyz'](...)(splitRoot, result)).
       */
+      const reported = {}
+
       Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
         plugin({ root, report })
       })
 
       function report(node, message, index) {
+        const id = getId(node, message, index)
+        if (reported[id]) return
+        else reported[id] = true
         stylelint.utils.report({ message, index, node, result, ruleName })
+      }
+
+      function getId({ type, prop, selector, params }, message, index) {
+        const nodeId =
+          type === 'decl' ? `decl-${prop}` :
+          type === 'rule' ? `rule-${selector}` :
+          type === 'atrule' ? `atrule-${params}` :
+          type
+
+        return `${nodeId}-${message}${index}`
       }
     }
   }
