@@ -87,7 +87,8 @@ function noDoubleNesting() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        if (getParentRule(parent)) report(rule, messages['nested - no double nesting'])
+        if (!getParentRule(parent) || !hasChildSelector(rule)) return
+        report(rule, messages['nested - no double nesting'])
       })
     }
   })
@@ -263,11 +264,7 @@ function noDoubleChildSelectorsInNested() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        const root = selectorParser.astSync(rule)
-        const [, double] = root.first.filter(x =>
-          x.type === 'combinator' ||
-          (x.type === 'pseudo' && x.value.startsWith('::'))
-        )
+        const [, double] = getChildSelectors(rule)
         if (double) {
           const i = double.sourceIndex
           const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
@@ -344,6 +341,18 @@ function requireDisplayFlexInParent() {
       })
     }
   })
+}
+
+function hasChildSelector(rule) {
+  return !!getChildSelectors(rule).length
+}
+
+function getChildSelectors(rule) {
+  const root = selectorParser.astSync(rule)
+  return root.first.filter(x =>
+    x.type === 'combinator' ||
+    (x.type === 'pseudo' && x.value.startsWith('::'))
+  )
 }
 
 function splitByMediaQueries(root) {
