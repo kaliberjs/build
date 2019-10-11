@@ -49,7 +49,7 @@ module.exports = rules
 function absoluteHasRelativeParent() {
   const messages = {
     'nested - absolute has relative parent':
-      'missing `position: relative;` in parent\n\n' +
+      'missing `position: relative;` in parent\n' +
       '`position: absolute` is only allowed when the containing root rule is set to `position: relative` -' +
       'add `position: relative;` to the containing root rule'
   }
@@ -72,7 +72,7 @@ function absoluteHasRelativeParent() {
 function noDoubleNesting() {
   const messages = {
     'nested - no double nesting':
-      'no double nesting\n\n' +
+      'no double nesting\n' +
       'nesting is only allowed one level - ' +
       'create a root rule and move the nested block there'
   }
@@ -90,7 +90,7 @@ function noDoubleNesting() {
 function requireStackingContextInParent() {
   const messages = {
     'nested - missing stacking context in parent':
-      'missing stacking context (`position: relative; z-index: 0;`)\n\n' +
+      'missing stacking context (`position: relative; z-index: 0;`)\n' +
       '`z-index` can only be used when the containing root rule creates a new stacking context - ' +
       'add `position: relative;` and `z-index: 0` to the containing root rule',
   }
@@ -113,11 +113,11 @@ function requireStackingContextInParent() {
 function validStackingContextInRoot() {
   const messages = {
     'root - z-index without position relative':
-      'missing `position: relative;`\n\n' +
+      'missing `position: relative;`\n' +
       '`z-index` can only be used at the root level to create a non invasive stacking context - ' +
       'add `position: relative;` or set the `z-index` with a nested selector in another root rule',
     'root - z-index not 0':
-      'not 0\n\n' +
+      'not 0\n' +
       '`z-index` can only be used at the root level when creating a non invasive stacking context - ' +
       'set to 0 or set the `z-index` with a nested selector in another root rule',
   }
@@ -141,15 +141,15 @@ function validStackingContextInRoot() {
 }
 
 function noLayoutRelatedPropsInRoot() {
-  const intrinsicUnits = ['px', 'em', 'rem']
+  const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
   const intrinsicProps = ['width', 'height']
   const messages = {
     'root - no layout related props': prop =>
-      `illegal layout related prop\n\n` +
+      `illegal layout related prop\n` +
       `\`${prop}\` can only be used by root rules in nested selectors - ` +
       `move to a nested selector in a another root rule` + (
         intrinsicProps.includes(prop)
-        ? `\n\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
+        ? `\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
           `one of \`${intrinsicUnits.join('`, `')}\` and add \`!important\``
         : ''
       )
@@ -180,7 +180,7 @@ function noLayoutRelatedPropsInRoot() {
 function onlyLayoutRelatedPropsInNested() {
   const messages = {
     'nested - only layout related props in nested':  prop =>
-      `illegal non-layout related prop\n\n` +
+      `illegal non-layout related prop\n` +
       `\`${prop}\` can only be used by root rules - ` +
       `move to another root rule`
   }
@@ -204,7 +204,7 @@ function onlyLayoutRelatedPropsInNested() {
 function noComponentNameInNested() {
   const messages = {
     'nested - no component class name in nested': className =>
-      `illegal class name\n\n` +
+      `illegal class name\n` +
       `\`${className}\` can not be used in nested selectors - ` +
       `remove \`component\` from the name`
   }
@@ -226,7 +226,7 @@ function noComponentNameInNested() {
 function noChildSelectorsInRoot() {
   const messages = {
     'root - no child selectors':
-      `no child selector at root level\n\n` +
+      `no child selector at root level\n` +
       `it is not allowed to use child selectors on root level - ` +
       `write the child selector nested using the \`&\``
   }
@@ -247,7 +247,7 @@ function noChildSelectorsInRoot() {
 function noDoubleChildSelectorsInNested() {
   const messages = {
     'nested - no double child selectors':
-      `no double child selector in nested selector\n\n` +
+      `no double child selector in nested selector\n` +
       `it is not allowed to select the child of a child - ` +
       `write a separate root rule and select the child from there`
   }
@@ -274,7 +274,7 @@ function noDoubleChildSelectorsInNested() {
 function noChildElementSelectors() {
   const messages = {
     'nested - no child element selectors':
-      `no element child selector in nested selector\n\n` +
+      `no element child selector in nested selector\n` +
       `it is not allowed to select a child element - ` +
       `give the element a class and select on that`
   }
@@ -295,7 +295,7 @@ function noChildElementSelectors() {
 function onlyDirectChildSelectors() {
   const messages = {
     'only direct child selectors': type =>
-     `no \`${type}\` selector combinator\n\n` +
+     `no \`${type}\` selector combinator\n` +
      `it is only allowed to use direct child selectors - ` +
      `restructure the css in a way that does not require this, if a third library forces ` +
      `you to use this type of selector, disable the rule for this line and add a comment ` +
@@ -318,7 +318,7 @@ function onlyDirectChildSelectors() {
 function requireDisplayFlexInParent() {
   const messages = {
     'nested - require display flex in parent': prop =>
-      `missing \`display: flex;\`\n\n` +
+      `missing \`display: flex;\`\n` +
       `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` - ` +
       `add \`display: flex;\` to the containing root rule`,
   }
