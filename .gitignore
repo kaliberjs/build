@@ -4,3 +4,4 @@ examples/**/yarn.lock
 local*
 *.log
 gh-pages/
+icu-data/
