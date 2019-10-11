@@ -25,14 +25,12 @@ function createMessages(key, values) {
 module.exports = {
   'kaliber/valid-stacking-context-in-root': [
     {
+      title: "don't allow `z-index` in root without `position: relative`",
       source: '.bad { z-index: 0; }',
       warnings: [message('root - z-index without position relative')]
     },
     {
-      source: '.bad { position: relative; z-index: 1; }',
-      warnings: [message('root - z-index not 0')]
-    },
-    {
+      title: "└─ take @media into account",
       source: `
         .bad {
           @media x {
@@ -42,8 +40,14 @@ module.exports = {
       `.replace(/        /g, ''),
       warnings: [message('root - z-index without position relative')]
       },
+    {
+      title: "only allow a `z-index: 0` in root",
+      source: '.bad { position: relative; z-index: 1; }',
+      warnings: [message('root - z-index not 0')]
+    },
     { source: '.good { position: relative; z-index: 0; }', warnings: 0 },
     {
+      title: "├─ take @media into account [1]",
       source: `
         .good {
           position: relative;
@@ -55,6 +59,7 @@ module.exports = {
       warnings: 0
     },
     {
+      title: "└─ take @media into account [2]",
       source: `
         .good {
           @media x {
@@ -68,14 +73,17 @@ module.exports = {
   ],
   'kaliber/require-stacking-context-in-parent': [
     {
+      title: "report missing stacking context",
       source: '.bad { & > .test { z-index: 0; } }',
       warnings: [message('nested - missing stacking context in parent')]
     },
     {
+      title: "report missing stacking context - only `position: relative`",
       source: '.bad { position: relative; & > .test { z-index: 0; } }',
       warnings: [message('nested - missing stacking context in parent')]
     },
     {
+      title: "report missing stacking context - only `z-index: 0`",
       source: '.bad { z-index: 0; & > .test { z-index: 0; } }',
       warnings: [message('nested - missing stacking context in parent')]
     },
@@ -83,6 +91,7 @@ module.exports = {
   ],
   'kaliber/no-layout-related-props-in-root': [
     {
+      title: "report error when using layout related props in root",
       source: `
         .bad {
           width: 100%; height: 100%;
@@ -101,14 +110,17 @@ module.exports = {
       ])
     },
     {
+      title: "report error when using intrinsic size without !important",
       source: '.bad { width: 10px; height: 10px; }',
       warnings: createMessages('root - no layout related props', ['width', 'height'])
     },
     {
+      title: "report error when using non intrinsic unit without !important",
       source: '.bad { width: 10% !important; height: 10% !important; }',
       warnings: createMessages('root - no layout related props', ['width', 'height'])
     },
     {
+      title: "don't report errors when layout related props are used in child",
       source: `
         .good {
           & > .test {
@@ -207,6 +219,7 @@ module.exports = {
       warnings: [message('nested - no double child selectors')]
     },
     {
+      title: 'correctly nested',
       source: `
         .good { & > .one { } }
 
@@ -219,6 +232,7 @@ module.exports = {
       warnings: [message('nested - no double child selectors')]
     },
     {
+      title: 'correctly nested pseudo element',
       source: `
         .good { & > .one { } }
 
@@ -261,6 +275,7 @@ module.exports = {
   ],
   'kaliber/valid-flex-context-in-root': [
     {
+      title: 'report missing flex',
       source: `
         .bad {
           & > .test {
@@ -273,6 +288,7 @@ module.exports = {
       ])
     },
     {
+      title: "don't report when display flex is present",
       source: `
         .good {
           display: flex;
@@ -287,6 +303,7 @@ module.exports = {
   ],
   'kaliber/media-no-child': [
     {
+      title: "report nested child in media",
       source: `
         .bad {
           @media x {
@@ -299,6 +316,7 @@ module.exports = {
       warnings: ['?']
     },
     {
+      title: "don't report media in nested child",
       source: `
         .good {
           & > {
