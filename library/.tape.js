@@ -39,7 +39,7 @@ module.exports = {
         }
       `.replace(/        /g, ''),
       warnings: [message('root - z-index without position relative')]
-      },
+    },
     {
       title: "only allow a `z-index: 0` in root",
       source: '.bad { position: relative; z-index: 1; }',
@@ -140,10 +140,10 @@ module.exports = {
         filename: 'reset.css',
         source: `
           div {
-            width: 100%;
+            width: 100%; height: 100%;
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           }
-        `.replace(/        /g, ''),
+        `.replace(/         /g, ''),
       },
       warnings: 0
     },
@@ -153,7 +153,6 @@ module.exports = {
         filename: 'reset.css',
         source: `
           div {
-            height: 100%;
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
@@ -161,9 +160,9 @@ module.exports = {
         `.replace(/        /g, ''),
       },
       warnings: createMessages('root - no layout related props', [
-        'height',
         'position: absolute',
-        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'top', 'right', 'bottom', 'left',
+        'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
       ])
     },
     { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
