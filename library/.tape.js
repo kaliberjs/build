@@ -158,6 +158,8 @@ module.exports = {
     { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
     { source: '.good { z-index: 0; position: relative; }', warnings: 0 },
+    { source: '.good { position: relative; & > .test { position: absolute; } }', warnings: 0 },
+    { source: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }', warnings: 0 },
     { source: '.good { &::before { position: absolute; } }', warnings: 0 },
   ],
   'kaliber/no-double-nesting': [

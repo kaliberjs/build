@@ -1,4 +1,5 @@
 {
+  "ignoreFiles": ["src/**/*.js"],
   "plugins": ["stylelint-use-nesting", "./stylelint-plugins/kaliber.js"],
   "rules": {
     "csstools/use-nesting": "always",
