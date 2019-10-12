@@ -18,6 +18,25 @@
     "kaliber/media-no-child": true,
     "kaliber/only-tag-selectors-in-reset-and-index": true,
 
+    "at-rule-blacklist": [
+      'apply',
+      'annotation',
+      'character-variant',
+      'charset',
+      'counter-style',
+      'custom-selector',
+      'document',
+      'font-feature-values',
+      'import',
+      'namespace',
+      'nest',
+      'ornaments',
+      'page',
+      'styleset',
+      'stylistic',
+      'swash',
+      'viewport',
+    ],
     "at-rule-empty-line-before": [
       "always", {
         "except": [
