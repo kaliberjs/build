@@ -48,6 +48,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noChildElementSelectors(),
   onlyDirectChildSelectors(),
   requireDisplayFlexInParent(),
+  noChildElementSelectorsInMedia(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -343,6 +344,26 @@ function requireDisplayFlexInParent() {
   })
 }
 
+function noChildElementSelectorsInMedia() {
+  const messages = {
+    'media - no nested child':
+      `unexpected rule in @media\n` +
+      `@media should be placed inside rules and not the other way around - ` +
+      `swap the selector and @media statement`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/media-no-child',
+    messages,
+    plugin: ({ root, report }) => {
+      root.walkAtRules('media', rule => {
+        rule.walkRules(rule => {
+          report(rule, messages['media - no nested child'])
+        })
+      })
+    }
+  })
+}
+
 function hasChildSelector(rule) {
   return !!getChildSelectors(rule).length
 }
@@ -533,6 +554,7 @@ function createPlugin({ ruleName, messages, plugin }) {
       */
       const reported = {}
 
+      plugin({ root, report })
       Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
         plugin({ root, report })
       })

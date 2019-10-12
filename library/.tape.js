@@ -312,7 +312,7 @@ module.exports = {
           }
         }
       `.replace(/        /g, ''),
-      warnings: ['?']
+      warnings: [messages['media - no nested child']]
     },
     {
       title: "don't report media in nested child",
@@ -326,7 +326,29 @@ module.exports = {
         }
       `.replace(/        /g, ''),
       warnings: 0
-    }
+    },
+    {
+      title: "report nested child in media (root)",
+      source: `
+        @media x {
+          .bad {
+            width: 10px;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: [messages['media - no nested child']]
+    },
+    {
+      title: "don't report media in nested child (root)",
+      source: `
+        .good {
+          @media x {
+            width: 10px;
+          }
+        }
+      `.replace(/        /g, ''),
+      warnings: 0
+    },
   ],
   'kaliber/only-element-selectors-in-reset': [
     {
