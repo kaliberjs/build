@@ -3,6 +3,9 @@ const createSelectorParser = require('postcss-selector-parser')
 const createValueParser = require('postcss-values-parser')
 const selectorParser = createSelectorParser()
 const path = require('path')
+const createPostcssModulesValuesResolver = require('postcss-modules-values')
+
+const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
 
 function parseValue(value) { return createValueParser(value).parse() }
 
@@ -599,6 +602,7 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
       */
       const reported = {}
 
+      postcssModulesValuesResolver(root, result)
       plugin({ root, report })
       if (testWithNormalizedMediaQueries)
         Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {

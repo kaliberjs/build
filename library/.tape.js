@@ -219,6 +219,16 @@ module.exports = {
       source: '.good { height: 0; padding-bottom: 10px; }',
       warnings: [messages['root - no layout related props']('height')]
     },
+    {
+      title: 'take @value into account',
+      source: `
+        @value x: 10px;
+        .good {
+          width: x !important;
+        }
+      `,
+      warnings: 0
+    },
     { source: '.good { height: 0; padding-bottom: 65.25%; }', warnings: 0 },
     { source: '.good { height: 0; padding-top: 65.25%; }', warnings: 0 },
     { source: '.good { z-index: 0; position: relative; }', warnings: 0 },
