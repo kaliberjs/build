@@ -110,6 +110,28 @@ module.exports = {
       ])
     },
     {
+      title: "report error when using layout related props in root in index.css",
+      source: {
+        filename: 'index.css',
+        source:`
+          div {
+            width: 100%; height: 100%;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          }
+        `.replace(/        /g, ''),
+      },
+      warnings: createMessages('root - no layout related props', [
+        'width', 'height',
+        'position: absolute',
+        'top', 'right', 'bottom', 'left',
+        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+      ])
+    },
+    {
       title: "report error when using intrinsic size without !important",
       source: '.bad { width: 10px; height: 10px; }',
       warnings: createMessages('root - no layout related props', ['width', 'height'])
