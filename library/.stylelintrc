@@ -12,7 +12,7 @@
     "kaliber/no-component-class-name-in-nested": true,
     "kaliber/no-child-selectors-in-root": true,
     "kaliber/no-double-child-selectors-in-nested": true,
-    "kaliber/no-child-tag-selectors": true,
+    "kaliber/no-tag-selectors": true,
     "kaliber/only-direct-child-selectors": true,
     "kaliber/valid-flex-context-in-root": true,
     "kaliber/media-no-child": true,

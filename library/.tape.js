@@ -241,12 +241,31 @@ module.exports = {
     },
     { source: '.good { & > *:not(:first-child) { } }', warnings: 0 },
   ],
-  'kaliber/no-child-tag-selectors': [
+  'kaliber/no-tag-selectors': [
+    {
+      source: 'div { }',
+      warnings: [message('no tag selectors')]
+    },
+    { source: '.good { }', warnings: 0 },
     {
       source: '.bad { & > div { } }',
-      warnings: [message('nested - no child element selectors')]
+      warnings: [message('no tag selectors')]
+    },
+    {
+      source: '.bad { & > div { } }',
+      warnings: [message('no tag selectors')]
     },
     { source: '.good { & > .test { } }', warnings: 0 },
+    {
+      title: 'allow tag selectors in reset.css',
+      source: { filename: 'reset.css', source: 'div { }' },
+      warnings: 0
+    },
+    {
+      title: 'allow tag selectors in index.css',
+      source: { filename: 'index.css', source: 'div { }' },
+      warnings: 0
+    },
   ],
   'kaliber/only-direct-child-selectors': [
     {

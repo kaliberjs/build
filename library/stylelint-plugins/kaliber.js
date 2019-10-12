@@ -45,7 +45,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noComponentNameInNested(),
   noChildSelectorsInRoot(),
   noDoubleChildSelectorsInNested(),
-  noChildElementSelectors(),
+  noTagSelectors(),
   onlyDirectChildSelectors(),
   requireDisplayFlexInParent(),
   noChildElementSelectorsInMedia(),
@@ -276,22 +276,23 @@ function noDoubleChildSelectorsInNested() {
   })
 }
 
-function noChildElementSelectors() {
+function noTagSelectors() {
   const messages = {
-    'nested - no child element selectors':
-      `no element child selector in nested selector\n` +
-      `it is not allowed to select a child element - ` +
-      `give the element a class and select on that`
+    'no tag selectors':
+      `no tag selectors\n` +
+      `it is not allowed to select tags outside of reset.css and index.css - ` +
+      `give the element a class and select on that or move to reset.css or index.css`
   }
   return createPlugin({
-    ruleName: 'kaliber/no-child-tag-selectors',
+    ruleName: 'kaliber/no-tag-selectors',
     messages,
     plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
+      if (isReset(root) || isIndex(root)) return
+      root.walkRules(rule => {
         const root = selectorParser.astSync(rule)
         const [tag] = root.first.filter(x => x.type === 'tag')
         if (tag)
-          report(rule, messages['nested - no child element selectors'], tag.sourceIndex)
+          report(rule, messages['no tag selectors'], tag.sourceIndex)
       })
     }
   })
@@ -592,6 +593,10 @@ function getProps(node) {
   return result
 }
 
-function isReset({ source: { input } }) {
-  return !!input.file && path.basename(input.file) === 'reset.css'
+function isReset(root) { return isFile(root, 'reset.css') }
+
+function isIndex(root) { return isFile(root, 'index.css') }
+
+function isFile({ source: { input } }, name) {
+  return !!input.file && path.basename(input.file) === name
 }
