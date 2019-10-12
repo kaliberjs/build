@@ -16,6 +16,7 @@
     "kaliber/only-direct-child-selectors": true,
     "kaliber/valid-flex-context-in-root": true,
     "kaliber/media-no-child": true,
+    "kaliber/only-tag-selectors-in-reset-and-index": true,
 
     "at-rule-empty-line-before": [
       "always", {

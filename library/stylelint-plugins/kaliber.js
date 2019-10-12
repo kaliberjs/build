@@ -49,6 +49,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   onlyDirectChildSelectors(),
   requireDisplayFlexInParent(),
   noChildElementSelectorsInMedia(),
+  onlyTagSelectorsInResetAndIndex(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -360,6 +361,28 @@ function noChildElementSelectorsInMedia() {
         rule.walkRules(rule => {
           report(rule, messages['media - no nested child'])
         })
+      })
+    }
+  })
+}
+
+function onlyTagSelectorsInResetAndIndex() {
+  const messages = {
+    'no class selectors':
+      `Unexpected class selector\n` +
+      `only tag selectors are allowed in index.css and reset.css - ` +
+      `move the selector to another file or wrap it in \`:global(...)\``
+  }
+  return createPlugin({
+    ruleName: 'kaliber/only-tag-selectors-in-reset-and-index',
+    messages,
+    plugin: ({ root, report }) => {
+      if (!isReset(root) && !isIndex(root)) return
+      root.walkRules(rule => {
+        const root = selectorParser.astSync(rule)
+        const [classNode] = root.first.filter(x => x.type === 'class')
+        if (!classNode) return
+        report(rule, messages['no class selectors'], classNode.sourceIndex + 1)
       })
     }
   })

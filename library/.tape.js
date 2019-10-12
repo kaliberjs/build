@@ -391,26 +391,36 @@ module.exports = {
       warnings: 0
     },
   ],
-  'kaliber/only-element-selectors-in-reset': [
+  'kaliber/only-tag-selectors-in-reset-and-index': [
     {
-      title: 'invalid - no tag in selector',
-      source: { filename: 'other.css', source: `div { }` },
-      warnings: ['?']
+      title: 'invalid - no class in reset.css',
+      source: { filename: 'reset.css', source: `.bad { }` },
+      warnings: [messages['no class selectors']]
+    },
+    {
+      title: 'invalid - no class in index.css',
+      source: { filename: 'index.css', source: `.bad { }` },
+      warnings: [messages['no class selectors']]
     },
     {
       title: 'valid - allow tag in reset.css',
       source: { filename: 'reset.css', source: `div { }` },
       warnings: 0
-    }
-  ],
-  'kaliber/no-media-in-root': [
-    {
-      source: `.bad { } @media x { }`,
-      warnings: ['?']
     },
     {
-      source: `.good { @media x { } }`,
+      title: 'valid - allow tag in index.css',
+      source: { filename: 'index.css', source: `div { }` },
       warnings: 0
-    }
-  ]
+    },
+    {
+      title: 'valid - allow global modifier class on body in index.css',
+      source: { filename: 'index.css', source: `:global(body.prevent-scroll) { overflow: hidden; }` },
+      warnings: 0
+    },
+    {
+      title: 'valid - class selector not in index.css or reset.css',
+      source: `.good { }`,
+      warnings: 0
+    },
+  ],
 }
