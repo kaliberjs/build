@@ -64,6 +64,7 @@ function absoluteHasRelativeParent() {
   return createPlugin({
     ruleName: 'kaliber/absolute-has-relative-parent',
     messages,
+    testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
         const decl = findDecl(rule, 'position')
@@ -106,6 +107,7 @@ function requireStackingContextInParent() {
   return createPlugin({
     ruleName: 'kaliber/require-stacking-context-in-parent',
     messages,
+    testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
 
@@ -133,6 +135,7 @@ function validStackingContextInRoot() {
   return createPlugin({
     ruleName: 'kaliber/valid-stacking-context-in-root',
     messages,
+    testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withRootRules(root, rule => {
 
@@ -166,6 +169,7 @@ function noLayoutRelatedPropsInRoot() {
   return createPlugin({
     ruleName: 'kaliber/no-layout-related-props-in-root',
     messages,
+    testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withRootRules(root, rule => {
 
@@ -197,6 +201,7 @@ function onlyLayoutRelatedPropsInNested() {
   return createPlugin({
     ruleName: 'kaliber/only-layout-related-props-in-nested',
     messages,
+    testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
         const root = selectorParser.astSync(rule)
@@ -332,6 +337,7 @@ function requireDisplayFlexInParent() {
   return createPlugin({
     ruleName: 'kaliber/valid-flex-context-in-root',
     messages,
+    testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
         const decls = findDecls(rule, flexChildProps)
@@ -534,7 +540,7 @@ function missingProps(target, requiredProps) {
   )
 }
 
-function createPlugin({ ruleName, messages, plugin }) {
+function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueries = false }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
   return {
@@ -579,9 +585,10 @@ function createPlugin({ ruleName, messages, plugin }) {
       const reported = {}
 
       plugin({ root, report })
-      Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
-        plugin({ root, report })
-      })
+      if (testWithNormalizedMediaQueries)
+        Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
+          plugin({ root, report })
+        })
 
       function report(node, message, index) {
         const id = getId(node, message, index)

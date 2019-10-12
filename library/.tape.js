@@ -30,14 +30,13 @@ module.exports = {
       warnings: [message('root - z-index without position relative')]
     },
     {
-      title: "└─ take @media into account",
-      source: `
-        .bad {
-          @media x {
-            z-index: 0;
-          }
-        }
-      `.replace(/        /g, ''),
+      title: "├─ take @media into account [1]",
+      source: `.bad { @media x { z-index: 0; } }`,
+      warnings: [message('root - z-index without position relative')]
+    },
+    {
+      title: "└─ take @media into account [2]",
+      source: `.bad { z-index: 0; @media x { position: relative; } }`,
       warnings: [message('root - z-index without position relative')]
     },
     {
@@ -55,7 +54,7 @@ module.exports = {
             z-index: 0;
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
     {
@@ -67,7 +66,7 @@ module.exports = {
             position: relative;
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
   ],
@@ -87,6 +86,11 @@ module.exports = {
       source: '.bad { z-index: 0; & > .test { z-index: 0; } }',
       warnings: [message('nested - missing stacking context in parent')]
     },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { & > .test { @media x { z-index: 0; } } }',
+      warnings: [message('nested - missing stacking context in parent')]
+    },
     { source: '.good { position: relative; z-index: 0; & > .test { z-index: 1; } }', warnings: 0 },
   ],
   'kaliber/no-layout-related-props-in-root': [
@@ -100,7 +104,28 @@ module.exports = {
           margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
         }
-      `.replace(/        /g, ''),
+      `,
+      warnings: createMessages('root - no layout related props', [
+        'width', 'height',
+        'position: absolute',
+        'top', 'right', 'bottom', 'left',
+        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+      ])
+    },
+    {
+      title: "└─ take @media into account",
+      source: `
+        .bad {
+          @media x {
+            width: 100%; height: 100%;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          }
+        }
+      `,
       warnings: createMessages('root - no layout related props', [
         'width', 'height',
         'position: absolute',
@@ -121,7 +146,7 @@ module.exports = {
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
           }
-        `.replace(/        /g, ''),
+        `,
       },
       warnings: createMessages('root - no layout related props', [
         'width', 'height',
@@ -153,7 +178,7 @@ module.exports = {
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
     {
@@ -165,7 +190,7 @@ module.exports = {
             width: 100%; height: 100%;
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           }
-        `.replace(/         /g, ''),
+        `,
       },
       warnings: 0
     },
@@ -179,7 +204,7 @@ module.exports = {
             top: 0; right: 0; bottom: 0; left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
           }
-        `.replace(/        /g, ''),
+        `,
       },
       warnings: createMessages('root - no layout related props', [
         'position: absolute',
@@ -200,6 +225,11 @@ module.exports = {
       source: '.bad { & > .test1 { & > .test2 { } } }',
       warnings: [message('nested - no double nesting')]
     },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { & > .test1 { @media x { & > .test2 { } } } }',
+      warnings: [message('nested - no double nesting')]
+    },
     { source: '.good { & > .test { } }', warnings: 0 },
     { source: '.good { & > .test { &:not(:last-child) { } } }', warnings: 0 },
   ],
@@ -208,11 +238,21 @@ module.exports = {
       source: '.bad { & > .test { position: absolute; } }',
       warnings: [message('nested - absolute has relative parent')]
     },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { & > .test { @media x { position: absolute; } } }',
+      warnings: [message('nested - absolute has relative parent')]
+    },
     { source: '.good { position: relative; & > .test { position: absolute; } }'}
   ],
   'kaliber/only-layout-related-props-in-nested': [
     {
       source: '.bad { & > .test { padding: 100px; } }',
+      warnings: [message('nested - only layout related props in nested')('padding')]
+    },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { & > .test { @media x { padding: 100px; } } }',
       warnings: [message('nested - only layout related props in nested')('padding')]
     },
     { source: '.good { & > .test { width: 100%; } }', warnings: 0 },
@@ -224,12 +264,22 @@ module.exports = {
       source: '.bad { & > .componentTest { } }',
       warnings: [message('nested - no component class name in nested')('componentTest')]
     },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { @media x { & > .componentTest { } } }',
+      warnings: [message('nested - no component class name in nested')('componentTest')]
+    },
     { source: '.componentGood { & > .test { } }', warnings: 0 },
     { source: '.good { & > .test { } }', warnings: 0 },
   ],
   'kaliber/no-child-selectors-in-root': [
     {
       source: '.bad > .test { }',
+      warnings: [message('root - no child selectors')]
+    },
+    {
+      title: "└─ take @media into account",
+      source: '@media x { .bad > .test { } }',
       warnings: [message('root - no child selectors')]
     },
     { source: '.good { & > .test { } }', warnings: 0 }
@@ -240,12 +290,17 @@ module.exports = {
       warnings: [message('nested - no double child selectors')]
     },
     {
+      title: "└─ take @media into account",
+      source: '.bad { @media x { & > .one > .two { } } }',
+      warnings: [message('nested - no double child selectors')]
+    },
+    {
       title: 'correctly nested',
       source: `
         .good { & > .one { } }
 
         .one { & > .two { } }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
     {
@@ -258,7 +313,7 @@ module.exports = {
         .good { & > .one { } }
 
         .one { &::after { } }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
     { source: '.good { & > *:not(:first-child) { } }', warnings: 0 },
@@ -268,9 +323,19 @@ module.exports = {
       source: 'div { }',
       warnings: [message('no tag selectors')]
     },
+    {
+      title: "└─ take @media into account",
+      source: '@media x { div { } }',
+      warnings: [message('no tag selectors')]
+    },
     { source: '.good { }', warnings: 0 },
     {
       source: '.bad { & > div { } }',
+      warnings: [message('no tag selectors')]
+    },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { @media x { & > div { } } }',
       warnings: [message('no tag selectors')]
     },
     {
@@ -295,11 +360,21 @@ module.exports = {
       warnings: [message('only direct child selectors')(' ')]
     },
     {
+      title: "└─ take @media into account",
+      source: '@media x { .bad .test { } }',
+      warnings: [message('only direct child selectors')(' ')]
+    },
+    {
       source: '.bad { & .test { } }',
       warnings: [message('only direct child selectors')(' ')]
     },
     {
       source: '.bad { & > .test .one { } }',
+      warnings: [message('only direct child selectors')(' ')]
+    },
+    {
+      title: "└─ take @media into account",
+      source: '.bad { @media x { & > .test .one { } } }',
       warnings: [message('only direct child selectors')(' ')]
     },
     {
@@ -322,7 +397,22 @@ module.exports = {
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
           }
         }
-      `.replace(/        /g, ''),
+      `,
+      warnings: createMessages('nested - require display flex in parent', [
+        'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order'
+      ])
+    },
+    {
+      title: "└─ take @media into account",
+      source: `
+        .bad {
+          & > .test {
+            @media x {
+              flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
+            }
+          }
+        }
+      `,
       warnings: createMessages('nested - require display flex in parent', [
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order'
       ])
@@ -337,7 +427,7 @@ module.exports = {
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     }
   ],
@@ -352,7 +442,7 @@ module.exports = {
             }
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: [messages['media - no nested child']]
     },
     {
@@ -365,7 +455,7 @@ module.exports = {
             }
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
     {
@@ -376,7 +466,7 @@ module.exports = {
             width: 10px;
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: [messages['media - no nested child']]
     },
     {
@@ -387,7 +477,7 @@ module.exports = {
             width: 10px;
           }
         }
-      `.replace(/        /g, ''),
+      `,
       warnings: 0
     },
   ],
@@ -395,6 +485,11 @@ module.exports = {
     {
       title: 'invalid - no class in reset.css',
       source: { filename: 'reset.css', source: `.bad { }` },
+      warnings: [messages['no class selectors']]
+    },
+    {
+      title: "└─ take @media into account",
+      source: { filename: 'reset.css', source: `@media x { .bad { } }` },
       warnings: [messages['no class selectors']]
     },
     {
