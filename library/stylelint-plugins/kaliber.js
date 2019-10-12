@@ -23,9 +23,13 @@ const layoutRelatedProps = [
   ['position', 'absolute'],
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'max-width', 'min-width', 'max-height', 'min-height',
   ...flexChildProps,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
+
+const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
+const intrinsicProps = ['width', 'height', 'max-width', 'min-width', 'max-height', 'min-height']
 
 /*
   Motivation
@@ -156,8 +160,6 @@ function validStackingContextInRoot() {
 }
 
 function noLayoutRelatedPropsInRoot() {
-  const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
-  const intrinsicProps = ['width', 'height']
   const messages = {
     'root - no layout related props': prop =>
       `illegal layout related prop\n` +

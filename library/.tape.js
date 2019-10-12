@@ -103,6 +103,7 @@ module.exports = {
           top: 0; right: 0; bottom: 0; left: 0;
           margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          max-width: 0; min-width: 0; max-height: 0; min-height: 0;
         }
       `,
       warnings: createMessages('root - no layout related props', [
@@ -111,6 +112,7 @@ module.exports = {
         'top', 'right', 'bottom', 'left',
         'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+        'max-width', 'min-width', 'max-height', 'min-height',
       ])
     },
     {
@@ -213,6 +215,8 @@ module.exports = {
       ])
     },
     { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
+    { source: '.good { min-width: 10px !important; min-height: 10px !important; }', warnings: 0 },
+    { source: '.good { max-width: 10px !important; max-height: 10px !important; }', warnings: 0 },
     { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
     {
