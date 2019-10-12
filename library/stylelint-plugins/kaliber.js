@@ -164,7 +164,8 @@ function noLayoutRelatedPropsInRoot() {
     'root - no layout related props': prop =>
       `illegal layout related prop\n` +
       `\`${prop}\` can only be used by root rules in nested selectors - ` +
-      `move to a nested selector in a another root rule` + (
+      `move to a nested selector in a another root rule, if you are forced by a third party ` +
+      `library, you can rename your selector to \`_rootXyz\` or \`component_rootXyz\`` + (
         intrinsicProps.includes(prop)
         ? `\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
           `one of \`${intrinsicUnits.join('`, `')}\` and add \`!important\``

@@ -55,10 +55,32 @@ module.exports = {
     {
       filename: 'Test.js',
       code: `
+        function SomethingTest() {
+          return (
+            <div className={styles.component_rootSomethingTest} />
+          )
+        }
+      `,
+    },
+    {
+      filename: 'Test.js',
+      code: `
         function Test() {
           return (
             <Wrapper>
               <div className={styles.component} />
+            </Wrapper>
+          )
+        }
+      `,
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test() {
+          return (
+            <Wrapper>
+              <div className={styles.component_root} />
             </Wrapper>
           )
         }

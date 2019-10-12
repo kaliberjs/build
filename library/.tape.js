@@ -214,6 +214,27 @@ module.exports = {
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
       ])
     },
+    {
+      title: "don't report errors when layout related props are used in _root or component_root",
+      source: `
+        ._rootTest {
+          width: 100%; height: 100%;
+          position: absolute;
+          top: 0; right: 0; bottom: 0; left: 0;
+          margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+          flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+        }
+
+        .component_rootTest {
+          width: 100%; height: 100%;
+          position: absolute;
+          top: 0; right: 0; bottom: 0; left: 0;
+          margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+          flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+        }
+      `,
+      warnings: 0
+    },
     { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
     { source: '.good { min-width: 10px !important; min-height: 10px !important; }', warnings: 0 },
     { source: '.good { max-width: 10px !important; max-height: 10px !important; }', warnings: 0 },
