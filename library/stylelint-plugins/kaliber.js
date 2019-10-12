@@ -177,6 +177,7 @@ function noLayoutRelatedPropsInRoot() {
         decls.forEach(decl => {
           const { prop } = decl
           if (intrinsicProps.includes(prop) && isIntrinsicValue(decl)) return
+          if (isRatioHack(decl, rule)) return
           if (isReset(root) && allowedInReset.includes(prop)) return
           const value = layoutRelatedPropsWithValues[prop]
           report(decl, messages['root - no layout related props'](prop + (value ? `: ${value}` : '')))
@@ -188,6 +189,20 @@ function noLayoutRelatedPropsInRoot() {
   function isIntrinsicValue({ important, value }) {
     const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
     return important && number && intrinsicUnits.includes(number.unit)
+  }
+
+  function isRatioHack({ prop, value }, rule) {
+    return prop === 'height' && value === '0' && hasValidPadding(rule)
+
+    function hasValidPadding(rule) {
+      const decls = findDecls(rule, ['padding-bottom', 'padding-top'])
+      return !!decls.length && decls.every(isPercentage)
+    }
+
+    function isPercentage({ value }) {
+      const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
+      return number && number.unit === '%'
+    }
   }
 }
 

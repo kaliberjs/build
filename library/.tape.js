@@ -215,6 +215,12 @@ module.exports = {
     { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
     { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
+    {
+      source: '.good { height: 0; padding-bottom: 10px; }',
+      warnings: [messages['root - no layout related props']('height')]
+    },
+    { source: '.good { height: 0; padding-bottom: 65.25%; }', warnings: 0 },
+    { source: '.good { height: 0; padding-top: 65.25%; }', warnings: 0 },
     { source: '.good { z-index: 0; position: relative; }', warnings: 0 },
     { source: '.good { position: relative; & > .test { position: absolute; } }', warnings: 0 },
     { source: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }', warnings: 0 },
