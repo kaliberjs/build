@@ -25,6 +25,18 @@ module.exports = {
     {
       filename: 'Test.js',
       code: `
+        function Test2() {
+          return (
+            <div {...{ test }} className={styles.component2}>
+              <div className={styles.test} />
+            </div>
+          )
+        }
+      `,
+    },
+    {
+      filename: 'Test.js',
+      code: `
         function Test() {
           return (
             <div className={cx(styles.component, test && styles.test)} />

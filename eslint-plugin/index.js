@@ -3,7 +3,7 @@ const path = require('path')
 const messages = {
   'invalid className': expected => `invalid className\nexpected '${expected}'`,
   'no component className': `invalid className\nonly root nodes can have a className that starts with 'component'`,
-  'no className': 'className is not allowed on custom components\nonly native (lower case) elements can have a className',
+  'no className': 'className is not allowed on custom components, use layoutClassName\nonly native (lower case) elements can have a className',
   'no export base': 'base components can not be exported\nremove the `export` keyword',
   'no layoutClassName': 'layoutClassName can not be used on child components\nset the layoutClassName as the className of the root node',
   'invalid component name': expected => `invalid component name\nexpected '${expected}'`,
@@ -47,7 +47,10 @@ module.exports = {
           [`ReturnStatement JSXAttribute[name.name = 'className'] MemberExpression[object.name = 'styles']`](node) {
             const jsxElement = getParentJSXElement(node)
 
-            if (!hasParentsWithClassName(jsxElement) || !node.property.name.startsWith('component')) return
+            if (
+              !hasParentsWithClassName(jsxElement) ||
+              !getPropertyClassName(node).startsWith('component')
+            ) return
 
             context.report({
               message: messages['no component className'],
@@ -181,7 +184,12 @@ module.exports = {
         return {
           [`JSXAttribute`](node) {
             const { name } = node.name
-            if (name !== node.value.expression.name) return
+            if (
+              !node.value ||
+              node.value.type !== 'JSXExpressionContainer' ||
+              name !== node.value.expression.name
+            ) return
+
             context.report({
               message: messages['incorrect variable passing'](name),
               node,
@@ -204,6 +212,16 @@ module.exports = {
         }
       }
     },
+  }
+}
+
+function getPropertyClassName({ property }) {
+  switch (property.type) {
+    case 'Identifier': return property.name
+    case 'TemplateLiteral':
+      const [name] = property.quasis
+      return name.value.raw
+    default: throw new Error(`Can not determine name for '${property.type}'`)
   }
 }
 
@@ -238,7 +256,8 @@ function hasParentsWithClassName(jsxElement) {
   return getParentJSXElements(jsxElement).some(hasClassName)
 
   function hasClassName(jsxElement) {
-    return jsxElement.openingElement.attributes.some(x => x.name.name === 'className')
+    return jsxElement.openingElement.attributes
+      .some(x => x.type === 'JSXAttribute' && x.name.name === 'className')
   }
 }
 

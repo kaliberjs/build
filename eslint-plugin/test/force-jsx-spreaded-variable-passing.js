@@ -4,6 +4,8 @@ module.exports = {
   valid: [
     `<div test1={test2} />`,
     `<div {...{ test1 }} />`,
+    `<div test='test' />`,
+    `<div test />`,
   ],
   invalid: [
     {

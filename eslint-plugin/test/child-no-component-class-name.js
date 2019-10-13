@@ -14,9 +14,27 @@ module.exports = {
     `
       function Test() {
         return (
+          <div {...{ test }} className={styles.componentTest}>
+            <div className={styles.test} />
+          </div>
+        )
+      }
+    `,
+    `
+      function Test() {
+        return (
           <MyWrapper>
             <div className={styles.component} />
           </MyWrapper>
+        )
+      }
+    `,
+    `
+      function Test() {
+        return (
+          <div className={styles.componentTest}>
+            <div className={styles[\`test\`]} />
+          </div>
         )
       }
     `,
