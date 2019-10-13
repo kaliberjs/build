@@ -575,7 +575,7 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
   }
 
   function pluginWrapper(primaryOption, secondaryOptionObject) {
-    return (root, result) => {
+    return (originalRoot, result) => {
       const check = { actual: primaryOption, possible: [true] }
       if (!stylelint.utils.validateOptions(result, ruleName, check)) return
 
@@ -607,7 +607,7 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
         different rules manually (stylelint.rules['kaliber/xyz'](...)(splitRoot, result)).
       */
       const reported = {}
-
+      const root = originalRoot.clone()
       postcssModulesValuesResolver(root, result)
       plugin({ root, report })
       if (testWithNormalizedMediaQueries)
