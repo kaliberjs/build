@@ -179,6 +179,9 @@ function noLayoutRelatedPropsInRoot() {
     plugin: ({ root, report }) => {
       withRootRules(root, rule => {
 
+        const isRoot = rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
+        if (isRoot) return
+
         const decls = findDecls(rule, layoutRelatedProps)
         decls.forEach(decl => {
           const { prop } = decl

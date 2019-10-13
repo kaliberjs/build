@@ -26,11 +26,13 @@ module.exports = {
             if (hasParentsWithClassName(jsxElement)) return
 
             const prefix = new RegExp(`^${getBaseFilename(context)}`)
-            const expected = `component${getFunctionName(context).replace(prefix, '')}`
-            if (node.property.name === expected) return
+            const name = getFunctionName(context).replace(prefix, '')
+            const expected = [`component${name}`, `component_root${name}`]
+            if (expected.includes(node.property.name)) return
 
+            const [common] = expected
             context.report({
-              message: messages['invalid className'](expected),
+              message: messages['invalid className'](common),
               node: node.property,
             })
           }
