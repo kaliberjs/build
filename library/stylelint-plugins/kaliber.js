@@ -24,6 +24,7 @@ const layoutRelatedProps = [
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
+  'z-index',
   ...flexChildProps,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
@@ -188,6 +189,7 @@ function noLayoutRelatedPropsInRoot() {
           if (intrinsicProps.includes(prop) && isIntrinsicValue(decl)) return
           if (isRatioHack(decl, rule)) return
           if (isReset(root) && allowedInReset.includes(prop)) return
+          if (prop === 'z-index') return // handled by valid-stacking-context-in-root
           const value = layoutRelatedPropsWithValues[prop]
           report(decl, messages['root - no layout related props'](prop + (value ? `: ${value}` : '')))
         })
