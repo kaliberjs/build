@@ -27,6 +27,7 @@ const layoutRelatedProps = [
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
   'z-index',
+  'overflow',
   ...flexChildProps,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
