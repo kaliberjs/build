@@ -1,14 +1,15 @@
 const path = require('path')
 
 const messages = {
-  'invalid className': expected => `invalid className\n\nexpected '${expected}'`,
-  'no component className': `invalid className\n\nonly root nodes can have a className that starts with 'component'`,
-  'no className': 'className is not allowed on custom components\n\nonly native (lower case) elements can have a className',
-  'no export base': 'base components can not be exported\n\nremove the `export` keyword',
-  'no layoutClassName': 'layoutClassName can not be used on child components\n\nset the layoutClassName as the className of the root node',
-  'invalid component name': expected => `invalid component name\n\nexpected '${expected}'`,
-  'invalid css file name': expected => `invalid css file name\n\nexpected '${expected}'`,
-  'invalid styles variable name': `invalid variable name\n\nexpected name to be 'styles'`,
+  'invalid className': expected => `invalid className\nexpected '${expected}'`,
+  'no component className': `invalid className\nonly root nodes can have a className that starts with 'component'`,
+  'no className': 'className is not allowed on custom components\nonly native (lower case) elements can have a className',
+  'no export base': 'base components can not be exported\nremove the `export` keyword',
+  'no layoutClassName': 'layoutClassName can not be used on child components\nset the layoutClassName as the className of the root node',
+  'invalid component name': expected => `invalid component name\nexpected '${expected}'`,
+  'invalid css file name': expected => `invalid css file name\nexpected '${expected}'`,
+  'invalid styles variable name': `invalid variable name\nexpected name to be 'styles'`,
+  'incorrect variable passing': name => `incorrect variable passing\nexpected \`{...{ ${name} }}\``,
 }
 module.exports = {
   messages,
@@ -169,6 +170,20 @@ module.exports = {
             context.report({
               message: messages['invalid styles variable name'],
               node: specifier,
+            })
+          }
+        }
+      }
+    },
+    'force-jsx-spreaded-variable-passing': {
+      create(context) {
+        return {
+          ['JSXAttribute'](node) {
+            const { name } = node.name
+            if (name !== node.value.expression.name) return
+            context.report({
+              message: messages['incorrect variable passing'](name),
+              node,
             })
           }
         }
