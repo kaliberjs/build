@@ -49,6 +49,8 @@
     "@kaliber/force-css-file-name": "warn",
     "@kaliber/force-css-variable-name": "warn",
     "@kaliber/force-jsx-spreaded-variable-passing": "warn",
+    "@kaliber/force-destructured-props": "warn",
+
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
 

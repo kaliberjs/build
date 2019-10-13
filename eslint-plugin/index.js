@@ -10,6 +10,7 @@ const messages = {
   'invalid css file name': expected => `invalid css file name\nexpected '${expected}'`,
   'invalid styles variable name': `invalid variable name\nexpected name to be 'styles'`,
   'incorrect variable passing': name => `incorrect variable passing\nexpected \`{...{ ${name} }}\``,
+  'destructure props': `props need to be destructured`,
 }
 module.exports = {
   messages,
@@ -178,12 +179,26 @@ module.exports = {
     'force-jsx-spreaded-variable-passing': {
       create(context) {
         return {
-          ['JSXAttribute'](node) {
+          [`JSXAttribute`](node) {
             const { name } = node.name
             if (name !== node.value.expression.name) return
             context.report({
               message: messages['incorrect variable passing'](name),
               node,
+            })
+          }
+        }
+      }
+    },
+    'force-destructured-props': {
+      create(context) {
+        return {
+          [`FunctionDeclaration`](node) {
+            const [props] = node.params
+            if (firstLetterLowerCase(node.id.name) || !props || props.type !== 'Identifier') return
+            context.report({
+              message: messages['destructure props'],
+              node: props,
             })
           }
         }
