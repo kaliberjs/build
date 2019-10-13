@@ -4,8 +4,10 @@ const createValueParser = require('postcss-values-parser')
 const selectorParser = createSelectorParser()
 const path = require('path')
 const createPostcssModulesValuesResolver = require('postcss-modules-values')
+const createPostcssCustomPropertiesResolver = require('postcss-custom-properties')
 
 const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
+const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false }) // TODO: all support for build-time loaded custom properties
 
 function parseValue(value) { return createValueParser(value).parse() }
 
@@ -611,6 +613,7 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
       const reported = {}
       const root = originalRoot.clone()
       postcssModulesValuesResolver(root, result)
+      postcssCustomPropertiesResolver(root, result)
       plugin({ root, report })
       if (testWithNormalizedMediaQueries)
         Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {

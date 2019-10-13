@@ -254,6 +254,19 @@ module.exports = {
       `,
       warnings: 0
     },
+    {
+      title: 'take custom properties into account',
+      source: `
+        :root {
+          --x: 10px;
+        }
+
+        .good {
+          width: var(--x) !important;
+        }
+      `,
+      warnings: 0
+    },
     { source: '.good { height: 0; padding-bottom: 65.25%; }', warnings: 0 },
     { source: '.good { height: 0; padding-top: 65.25%; }', warnings: 0 },
     { source: '.good { z-index: 0; position: relative; }', warnings: 0 },
