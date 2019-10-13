@@ -573,4 +573,26 @@ module.exports = {
       warnings: 0
     },
   ],
+  'kaliber/custom-properties': [
+    {
+      source: `:root { --x: 0; }`,
+      warnings: ['custom properties are no allowed unless they are in the css-properties folder']
+    },
+    {
+      title: 'valid - allow custom properties in theme folder css files',
+      source: { filename: 'src/css-properties/abc.css', source: `:root { --x: 0; }` },
+      warnings: 0,
+    },
+    {
+      title: 'invalid - only allow :root in theme files',
+      source: {
+        filename: 'src/css-properties/abc.css',
+        source: `
+          div { }
+          .test { }
+        `
+      },
+      warnings: ['?', '?', '?'],
+    },
+  ]
 }
