@@ -8,6 +8,7 @@ module.exports = {
     `<TestBase className='test' />`,
     `<TestBase className={styles.test} />`,
     `<TestBase {...{ className }} />`,
+    `<ReactSpring.animated.article className={styles.test} />`
   ],
   invalid: [
     {

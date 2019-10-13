@@ -218,7 +218,12 @@ function firstLetterLowerCase(word) {
 }
 
 function getJSXElementName(jsxElement) {
-  return jsxElement.openingElement.name.name
+  const { name } = jsxElement.openingElement
+  switch (name.type) {
+    case 'JSXIdentifier': return name.name
+    case 'JSXMemberExpression': return name.property.name
+    default: throw new Error(`Can not determine name for '${name.type}'`)
+  }
 }
 
 function getFunctionName(context) {
