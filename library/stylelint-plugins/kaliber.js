@@ -624,14 +624,22 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
         stylelint.utils.report({ message, index, node, result, ruleName })
       }
 
-      function getId({ type, prop, selector, params }, message, index) {
+      function getId(node, message, index) {
+        return `${getNodeId(node)}-${message}${index}`
+      }
+
+      function getNodeId({ type, prop, selector, params, parent }) {
         const nodeId =
           type === 'decl' ? `decl-${prop}` :
           type === 'rule' ? `rule-${selector}` :
           type === 'atrule' ? `atrule-${params}` :
           type
 
-        return `${nodeId}-${message}${index}`
+        const parentId = parent
+          ? `${getNodeId(parent)}-`
+          : ''
+
+        return `${parentId}${nodeId}`
       }
     }
   }
