@@ -2,12 +2,12 @@ const loaderUtils = require('loader-utils')
 const postcss = require('postcss')
 const { relative, dirname } = require('path')
 const genericNames = require('generic-names')
+const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, resolveForImportExportParser }) {
+function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, resolveForImportExportParser, cssGlobalFiles }) {
   const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
-
   return [
     ...(minifyOnly
       ? []
@@ -18,8 +18,8 @@ function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, 
         require('postcss-modules-values'),
         require('postcss-preset-env')({
           features: {
-            'custom-properties': { preserve: false },
-            'custom-media-queries': true,
+            'custom-properties': { preserve: false, importFrom: cssGlobalFiles },
+            'custom-media-queries': { preserve: false, importFrom: cssGlobalFiles },
             'media-query-ranges': true,
             'custom-selectors': true,
             'nesting-rules': true,
@@ -58,6 +58,7 @@ module.exports = function CssLoader(source, map) {
       ? resolveAndExecute(dirname(file), url)
       : Promise.resolve(url),
     resolveForImportExportParser: url => resolveAndExecute(this.context, url),
+    cssGlobalFiles: findCssGlobalFiles(this.context),
   }
 
   const loaderOptions = loaderUtils.getOptions(this) || {}

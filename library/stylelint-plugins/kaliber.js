@@ -5,9 +5,10 @@ const selectorParser = createSelectorParser()
 const path = require('path')
 const createPostcssModulesValuesResolver = require('postcss-modules-values')
 const createPostcssCustomPropertiesResolver = require('postcss-custom-properties')
+const createPostcssCustomMediaResolver = require('postcss-custom-media')
+const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 
 const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
-const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false }) // TODO: all support for build-time loaded custom properties
 
 function parseValue(value) { return createValueParser(value).parse() }
 
@@ -580,9 +581,20 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
   }
 
   function pluginWrapper(primaryOption, secondaryOptionObject) {
-    return (originalRoot, result) => {
+    return async (originalRoot, result) => {
       const check = { actual: primaryOption, possible: [true] }
       if (!stylelint.utils.validateOptions(result, ruleName, check)) return
+
+      const reported = {}
+      const importFrom = findCssGlobalFiles(originalRoot.source.input.file)
+      const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false, importFrom })
+      const postcssCustomMediaResolver = createPostcssCustomMediaResolver({ preserve: false, importFrom })
+
+      const root = originalRoot.clone()
+      await postcssModulesValuesResolver(root, result)
+      await postcssCustomPropertiesResolver(root, result)
+      await postcssCustomMediaResolver(root, result)
+      plugin({ root, report })
 
       /*
         We create new root nodes for each applicable media query.
@@ -611,11 +623,6 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
         rule that is configured in .stylelintrc. It would split the root once and then run the
         different rules manually (stylelint.rules['kaliber/xyz'](...)(splitRoot, result)).
       */
-      const reported = {}
-      const root = originalRoot.clone()
-      postcssModulesValuesResolver(root, result)
-      postcssCustomPropertiesResolver(root, result)
-      plugin({ root, report })
       if (testWithNormalizedMediaQueries)
         Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
           plugin({ root, report })

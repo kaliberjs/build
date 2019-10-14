@@ -1,5 +1,4 @@
 @import './test/test.css';
-@import '/theme.css';
 
 @custom-selector :--enter :hover, :focus;
 
