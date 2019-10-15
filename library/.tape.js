@@ -242,6 +242,7 @@ module.exports = {
     { source: '.good { max-width: 10px !important; max-height: 10px !important; }', warnings: 0 },
     { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
+    { source: '.good { position: relative; }', warnings: 0 },
     {
       source: '.good { height: 0; padding-bottom: 10px; }',
       warnings: [messages['root - no layout related props']('height')]
@@ -312,6 +313,7 @@ module.exports = {
       warnings: [message('nested - only layout related props in nested')('padding')]
     },
     { source: '.good { & > .test { width: 100%; } }', warnings: 0 },
+    { source: '.good { & > .test { position: relative; } }', warnings: 0 },
     { source: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }', warnings: 0 },
     { source: '.good { padding: 100px; }', warnings: 0 },
     { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },

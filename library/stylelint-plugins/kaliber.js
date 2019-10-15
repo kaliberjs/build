@@ -21,15 +21,20 @@ const flexChildProps = [
   'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
 ]
 
+const allowedInRootAndChild = [
+  'z-index',  // handled by valid-stacking-context-in-root
+  ['position', 'relative'],
+]
+
 const layoutRelatedProps = [
   'width', 'height',
   ['position', 'absolute'],
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
-  'z-index',
   'overflow',
   ...flexChildProps,
+  ...allowedInRootAndChild,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
 
@@ -193,9 +198,9 @@ function noLayoutRelatedPropsInRoot() {
           if (intrinsicProps.includes(prop) && isIntrinsicValue(decl)) return
           if (isRatioHack(decl, rule)) return
           if (isReset(root) && allowedInReset.includes(prop)) return
-          if (prop === 'z-index') return // handled by valid-stacking-context-in-root
-          const value = layoutRelatedPropsWithValues[prop]
-          report(decl, messages['root - no layout related props'](prop + (value ? `: ${value}` : '')))
+          if (matches(decl, allowedInRootAndChild)) return
+          const values = layoutRelatedPropsWithValues[prop] || []
+          report(decl, messages['root - no layout related props'](prop + (values.length ? `: ${decl.value}` : '')))
         })
       })
     }
@@ -505,7 +510,8 @@ function extractPropsWithValues(props) {
     (result, x) => {
       if (Array.isArray(x)) {
         const [prop, value] = x
-        return { ...result, [prop]: value }
+        const values = result[prop] || []
+        return { ...result, [prop]: values.concat(value) }
       } else return result
     },
     {}
@@ -530,13 +536,7 @@ function withRootRules(root, f) {
 
 function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {
   let result = []
-  const normalizedTargets = targets.reduce(
-    (result, x) => {
-      const [name, value] = Array.isArray(x) ? x : [x, '']
-      return { ...result, [name]: value }
-    },
-    {}
-  )
+  const normalizedTargets = normalize(targets)
 
   rule.each(node => {
     if (
@@ -553,10 +553,26 @@ function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {
   return result
 }
 
+function matches(decl, targets) {
+  const normalizedTargets = normalize(targets)
+  return !invalidTarget(normalizedTargets, decl)
+}
+
+function normalize(targets) {
+  return targets.reduce(
+    (result, x) => {
+      const [name, value] = Array.isArray(x) ? x : [x, []]
+      const values = result[name] || []
+      return { ...result, [name]: values.concat(value) }
+    },
+    {}
+  )
+}
+
 function invalidTarget(targets, { prop, value }) {
   const hasProp = targets.hasOwnProperty(prop)
   const targetValue = targets[prop]
-  return !hasProp || (targetValue && targetValue !== value)
+  return !hasProp || (!!targetValue.length && !targetValue.includes(value))
 }
 
 function findDecl(rule, name) {
