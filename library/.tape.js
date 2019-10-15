@@ -386,6 +386,7 @@ module.exports = {
       warnings: [message('no tag selectors')]
     },
     { source: '.good { }', warnings: 0 },
+    { source: '@keyframes test { from { opacity: 0; } }', warnings: 0 },
     {
       source: '.bad { & > div { } }',
       warnings: [message('no tag selectors')]

@@ -325,6 +325,8 @@ function noTagSelectors() {
     plugin: ({ root, report }) => {
       if (isReset(root) || isIndex(root)) return
       root.walkRules(rule => {
+        const { parent } = rule
+        if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
         const root = selectorParser.astSync(rule)
         const [tag] = root.first.filter(x => x.type === 'tag')
         if (tag)
