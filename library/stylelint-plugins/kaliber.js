@@ -23,10 +23,10 @@ const flexChildProps = [
 
 const allowedInRootAndChild = [
   'z-index',  // handled by valid-stacking-context-in-root
-  ['position', 'relative'],
+  ['position', 'relative'], // is safe to use
 ]
 
-const layoutRelatedProps = [
+const layoutRelatedProps = [ // only allowed in child
   'width', 'height',
   ['position', 'absolute'],
   'top', 'right', 'bottom', 'left',
