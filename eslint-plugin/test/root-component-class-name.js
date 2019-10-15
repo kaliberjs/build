@@ -98,6 +98,24 @@ module.exports = {
         }
       `,
     },
+    {
+      filename: 'Test.js',
+      code: `
+        export function Menu({ layoutClassName }) {
+          return (
+            style.map(({ item, key, props: { transform, opacity } }) =>
+              item && (
+                <ReactSpring.animated.div
+                  className={cx(styles.component_root, layoutClassName)}
+                  style={{ transform }}
+                  {...{ key }}
+                />
+              )
+            )
+          )
+        }
+      `
+    }
   ],
   invalid: [
     {
