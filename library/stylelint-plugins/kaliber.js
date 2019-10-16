@@ -109,7 +109,7 @@ function noDoubleNesting() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        if (!getParentRule(parent) || !hasChildSelector(rule)) return
+        if (isRoot(parent) || (!hasChildSelector(rule) && isRoot(getParentRule(parent)))) return
         report(rule, messages['nested - no double nesting'])
       })
     }
@@ -522,18 +522,21 @@ function extractPropsWithValues(props) {
 
 function withNestedRules(root, f) {
   root.walkRules(rule => {
-    const parent = getParentRule(rule)
-    if (!parent) return
-    f(rule, parent)
+    if (isRoot(rule)) return
+    f(rule, getParentRule(rule))
   })
 }
 
 function withRootRules(root, f) {
   root.walkRules(rule => {
-    const parent = getParentRule(rule)
-    if (parent) return
+    if (!isRoot(rule)) return
     f(rule)
   })
+}
+
+function isRoot(rule) {
+  const parent = getParentRule(rule)
+  return !parent || (isRoot(parent) && !hasChildSelector(rule))
 }
 
 function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {

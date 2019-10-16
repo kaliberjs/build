@@ -300,6 +300,7 @@ module.exports = {
       source: '.bad { & > .test1 { @media x { & > .test2 { } } } }',
       warnings: [message('nested - no double nesting')]
     },
+    { source: '.good { &.test1 { & > .test2 { } } }', warnings: 0 },
     { source: '.good { & > .test { } }', warnings: 0 },
     { source: '.good { & > .test { &:not(:last-child) { } } }', warnings: 0 },
   ],
