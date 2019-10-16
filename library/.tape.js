@@ -104,7 +104,6 @@ module.exports = {
           margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
           max-width: 0; min-width: 0; max-height: 0; min-height: 0;
-          overflow: 0;
         }
       `,
       warnings: createMessages('root - no layout related props', [
@@ -114,7 +113,6 @@ module.exports = {
         'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
         'max-width', 'min-width', 'max-height', 'min-height',
-        'overflow',
       ])
     },
     {
@@ -257,6 +255,7 @@ module.exports = {
     { source: '.good { width: 10em !important; height: 10em !important; }', warnings: 0 },
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
     { source: '.good { position: relative; }', warnings: 0 },
+    { source: '.good { overflow: 0; }', warnings: 0 },
     {
       source: '.good { height: 0; padding-bottom: 10px; }',
       warnings: [messages['root - no layout related props']('height')]

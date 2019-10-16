@@ -26,6 +26,7 @@ const flexChildProps = [
 const allowedInRootAndChild = [
   'z-index',  // handled by valid-stacking-context-in-root
   ['position', 'relative'], // is safe to use
+  'overflow', // is safe to use
 ]
 
 const layoutRelatedProps = [ // only allowed in child
@@ -34,7 +35,6 @@ const layoutRelatedProps = [ // only allowed in child
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
-  'overflow',
   ...flexChildProps,
   ...allowedInRootAndChild,
 ]
