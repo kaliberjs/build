@@ -30,12 +30,13 @@ module.exports = {
             const prefix = new RegExp(`^${getBaseFilename(context)}`)
             const name = getFunctionName(context).replace(prefix, '')
             const expected = [`component${name}`, `component_root${name}`]
-            if (expected.includes(node.property.name)) return
+            const { property } = node
+            if (expected.includes(property.name)) return
 
-            const [common] = expected
+            const [common, withRoot] = expected
             context.report({
-              message: messages['invalid className'](common),
-              node: node.property,
+              message: messages['invalid className'](property.name.includes('root') ? withRoot : common),
+              node: property,
             })
           }
         }
