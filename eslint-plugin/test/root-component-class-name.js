@@ -99,7 +99,7 @@ module.exports = {
       `,
     },
     {
-      filename: 'Test.js',
+      filename: 'Menu.js',
       code: `
         export function Menu({ layoutClassName }) {
           return (

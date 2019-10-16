@@ -245,7 +245,25 @@ function getJSXElementName(jsxElement) {
 }
 
 function getFunctionName(context) {
-  return context.getScope().block.id.name
+  return getRootFunctionName(context.getScope())
+
+  function getRootFunctionName(node, previous = []) {
+    const { upper } = node
+    const [lastSeen] = previous
+    if (upper.type === 'module') {
+      if (node.type === 'function') return getName(node)
+      else if (lastSeen) return getName(lastSeen)
+      else throw new Error('Could not find root function name')
+    } else {
+      return getRootFunctionName(upper, [...(node.type === 'function' ? [node] : []), ...previous])
+    }
+
+    function getName({ block }) {
+      const { id } = block
+      if (!id) throw new Error('No id for top level function')
+      return id.name
+    }
+  }
 }
 
 function isRootJSXElement(jsxElement) {
