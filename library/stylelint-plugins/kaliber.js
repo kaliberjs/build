@@ -43,6 +43,39 @@ const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
 const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
 const intrinsicProps = ['width', 'height', 'max-width', 'min-width', 'max-height', 'min-height']
 
+const childParentRelations = {
+  validStackingContextInRoot: {
+    nestedHasOneOf: ['z-index'],
+    requireInRoot: [
+      ['z-index', '0'],
+      ['position', 'relative']
+    ],
+  },
+  absoluteHasRelativeParent: {
+    nestedHasOneOf: [
+      ['position', 'absolute']
+    ],
+    requireInRoot: [
+      ['position', 'relative']
+    ]
+  },
+  rootHasPositionFlex: {
+    nestedHasOneOf: flexChildProps,
+    requireInRoot: [
+      ['display', 'flex']
+    ]
+  },
+}
+const combos = {
+  validStackingContext: {
+    rootHasOnOf: ['z-index'],
+    require: [
+      ['z-index', '0'],
+      ['position', 'relative']
+    ]
+  },
+}
+
 /*
   Motivation
 
@@ -86,12 +119,11 @@ function absoluteHasRelativeParent() {
     testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        const decl = findDecl(rule, 'position')
-        if (!decl || decl.value !== 'absolute') return
+        const result = checkChildParentRelation(rule, childParentRelations.absoluteHasRelativeParent)
 
-        const parentDecl = findDecl(parent, 'position')
-        if (!parentDecl || parentDecl.value !== 'relative')
-          report(decl, messages['nested - absolute has relative parent'])
+        result.forEach(({ result, prop, childDecl, rootDecl, value, expectedValue }) => {
+          report(childDecl, messages['nested - absolute has relative parent'])
+        })
       })
     }
   })
@@ -129,12 +161,11 @@ function requireStackingContextInParent() {
     testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
+        const result = checkChildParentRelation(rule, childParentRelations.validStackingContextInRoot)
 
-        const decl = findDecl(rule, 'z-index')
-        if (!decl) return
-
-        if (missingProps(parent, { 'z-index': '0', 'position': 'relative' }))
-          report(decl, messages['nested - missing stacking context in parent'])
+        result.forEach(({ result, prop, childDecl, rootDecl, value, expectedValue }) => {
+          report(childDecl, messages['nested - missing stacking context in parent'])
+        })
       })
     },
   })
@@ -379,13 +410,11 @@ function requireDisplayFlexInParent() {
     testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        const decls = findDecls(rule, flexChildProps)
-        if (!decls.length) return
+        const result = checkChildParentRelation(rule, childParentRelations.rootHasPositionFlex)
 
-        if (missingProps(parent, { 'display': 'flex' }))
-          decls.forEach(decl => {
-            report(decl, messages['nested - require display flex in parent'](decl.prop))
-          })
+        result.forEach(({ result, prop, childDecl, rootDecl, value, expectedValue }) => {
+          report(childDecl, messages['nested - require display flex in parent'](childDecl.prop))
+        })
       })
     }
   })
@@ -580,8 +609,8 @@ function invalidTarget(targets, { prop, value }) {
   return !hasProp || (!!targetValue.length && !targetValue.includes(value))
 }
 
-function findDecl(rule, name) {
-  const [result] = findDecls(rule, [name])
+function findDecl(rule, target) {
+  const [result] = findDecls(rule, [target])
   return result
 }
 
@@ -699,4 +728,55 @@ function isIndex(root) { return isFile(root, 'index.css') }
 
 function isFile({ source: { input } }, name) {
   return !!input.file && path.basename(input.file) === name
+}
+
+function checkChildParentRelation(childRule, { nestedHasOneOf, requireInRoot }) {
+  const childDecls = findDecls(childRule, nestedHasOneOf)
+  const relationApplicable = !!childDecls.length
+  if (!relationApplicable) return []
+
+  const rootRules = getRootRules(childRule)
+  const requiredProperties = requireInRoot.map(x => {
+    const [prop] = Array.isArray(x) ? x : [x]
+    return prop
+  })
+  const resolvedRootPropValues =
+    rootRules.reduce(
+      (result, rootRule) => ({
+        ...result,
+        ...findDecls(rootRule, requiredProperties).reduce(
+          (result, x) => ({ ...result, [x.prop]: x }),
+          {}
+        )
+      }),
+      {}
+    )
+
+  return requireInRoot
+    .map(
+      x => {
+        const [prop, expectedValue] = Array.isArray(x) ? x : [x]
+        const rootDecl = resolvedRootPropValues[prop]
+        if (!rootDecl) return { result: 'missing', prop }
+        if (!expectedValue) return
+        const { value } = rootDecl
+        if (value === expectedValue) return
+        return { result: 'invalid', prop, rootDecl, value, expectedValue }
+      }
+    )
+    .filter(Boolean)
+    .reduce(
+      (result, x) => [
+        ...result,
+        ...childDecls.map(childDecl => ({ ...x, childDecl }))
+      ],
+      []
+    )
+}
+
+function getRootRules(node) {
+  const parent = getParentRule(node)
+  if (!parent) return []
+  if (!isRoot(parent)) return getRootRules(parent)
+  return getRootRules(parent).concat(parent)
 }
