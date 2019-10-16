@@ -186,6 +186,7 @@ module.exports = {
           [`JSXAttribute`](node) {
             const { name } = node.name
             if (
+              name === 'key' ||
               !node.value ||
               node.value.type !== 'JSXExpressionContainer' ||
               name !== node.value.expression.name

@@ -6,6 +6,7 @@ module.exports = {
     `<div {...{ test1 }} />`,
     `<div test='test' />`,
     `<div test />`,
+    `<div key={key} />`,
   ],
   invalid: [
     {
