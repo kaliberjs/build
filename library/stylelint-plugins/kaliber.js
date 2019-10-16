@@ -6,9 +6,11 @@ const path = require('path')
 const createPostcssModulesValuesResolver = require('postcss-modules-values')
 const createPostcssCustomPropertiesResolver = require('postcss-custom-properties')
 const createPostcssCustomMediaResolver = require('postcss-custom-media')
+const createPostcssCalcResolver = require('postcss-calc')
 const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 
 const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
+const postcssCalcResolver = createPostcssCalcResolver()
 
 function parseValue(value) { return createValueParser(value).parse() }
 
@@ -612,6 +614,7 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
       await postcssModulesValuesResolver(root, result)
       await postcssCustomPropertiesResolver(root, result)
       await postcssCustomMediaResolver(root, result)
+      await postcssCalcResolver(root, result)
       plugin({ root, report })
 
       /*

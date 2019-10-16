@@ -237,6 +237,20 @@ module.exports = {
       `,
       warnings: 0
     },
+    {
+      title: 'allow `calc`',
+      source: `
+        :root {
+          --container-md: 10px;
+        }
+
+        .good {
+          @media (--viewport-md) {
+            max-width: calc(var(--container-md) / 2) !important;
+          }
+        }`,
+      warnings: 0
+    },
     { source: '.good { width: 10px !important; height: 10px !important; }', warnings: 0 },
     { source: '.good { min-width: 10px !important; min-height: 10px !important; }', warnings: 0 },
     { source: '.good { max-width: 10px !important; max-height: 10px !important; }', warnings: 0 },
