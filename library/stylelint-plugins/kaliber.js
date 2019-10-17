@@ -27,6 +27,7 @@ const allowedInRootAndChild = [
   'z-index',  // handled by valid-stacking-context-in-root
   ['position', 'relative'], // is safe to use
   'overflow', // is safe to use
+  'pointer-events', // handled by valid-pointer-events
 ]
 
 const layoutRelatedProps = [ // only allowed in child
@@ -63,6 +64,12 @@ const childParentRelations = {
     nestedHasOneOf: flexChildProps,
     requireInRoot: [
       ['display', 'flex']
+    ]
+  },
+  validPointerEvents: {
+    nestedHasOneOf: ['pointer-events'],
+    requireInRoot: [
+      ['pointer-events', 'none']
     ]
   },
 }
@@ -103,6 +110,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   onlyDirectChildSelectors(),
   noChildElementSelectorsInMedia(),
   onlyTagSelectorsInResetAndIndex(),
+  validPointerEvents(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -193,7 +201,6 @@ function validStackingContextInRoot() {
         const result = checkRootCombo(rule, rootCombos.validStackingContext)
 
         result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          console.log(result, prop)
           if (prop === 'position') report(triggerDecl, messages['root - z-index without position relative'])
           if (prop === 'z-index') report(triggerDecl, messages['root - z-index not 0'])
         })
@@ -457,6 +464,27 @@ function onlyTagSelectorsInResetAndIndex() {
         const [classNode] = root.first.filter(x => x.type === 'class')
         if (!classNode) return
         report(rule, messages['no class selectors'], classNode.sourceIndex + 1)
+      })
+    }
+  })
+}
+
+function validPointerEvents() {
+  const messages = {
+    'invalid pointer events':
+      `Incorrect pointer events combination\n` +
+      `you can only set pointer events in a child if the parent disables pointer events - ` +
+      `add pointer-events: none to parent`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/valid-pointer-events',
+    messages,
+    plugin: ({ root, report }) => {
+      withNestedRules(root, rule => {
+        const result = checkChildParentRelation(rule, childParentRelations.validPointerEvents)
+        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
+          report(triggerDecl, messages['invalid pointer events'])
+        })
       })
     }
   })

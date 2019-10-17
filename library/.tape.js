@@ -280,6 +280,7 @@ module.exports = {
     { source: '.good { width: 10rem !important; height: 10rem !important; }', warnings: 0 },
     { source: '.good { position: relative; }', warnings: 0 },
     { source: '.good { overflow: 0; }', warnings: 0 },
+    { source: '.good { pointer-events: none; }', warnings: 0 },
     {
       source: '.good { height: 0; padding-bottom: 10px; }',
       warnings: [messages['root - no layout related props']('height')]
@@ -355,6 +356,7 @@ module.exports = {
     { source: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }', warnings: 0 },
     { source: '.good { padding: 100px; }', warnings: 0 },
     { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },
+    { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }`, warnings: 0 },
   ],
   'kaliber/no-component-class-name-in-nested': [
     {
@@ -613,6 +615,20 @@ module.exports = {
     {
       title: 'valid - class selector not in index.css or reset.css',
       source: `.good { }`,
+      warnings: 0
+    },
+  ],
+  'kaliber/valid-pointer-events': [
+    {
+      source: '.bad { & > * { pointer-events: auto; } }',
+      warnings: [messages['invalid pointer events']]
+    },
+    {
+      source: '.good { pointer-events: auto; }',
+      warnings: 0
+    },
+    {
+      source: '.good { pointer-events: none; & > * { pointer-events: auto; } }',
       warnings: 0
     },
   ],
