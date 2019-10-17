@@ -69,6 +69,30 @@ module.exports = {
       `,
       warnings: 0
     },
+    {
+      title: "└─ take class chaining into account [1]",
+      source: `
+        .good {
+          &.test {
+            z-index: 0;
+            position: relative;
+          }
+        }
+      `,
+      warnings: 0
+    },
+    {
+      title: "└─ take class chaining into account [2]",
+      source: `
+        .good {
+          position: relative;
+          &.test {
+            z-index: 0;
+          }
+        }
+      `,
+      warnings: 0
+    },
   ],
   'kaliber/require-stacking-context-in-parent': [
     {
