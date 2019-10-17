@@ -50,6 +50,7 @@
     "@kaliber/force-css-variable-name": "warn",
     "@kaliber/force-jsx-spreaded-variable-passing": "warn",
     "@kaliber/force-destructured-props": "warn",
+    "@kaliber/no-default-export": "warn",
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
@@ -211,7 +212,7 @@
     "import/first": "warn",
     "import/no-amd": "warn",
     "import/no-webpack-loader-syntax": "warn",
-    "import/no-default-export": "warn",
+    "import/no-default-export": "off",
     "import/no-duplicates": "warn",
     "import/export": "warn",
     "import/default": "warn",

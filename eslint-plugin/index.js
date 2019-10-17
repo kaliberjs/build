@@ -1,4 +1,5 @@
 const path = require('path')
+const eslintPluginImport = require('eslint-plugin-import')
 
 const messages = {
   'invalid className': expected => `invalid className\nexpected '${expected}'`,
@@ -214,6 +215,16 @@ module.exports = {
         }
       }
     },
+    'no-default-export': {
+      create(context) {
+        const filename = context.getFilename()
+        if (
+          filename.endsWith('App.js') ||
+          /.+\.[^.]+\.js/.test(filename)
+        ) return {}
+        return eslintPluginImport.rules['no-default-export'].create(context)
+      }
+    }
   }
 }
 

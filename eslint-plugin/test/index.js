@@ -23,6 +23,7 @@ test('force-css-file-name')
 test('force-css-variable-name')
 test('force-jsx-spreaded-variable-passing')
 test('force-destructured-props')
+test('no-default-export')
 
 function test(name) {
   const rule = rules[name]
