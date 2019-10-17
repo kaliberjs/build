@@ -140,6 +140,10 @@ module.exports = {
       ])
     },
     {
+      source: `.bad { position: fixed; }`,
+      warnings: [messages['root - no layout related props']('position: fixed')]
+    },
+    {
       title: "└─ take @media into account",
       source: `
         .bad {
@@ -353,6 +357,7 @@ module.exports = {
     },
     { source: '.good { & > .test { width: 100%; } }', warnings: 0 },
     { source: '.good { & > .test { position: relative; } }', warnings: 0 },
+    { source: '.good { & > .test { position: fixed; } }', warnings: 0 },
     { source: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }', warnings: 0 },
     { source: '.good { padding: 100px; }', warnings: 0 },
     { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },

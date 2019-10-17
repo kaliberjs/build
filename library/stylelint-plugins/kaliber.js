@@ -32,7 +32,7 @@ const allowedInRootAndChild = [
 
 const layoutRelatedProps = [ // only allowed in child
   'width', 'height',
-  ['position', 'absolute'],
+  ['position', 'absolute'], ['position', 'fixed'],
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
@@ -227,6 +227,7 @@ function noLayoutRelatedPropsInRoot() {
     messages,
     testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
+      const reset = isReset(root)
       withRootRules(root, rule => {
 
         const isRoot = rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
@@ -236,7 +237,7 @@ function noLayoutRelatedPropsInRoot() {
         decls.forEach(decl => {
           if (matches(decl, intrinsicProps) && isIntrinsicValue(decl)) return
           if (isRatioHack(decl, rule)) return
-          if (isReset(root) && matches(decl, allowedInReset)) return
+          if (reset && matches(decl, allowedInReset)) return
           if (matches(decl, allowedInRootAndChild)) return
           const { prop } = decl
           const hasValue = layoutRelatedPropsWithValues[prop]
