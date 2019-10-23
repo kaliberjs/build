@@ -16,6 +16,7 @@ function parseValue(value) { return createValueParser(value).parse() }
 
 const allowedInReset = [
   'width', 'height',
+  'max-width', 'max-height',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
 ]
 

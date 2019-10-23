@@ -218,6 +218,7 @@ module.exports = {
         source: `
           div {
             width: 100%; height: 100%;
+            max-width: 100%; max-height: 100%;
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           }
         `,
