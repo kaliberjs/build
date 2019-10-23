@@ -641,23 +641,55 @@ module.exports = {
   'kaliber/custom-properties': [
     {
       source: `:root { --x: 0; }`,
-      warnings: ['custom properties are no allowed unless they are in the css-properties folder']
+      warnings: [messages['no root selector']]
     },
     {
-      title: 'valid - allow custom properties in theme folder css files',
-      source: { filename: 'src/css-properties/abc.css', source: `:root { --x: 0; }` },
+      title: 'valid - allow custom properties in cssGlobal',
+      source: { filename: 'src/cssGlobal/abc.css', source: `:root { --x: 0; }` },
       warnings: 0,
     },
     {
-      title: 'invalid - only allow :root in theme files',
+      title: 'invalid - only allow :root in cssGlobal directory',
       source: {
-        filename: 'src/css-properties/abc.css',
+        filename: 'src/cssGlobal/abc.css',
         source: `
           div { }
           .test { }
         `
       },
-      warnings: ['?', '?', '?'],
+      warnings: Array(2).fill(messages['only root selector']),
     },
-  ]
+    {
+      title: 'valid - allow custom media in globalCss',
+      source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);`},
+      warnings: 0
+    }
+  ],
+  'kaliber/custom-media': [
+    {
+      source: `@custom-media --x (max-width: 30em);`,
+      warnings: ['custom media is not allowed unless they are in the css-properties folder']
+    },
+    {
+      title: 'valid - allow custom media in cssGlobal directory',
+      source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);` },
+      warnings: 0,
+    },
+    {
+      title: 'invalid - only allow @custom-media in cssGlobal directory',
+      source: {
+        filename: 'src/cssGlobal/abc.css',
+        source: `
+          div { }
+          .test { }
+        `
+      },
+      warnings: ['?', '?'],
+    },
+    {
+      title: 'valid - allow custom properties in globalCss',
+      source: { filename: 'src/cssGlobal/abc.css', source: `root { --x: 0; }`},
+      warnings: 0
+    }
+  ],
 }

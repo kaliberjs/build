@@ -112,6 +112,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noChildElementSelectorsInMedia(),
   onlyTagSelectorsInResetAndIndex(),
   validPointerEvents(),
+  customProperties(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -492,6 +493,35 @@ function validPointerEvents() {
   })
 }
 
+function customProperties() {
+  const messages = {
+    'no root selector':
+      `Unexpected :root selector\n` +
+      `you can only use the :root selector in the \`cssGlobal\` directory - ` +
+      `move the :root selector and it's contents to the \`cssGlobal\` directory`,
+    'only root selector':
+      `Unexpected selector\n` +
+      `only :root selectors are allowed in the \`cssGlobal\` directory - ` +
+      `move the selector to \`reset.css\` or \`index.css\``
+  }
+  return createPlugin({
+    ruleName: 'kaliber/custom-properties',
+    messages,
+    skipCustomPropertyResolving: true,
+    plugin: ({ root, report }) => {
+      root.walkRules(rule => {
+        if (rule.selector === ':root') {
+          if (isInCssGlobal(root)) return
+          report(rule, messages['no root selector'])
+        } else {
+          if (!isInCssGlobal(root)) return
+          report(rule, messages['only root selector'])
+        }
+      })
+    }
+  })
+}
+
 function hasChildSelector(rule) {
   return !!getChildSelectors(rule).length
 }
@@ -638,20 +668,11 @@ function invalidTarget(targets, { prop, value }) {
   return !hasProp || (!!targetValue.length && !targetValue.includes(value))
 }
 
-function findDecl(rule, target) {
-  const [result] = findDecls(rule, [target])
-  return result
-}
-
-function missingProps(target, requiredProps) {
-  const actualProps = getProps(target)
-  return Object.entries(requiredProps).reduce(
-    (invalid, [prop, value]) => invalid || actualProps[prop] !== value,
-    false
-  )
-}
-
-function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueries = false }) {
+function createPlugin({
+  ruleName, messages, plugin,
+  testWithNormalizedMediaQueries = false,
+  skipCustomPropertyResolving = false,
+}) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
   return {
@@ -668,12 +689,14 @@ function createPlugin({ ruleName, messages, plugin, testWithNormalizedMediaQueri
 
       const reported = {}
       const importFrom = findCssGlobalFiles(originalRoot.source.input.file)
-      const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false, importFrom })
       const postcssCustomMediaResolver = createPostcssCustomMediaResolver({ preserve: false, importFrom })
 
       const root = originalRoot.clone()
       await postcssModulesValuesResolver(root, result)
-      await postcssCustomPropertiesResolver(root, result)
+      if (!skipCustomPropertyResolving) {
+        const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false, importFrom })
+        await postcssCustomPropertiesResolver(root, result)
+      }
       await postcssCustomMediaResolver(root, result)
       await postcssCalcResolver(root, result)
       plugin({ root, report })
@@ -743,20 +766,16 @@ function getParentRule({ parent }) {
         (parent.type === 'rule' ? parent : getParentRule(parent))
 }
 
-function getProps(node) {
-  const result = {}
-  node.each(x => {
-    if (x.type === 'decl') result[x.prop] = x.value
-  })
-  return result
+function isReset(root) { return isFile(root, 'reset.css') }
+function isIndex(root) { return isFile(root, 'index.css') }
+function isInCssGlobal(root) { return matchesFile(root, filename => filename.includes('/cssGlobal/')) }
+
+function isFile(root, name) {
+  return matchesFile(root, filename => path.basename(filename) === name)
 }
 
-function isReset(root) { return isFile(root, 'reset.css') }
-
-function isIndex(root) { return isFile(root, 'index.css') }
-
-function isFile({ source: { input } }, name) {
-  return !!input.file && path.basename(input.file) === name
+function matchesFile({ source: { input } }, predicate) {
+  return !!input.file && predicate(input.file)
 }
 
 function checkChildParentRelation(childRule, { nestedHasOneOf, requireInRoot }) {
