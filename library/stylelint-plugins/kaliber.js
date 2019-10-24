@@ -6,6 +6,7 @@ const path = require('path')
 const createPostcssModulesValuesResolver = require('postcss-modules-values')
 const createPostcssCustomPropertiesResolver = require('postcss-custom-properties')
 const createPostcssCustomMediaResolver = require('postcss-custom-media')
+const createPostcssCustomSelectorsResolver = require('postcss-custom-selectors')
 const createPostcssCalcResolver = require('postcss-calc')
 const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 
@@ -33,7 +34,7 @@ const allowedInRootAndChild = [
 
 const allowedInCssGlobal = {
   selectors: [':root'],
-  atRules: ['custom-media'],
+  atRules: ['custom-media', 'custom-selector'],
 }
 
 const layoutRelatedProps = [ // only allowed in child
@@ -119,6 +120,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   validPointerEvents(),
   customProperties(),
   customMedia(),
+  customSelectors(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -514,6 +516,8 @@ function customProperties() {
     ruleName: 'kaliber/custom-properties',
     messages,
     skipCustomPropertyResolving: true,
+    skipCustomMediaResolving: true,
+    skipCustomSelectorsResolving: true,
     plugin: ({ root, report }) => {
       root.walkRules(rule => {
         const { selector } = rule
@@ -545,6 +549,8 @@ function customMedia() {
     ruleName: 'kaliber/custom-media',
     messages,
     skipCustomMediaResolving: true,
+    skipCustomPropertyResolving: true,
+    skipCustomSelectorsResolving: true,
     plugin: ({ root, report }) => {
       root.walkAtRules(rule => {
         const { name } = rule
@@ -555,6 +561,39 @@ function customMedia() {
           if (!isInCssGlobal(root)) return
           if (allowedInCssGlobal.atRules.includes(name)) return
           report(rule, messages['only custom media'])
+        }
+      })
+    }
+  })
+}
+
+function customSelectors() {
+  const messages = {
+    'no custom selector':
+      `Unexpected @custom-selector\n` +
+      `you can only use @custom-selector in the \`cssGlobal\` directory - ` +
+      `move @custom-selector to the \`cssGlobal\` directory`,
+    'only custom selector':
+      `Unexpected at rule\n` +
+      `only @custom-selector is allowed in the \`cssGlobal\` directory - ` +
+      `move the at rule to \`reset.css\` or \`index.css\``
+  }
+  return createPlugin({
+    ruleName: 'kaliber/custom-selectors',
+    messages,
+    skipCustomMediaResolving: true,
+    skipCustomPropertyResolving: true,
+    skipCustomSelectorsResolving: true,
+    plugin: ({ root, report }) => {
+      root.walkAtRules(rule => {
+        const { name } = rule
+        if (name === 'custom-selector') {
+          if (isInCssGlobal(root)) return
+          report(rule, messages['no custom selector'])
+        } else {
+          if (!isInCssGlobal(root)) return
+          if (allowedInCssGlobal.atRules.includes(name)) return
+          report(rule, messages['only custom selector'])
         }
       })
     }
@@ -712,6 +751,7 @@ function createPlugin({
   testWithNormalizedMediaQueries = false,
   skipCustomPropertyResolving = false,
   skipCustomMediaResolving = false,
+  skipCustomSelectorsResolving = false,
 }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
@@ -739,6 +779,10 @@ function createPlugin({
       if (!skipCustomMediaResolving) {
         const postcssCustomMediaResolver = createPostcssCustomMediaResolver({ preserve: false, importFrom })
         await postcssCustomMediaResolver(root, result)
+      }
+      if (!skipCustomSelectorsResolving) {
+        const postcssCustomSelectorsResolver = createPostcssCustomSelectorsResolver({ preserve: false, importFrom })
+        await postcssCustomSelectorsResolver(root, result)
       }
       await postcssCalcResolver(root, result)
       plugin({ root, report })

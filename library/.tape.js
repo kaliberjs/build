@@ -663,7 +663,12 @@ module.exports = {
       title: 'valid - allow custom media in globalCss',
       source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);`},
       warnings: 0
-    }
+    },
+    {
+      title: 'valid - allow custom selectors in globalCss',
+      source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;`},
+      warnings: 0
+    },
   ],
   'kaliber/custom-media': [
     {
@@ -690,6 +695,43 @@ module.exports = {
       title: 'valid - allow custom properties in globalCss',
       source: { filename: 'src/cssGlobal/abc.css', source: `root { --x: 0; }`},
       warnings: 0
-    }
+    },
+    {
+      title: 'valid - allow custom selectors in globalCss',
+      source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;`},
+      warnings: 0
+    },
+  ],
+  'kaliber/custom-selectors': [
+    {
+      source: `@custom-selector :--x x;`,
+      warnings: [messages['no custom selector']]
+    },
+    {
+      title: 'valid - allow custom selectors in cssGlobal directory',
+      source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;` },
+      warnings: 0,
+    },
+    {
+      title: 'invalid - only allow custom selector in cssGlobal directory',
+      source: {
+        filename: 'src/cssGlobal/abc.css',
+        source: `
+          @keyframe { }
+          @media x { }
+        `
+      },
+      warnings: Array(2).fill(messages['only custom selector']),
+    },
+    {
+      title: 'valid - allow custom properties in globalCss',
+      source: { filename: 'src/cssGlobal/abc.css', source: `root { --x: 0; }`},
+      warnings: 0
+    },
+    {
+      title: 'valid - allow custom media in globalCss',
+      source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);`},
+      warnings: 0
+    },
   ],
 }

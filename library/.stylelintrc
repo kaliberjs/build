@@ -20,6 +20,7 @@
     "kaliber/valid-pointer-events": true,
     "kaliber/custom-properties": true,
     "kaliber/custom-media": true,
+    "kaliber/custom-selectors": true,
 
     "at-rule-blacklist": [
       'apply',
@@ -27,7 +28,6 @@
       'character-variant',
       'charset',
       'counter-style',
-      'custom-selector',
       'document',
       'font-feature-values',
       'import',
