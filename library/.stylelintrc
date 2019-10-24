@@ -19,6 +19,7 @@
     "kaliber/only-tag-selectors-in-reset-and-index": true,
     "kaliber/valid-pointer-events": true,
     "kaliber/custom-properties": true,
+    "kaliber/custom-media": true,
 
     "at-rule-blacklist": [
       'apply',

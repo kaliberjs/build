@@ -668,7 +668,7 @@ module.exports = {
   'kaliber/custom-media': [
     {
       source: `@custom-media --x (max-width: 30em);`,
-      warnings: ['custom media is not allowed unless they are in the css-properties folder']
+      warnings: [messages['no custom media']]
     },
     {
       title: 'valid - allow custom media in cssGlobal directory',
@@ -680,11 +680,11 @@ module.exports = {
       source: {
         filename: 'src/cssGlobal/abc.css',
         source: `
-          div { }
-          .test { }
+          @keyframe { }
+          @media x { }
         `
       },
-      warnings: ['?', '?'],
+      warnings: Array(2).fill(messages['only custom media']),
     },
     {
       title: 'valid - allow custom properties in globalCss',

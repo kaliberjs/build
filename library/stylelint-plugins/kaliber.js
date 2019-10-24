@@ -31,6 +31,11 @@ const allowedInRootAndChild = [
   'pointer-events', // handled by valid-pointer-events
 ]
 
+const allowedInCssGlobal = {
+  selectors: [':root'],
+  atRules: ['custom-media'],
+}
+
 const layoutRelatedProps = [ // only allowed in child
   'width', 'height',
   ['position', 'absolute'], ['position', 'fixed'],
@@ -113,6 +118,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   onlyTagSelectorsInResetAndIndex(),
   validPointerEvents(),
   customProperties(),
+  customMedia(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -510,12 +516,45 @@ function customProperties() {
     skipCustomPropertyResolving: true,
     plugin: ({ root, report }) => {
       root.walkRules(rule => {
-        if (rule.selector === ':root') {
+        const { selector } = rule
+        if (selector === ':root') {
           if (isInCssGlobal(root)) return
           report(rule, messages['no root selector'])
         } else {
           if (!isInCssGlobal(root)) return
+          if (allowedInCssGlobal.selectors.includes(selector)) return
           report(rule, messages['only root selector'])
+        }
+      })
+    }
+  })
+}
+
+function customMedia() {
+  const messages = {
+    'no custom media':
+      `Unexpected @custom-media\n` +
+      `you can only use @custom-media in the \`cssGlobal\` directory - ` +
+      `move @custom-media to the \`cssGlobal\` directory`,
+    'only custom media':
+      `Unexpected at rule\n` +
+      `only @custom-media is allowed in the \`cssGlobal\` directory - ` +
+      `move the at rule to \`reset.css\` or \`index.css\``
+  }
+  return createPlugin({
+    ruleName: 'kaliber/custom-media',
+    messages,
+    skipCustomMediaResolving: true,
+    plugin: ({ root, report }) => {
+      root.walkAtRules(rule => {
+        const { name } = rule
+        if (name === 'custom-media') {
+          if (isInCssGlobal(root)) return
+          report(rule, messages['no custom media'])
+        } else {
+          if (!isInCssGlobal(root)) return
+          if (allowedInCssGlobal.atRules.includes(name)) return
+          report(rule, messages['only custom media'])
         }
       })
     }
@@ -672,6 +711,7 @@ function createPlugin({
   ruleName, messages, plugin,
   testWithNormalizedMediaQueries = false,
   skipCustomPropertyResolving = false,
+  skipCustomMediaResolving = false,
 }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
@@ -689,7 +729,6 @@ function createPlugin({
 
       const reported = {}
       const importFrom = findCssGlobalFiles(originalRoot.source.input.file)
-      const postcssCustomMediaResolver = createPostcssCustomMediaResolver({ preserve: false, importFrom })
 
       const root = originalRoot.clone()
       await postcssModulesValuesResolver(root, result)
@@ -697,7 +736,10 @@ function createPlugin({
         const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false, importFrom })
         await postcssCustomPropertiesResolver(root, result)
       }
-      await postcssCustomMediaResolver(root, result)
+      if (!skipCustomMediaResolving) {
+        const postcssCustomMediaResolver = createPostcssCustomMediaResolver({ preserve: false, importFrom })
+        await postcssCustomMediaResolver(root, result)
+      }
       await postcssCalcResolver(root, result)
       plugin({ root, report })
 
