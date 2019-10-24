@@ -37,6 +37,11 @@ const allowedInCssGlobal = {
   atRules: ['custom-media', 'custom-selector'],
 }
 
+const allowedInColorScheme = [
+  'color', 'background-color', 'border-color',
+  'stroke', 'fill',
+]
+
 const layoutRelatedProps = [ // only allowed in child
   'width', 'height',
   ['position', 'absolute'], ['position', 'fixed'],
@@ -121,6 +126,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   customProperties(),
   customMedia(),
   customSelectors(),
+  colorSchemes(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -289,6 +295,7 @@ function onlyLayoutRelatedPropsInNested() {
     messages,
     testWithNormalizedMediaQueries: true,
     plugin: ({ root, report }) => {
+      if (isColorScheme(root)) return
       withNestedRules(root, (rule, parent) => {
         const root = selectorParser.astSync(rule)
         const pseudos = root.first.filter(x => x.type === 'pseudo')
@@ -356,6 +363,7 @@ function noDoubleChildSelectorsInNested() {
     ruleName: 'kaliber/no-double-child-selectors-in-nested',
     messages,
     plugin: ({ root, report }) => {
+      if (isColorScheme(root)) return
       withNestedRules(root, (rule, parent) => {
         const [, double] = getChildSelectors(rule)
         if (double) {
@@ -405,6 +413,7 @@ function onlyDirectChildSelectors() {
     ruleName: 'kaliber/only-direct-child-selectors',
     messages,
     plugin: ({ root, report }) => {
+      if (isColorScheme(root)) return
       root.walkRules(rule => {
         const root = selectorParser.astSync(rule)
         const [combinator] = root.first.filter(x => x.type === 'combinator' && x.value !== '>')
@@ -595,6 +604,27 @@ function customSelectors() {
           if (allowedInCssGlobal.atRules.includes(name)) return
           report(rule, messages['only custom selector'])
         }
+      })
+    }
+  })
+}
+
+function colorSchemes() {
+  const messages = {
+    'only color related properties': prop =>
+      `Unexpected property ${prop}\n` +
+      `you can only use color related properties in color schemes - ` +
+      `move the property to another file or use one of the advanced color values like #RRGGBBAA or color-mod(...)`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/color-scheme',
+    messages,
+    plugin: ({ root, report }) => {
+      if (!isColorScheme(root)) return
+      root.walkDecls(decl => {
+        const { prop } = decl
+        if (allowedInColorScheme.includes(prop)) return
+        report(decl, messages['only color related properties'](prop))
       })
     }
   })
@@ -855,6 +885,7 @@ function getParentRule({ parent }) {
 function isReset(root) { return isFile(root, 'reset.css') }
 function isIndex(root) { return isFile(root, 'index.css') }
 function isInCssGlobal(root) { return matchesFile(root, filename => filename.includes('/cssGlobal/')) }
+function isColorScheme(root) { return matchesFile(root, filename => /color-scheme.*\.css/.test(filename)) }
 
 function isFile(root, name) {
   return matchesFile(root, filename => path.basename(filename) === name)

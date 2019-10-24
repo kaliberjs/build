@@ -365,6 +365,14 @@ module.exports = {
     { source: '.good { padding: 100px; }', warnings: 0 },
     { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },
     { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }`, warnings: 0 },
+    {
+      title: 'allow color related properties in color scheme css files',
+      source: {
+        filename: 'color-scheme/abc.css',
+        source: '.good { & .test { color: 0; background-color: 0; border-color: 0; stroke: 0; fill: 0; } }'
+      },
+      warnings: 0
+    },
   ],
   'kaliber/no-component-class-name-in-nested': [
     {
@@ -424,6 +432,14 @@ module.exports = {
       warnings: 0
     },
     { source: '.good { & > *:not(:first-child) { } }', warnings: 0 },
+    {
+      title: 'allow double child selectors in color schemes',
+      source: {
+        filename: 'color-scheme.css',
+        source: '.good { & ::selection { } }'
+      },
+      warnings: 0
+    },
   ],
   'kaliber/no-tag-selectors': [
     {
@@ -495,6 +511,14 @@ module.exports = {
     },
     { source: '.good { &.test { } }', warnings: 0 },
     { source: '.good { & > .test { } }', warnings: 0 },
+    {
+      title: 'allow non direct child selector in color scheme',
+      source: {
+        filename: 'color-scheme/abc.css',
+        source: '.good { & .test { } }'
+      },
+      warnings: 0
+    },
   ],
   'kaliber/valid-flex-context-in-root': [
     {
@@ -734,6 +758,26 @@ module.exports = {
       title: 'valid - allow custom media in globalCss',
       source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);`},
       warnings: 0
+    },
+  ],
+  'kaliber/color-scheme': [
+    {
+      title: 'allow color related properties in color scheme css files',
+      source: {
+        filename: 'color-scheme/abc.css',
+        source: '.good { & .test { color: 0; background-color: 0; border-color: 0; stroke: 0; fill: 0; } }'
+      },
+      warnings: 0,
+    },
+    {
+      title: 'only allow color related properties in color scheme css files',
+      source: {
+        filename: 'color-scheme/abc.css',
+        source: '.bad { padding: 0; & .test { margin: 0; } }'
+      },
+      warnings: createMessages('only color related properties', [
+        'padding', 'margin'
+      ])
     },
   ],
 }
