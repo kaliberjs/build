@@ -348,8 +348,10 @@ module.exports = {
   ],
   'kaliber/only-layout-related-props-in-nested': [
     {
-      source: '.bad { & > .test { padding: 100px; } }',
-      warnings: [message('nested - only layout related props in nested')('padding')]
+      source: '.bad { & > .test { padding: 100px; color: 0; } }',
+      warnings: createMessages('nested - only layout related props in nested', [
+        'padding', 'color'
+      ])
     },
     {
       title: "└─ take @media into account",

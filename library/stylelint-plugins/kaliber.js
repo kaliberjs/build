@@ -717,7 +717,7 @@ function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {
     ) return
 
     result.push(node)
-    const continueIteration = !onlyInvalidTargets && result.length !== targets.length
+    const continueIteration = onlyInvalidTargets || result.length !== targets.length
     return continueIteration
   })
 
