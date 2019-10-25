@@ -12,6 +12,10 @@
   padding: calc(30px - 25px);
   display: flex;
 
+  &:--enter {
+    color: black;
+  }
+
   @media (--breakpoint) {
     background-color: #BADA55;
     @apply --test-apply;
