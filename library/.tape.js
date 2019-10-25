@@ -373,6 +373,10 @@ module.exports = {
       },
       warnings: 0
     },
+    {
+      source: '.bad { &:not(.is-open) > .test { padding: 0; } }',
+      warnings: [messages['nested - only layout related props in nested']('padding')]
+    },
   ],
   'kaliber/no-component-class-name-in-nested': [
     {

@@ -299,7 +299,7 @@ function onlyLayoutRelatedPropsInNested() {
       if (isColorScheme(root)) return
       withNestedRules(root, (rule, parent) => {
         const root = selectorParser.astSync(rule)
-        const pseudos = root.first.filter(x => x.type === 'pseudo')
+        const pseudos = root.first.filter(isPseudoElement)
         if (pseudos.length) return
         const decls = findDecls(rule, layoutRelatedProps, { onlyInvalidTargets: true })
         decls.forEach(decl => {
@@ -670,10 +670,11 @@ function hasChildSelector(rule) {
 
 function getChildSelectors(rule) {
   const root = selectorParser.astSync(rule)
-  return root.first.filter(x =>
-    x.type === 'combinator' ||
-    (x.type === 'pseudo' && x.value.startsWith('::'))
-  )
+  return root.first.filter(x => x.type === 'combinator' || isPseudoElement(x))
+}
+
+function isPseudoElement({ type, value }) {
+  return type === 'pseudo' && value.startsWith('::')
 }
 
 function splitByMediaQueries(root) {
