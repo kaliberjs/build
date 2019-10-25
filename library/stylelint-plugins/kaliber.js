@@ -30,6 +30,7 @@ const allowedInRootAndChild = [
   ['position', 'relative'], // is safe to use
   'overflow', // is safe to use
   'pointer-events', // handled by valid-pointer-events
+  ['display', 'none'], // is safe to use
 ]
 
 const allowedInCssGlobal = {

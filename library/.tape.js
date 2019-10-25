@@ -286,6 +286,7 @@ module.exports = {
     { source: '.good { position: relative; }', warnings: 0 },
     { source: '.good { overflow: 0; }', warnings: 0 },
     { source: '.good { pointer-events: none; }', warnings: 0 },
+    { source: '.good { display: none; }', warnings: 0 },
     {
       source: '.good { height: 0; padding-bottom: 10px; }',
       warnings: [messages['root - no layout related props']('height')]
@@ -365,6 +366,11 @@ module.exports = {
     { source: '.good { padding: 100px; }', warnings: 0 },
     { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },
     { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }`, warnings: 0 },
+    { source: `.good { & > * { display: none; } }`, warnings: 0 },
+    {
+      source: '.bad { & > .test { display: block; } }',
+      warnings: [messages['nested - only layout related props in nested']('display')]
+    },
     {
       title: 'allow color related properties in color scheme css files',
       source: {
