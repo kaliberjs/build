@@ -22,6 +22,7 @@
     "kaliber/custom-media": true,
     "kaliber/custom-selectors": true,
     "kaliber/color-scheme": true,
+    "kaliber/no-import": true,
 
     "at-rule-blacklist": [
       'apply',
@@ -31,7 +32,6 @@
       'counter-style',
       'document',
       'font-feature-values',
-      'import',
       'namespace',
       'nest',
       'ornaments',

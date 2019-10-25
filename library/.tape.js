@@ -784,4 +784,34 @@ module.exports = {
       ])
     },
   ],
+  'kaliber/no-import': [
+    {
+      source: `@import 'x';`,
+      warnings: [messages['no import']]
+    },
+    {
+      title: 'allow @import in *.entry.css',
+      source: {
+        filename: 'abc.entry.css',
+        source: `@import 'x';`
+      },
+      warnings: 0
+    },
+    {
+      title: 'allow font @import in index.css',
+      source: {
+        filename: 'index.css',
+        source: `@import url('https://fonts.googleapis.com/css');`
+      },
+      warnings: 0
+    },
+    {
+      title: 'prevent non-font @import in index.css',
+      source: {
+        filename: 'index.css',
+        source: `@import 'x';`
+      },
+      warnings: [messages['only import font']]
+    },
+  ]
 }

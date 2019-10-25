@@ -127,6 +127,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   customMedia(),
   customSelectors(),
   colorSchemes(),
+  noImport(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -633,6 +634,36 @@ function colorSchemes() {
   })
 }
 
+function noImport() {
+  const messages = {
+    'no import':
+      `Unexpected @import\n` +
+      `you can only use @import in \`*.entry.css\` files or in \`index.css\` files - ` +
+      `you might not need the import, for custom variables, custom media and custom selectors you can place the code in \`src/cssGlobal/\`\n` +
+      `in other cases try another method of reuse, for example create another class`,
+    'only import font':
+      `Invalid @import value\n` +
+      `you can only import fonts`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/no-import',
+    messages,
+    plugin: ({ root, report }) => {
+      const index = isIndex(root)
+      if (isEntryCss(root)) return
+      root.walkAtRules(rule => {
+        if (rule.name !== 'import') return
+        if (index) {
+          if (rule.params.includes('font')) return
+          report(rule, messages['only import font'])
+        } else {
+          report(rule, messages['no import'])
+        }
+      })
+    }
+  })
+}
+
 function hasChildSelector(rule) {
   return !!getChildSelectors(rule).length
 }
@@ -889,6 +920,7 @@ function isReset(root) { return isFile(root, 'reset.css') }
 function isIndex(root) { return isFile(root, 'index.css') }
 function isInCssGlobal(root) { return matchesFile(root, filename => filename.includes('/cssGlobal/')) }
 function isColorScheme(root) { return matchesFile(root, filename => /color-scheme.*\.css/.test(filename)) }
+function isEntryCss(root) { return matchesFile(root, filename => filename.endsWith('.entry.css')) }
 
 function isFile(root, name) {
   return matchesFile(root, filename => path.basename(filename) === name)
