@@ -417,8 +417,11 @@ function onlyDirectChildSelectors() {
       root.walkRules(rule => {
         const root = selectorParser.astSync(rule)
         const [combinator] = root.first.filter(x => x.type === 'combinator' && x.value !== '>')
-        if (combinator)
-          report(rule, messages['only direct child selectors'](combinator.value), combinator.sourceIndex)
+        if (!combinator) return
+        const { first } = root.first
+        if (first && first.type === 'attribute' && first.attribute.startsWith('data-context-')) return
+
+        report(rule, messages['only direct child selectors'](combinator.value), combinator.sourceIndex)
       })
     }
   })
