@@ -128,14 +128,19 @@ module.exports = {
     'component-name-starts-with-file-name': {
       create(context) {
         return {
-          'ExportNamedDeclaration > FunctionDeclaration'(node) {
+          'ExportDefaultDeclaration > FunctionDeclaration': nameStartsWithFilename({ suggestFilename: true }),
+          'ExportNamedDeclaration > FunctionDeclaration': nameStartsWithFilename({ suggestFilename: false }),
+        }
+
+        function nameStartsWithFilename({ suggestFilename }) {
+          return (node) => {
             const { name } = node.id
             if (firstLetterLowerCase(name)) return
 
             const expectedPrefix = getBaseFilename(context)
             if (name.startsWith(expectedPrefix)) return
 
-            const expected = `${expectedPrefix}${name}`
+            const expected = suggestFilename ? expectedPrefix : `${expectedPrefix}${name}`
             context.report({
               message: messages['invalid component name'](expected),
               node: node.id,
