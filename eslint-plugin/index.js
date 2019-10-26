@@ -260,7 +260,12 @@ function getPropertyClassName({ property }) {
 
 function getBaseFilename(context) {
   const filename = context.getFilename()
-  return path.basename(filename, '.js')
+  const basename = path.basename(filename, '.js')
+
+  if (isTemplate(context)) {
+    const [name] = basename.split('.')
+    return name.slice(0, 1).toUpperCase() + name.slice(1)
+  } else return basename
 }
 
 function firstLetterLowerCase(word) {
