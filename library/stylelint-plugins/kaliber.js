@@ -903,7 +903,11 @@ function createPlugin({
         const id = getId(node, message, index)
         if (reported[id]) return
         else reported[id] = true
-        stylelint.utils.report({ message, index, node, result, ruleName })
+        if (!node.source) stylelint.utils.report({
+          message: `A generated node (${getNodeId(node)}) caused a problem\n  ${node.toString().split('\n').join('\n  ')}\n${message}`,
+          node: node.parent, result, ruleName
+        })
+        else stylelint.utils.report({ message, index, node, result, ruleName })
       }
 
       function getId(node, message, index) {
