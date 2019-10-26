@@ -55,6 +55,26 @@ module.exports = {
       `,
     },
     {
+      filename: 'App.js',
+      code: `
+        function App() {
+          return (
+            <div className={styles.app} />
+          )
+        }
+      `,
+    },
+    {
+      filename: 'src/pages/MyPage.js',
+      code: `
+        function MyPage() {
+          return (
+            <div className={styles.page} />
+          )
+        }
+      `,
+    },
+    {
       filename: 'Test.js',
       code: `
         function SomethingTest() {

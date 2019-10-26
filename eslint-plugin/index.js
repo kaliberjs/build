@@ -22,6 +22,8 @@ module.exports = {
 
         return {
           [`ReturnStatement JSXAttribute[name.name = 'className'] MemberExpression[object.name = 'styles']`](node) {
+            if (isApp(context) || isPage(context)) return
+
             const jsxElement = getParentJSXElement(node)
             if (checked.has(jsxElement)) return
             else checked.add(jsxElement)
@@ -217,15 +219,26 @@ module.exports = {
     },
     'no-default-export': {
       create(context) {
-        const filename = context.getFilename()
-        if (
-          filename.endsWith('App.js') ||
-          /.+\.[^.]+\.js/.test(filename)
-        ) return {}
+        if (isApp(context) || isTemplate(context)) return {}
         return eslintPluginImport.rules['no-default-export'].create(context)
       }
     }
   }
+}
+
+function isApp(context) {
+  const filename = context.getFilename()
+  return !!filename && filename.endsWith('App.js')
+}
+
+function isPage(context) {
+  const filename = context.getFilename()
+  return /.+\/pages\/[^/]+\.js/.test(filename)
+}
+
+function isTemplate(context) {
+  const filename = context.getFilename()
+  return /.+\.[^.]+\.js/.test(filename)
 }
 
 function getPropertyClassName({ property }) {
