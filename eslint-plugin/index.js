@@ -16,14 +16,12 @@ const messages = {
 module.exports = {
   messages,
   rules: {
-    'root-component-class-name': {
+    'root-class-name': {
       create(context) {
         const checked = new Set()
 
         return {
           [`ReturnStatement JSXAttribute[name.name = 'className'] MemberExpression[object.name = 'styles']`](node) {
-            if (isApp(context) || isPage(context)) return
-
             const jsxElement = getParentJSXElement(node)
             if (checked.has(jsxElement)) return
             else checked.add(jsxElement)
@@ -32,11 +30,15 @@ module.exports = {
 
             const prefix = new RegExp(`^${getBaseFilename(context)}`)
             const name = getFunctionName(context).replace(prefix, '')
-            const expected = [`component${name}`, `component_root${name}`]
+            const expected =
+              isApp(context) ? [`app`] :
+              isPage(context) ? [`page`] :
+              [`component${name}`, `component_root${name}`]
+
             const { property } = node
             if (expected.includes(property.name)) return
 
-            const [common, withRoot] = expected
+            const [common, withRoot = common] = expected
             context.report({
               message: messages['invalid className'](property.name.includes('root') ? withRoot : common),
               node: property,

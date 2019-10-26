@@ -40,7 +40,7 @@
 
   "rules": {
     // http://eslint.org/docs/rules/
-    "@kaliber/root-component-class-name": "warn",
+    "@kaliber/root-class-name": "warn",
     "@kaliber/child-no-component-class-name": "warn",
     "@kaliber/no-custom-component-class-name": "warn",
     "@kaliber/no-export-base": "warn",

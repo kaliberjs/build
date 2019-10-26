@@ -13,7 +13,7 @@ const ruleTester = new RuleTester({
   }
 })
 
-test('root-component-class-name')
+test('root-class-name')
 test('child-no-component-class-name')
 test('no-custom-component-class-name')
 test('no-export-base')
