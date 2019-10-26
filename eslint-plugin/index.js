@@ -291,10 +291,8 @@ function getFunctionName(context) {
       return getRootFunctionName(upper, [...(node.type === 'function' ? [node] : []), ...previous])
     }
 
-    function getName({ block }) {
-      const { id } = block
-      if (!id) throw new Error('No id for top level function')
-      return id.name
+    function getName({ block: { id } }) {
+      return id ? id.name : '???'
     }
   }
 }

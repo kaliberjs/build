@@ -148,6 +148,17 @@ module.exports = {
       errors: [{ message: messages['invalid className']('component'), type: 'Identifier' }],
     },
     {
+      filename: 'Test.js',
+      code: `
+      class Test {
+        render() {
+          return <div className={styles.test} />
+        }
+      }
+      `,
+      errors: [{ message: messages['invalid className']('component???'), type: 'Identifier'}]
+    },
+    {
       filename: 'App.js',
       code: `
       function App() {
