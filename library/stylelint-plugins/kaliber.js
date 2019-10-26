@@ -395,7 +395,7 @@ function noTagSelectors() {
         if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
         const root = selectorParser.astSync(rule)
         const [tag] = root.first.filter(x => x.type === 'tag')
-        if (tag)
+        if (!tag) return
           report(rule, messages['no tag selectors'], tag.sourceIndex)
       })
     }
@@ -418,12 +418,17 @@ function onlyDirectChildSelectors() {
       if (isColorScheme(root)) return
       root.walkRules(rule => {
         const root = selectorParser.astSync(rule)
-        const [combinator] = root.first.filter(x => x.type === 'combinator' && x.value !== '>')
-        if (!combinator) return
+        const combinators = root.first.filter(x => x.type === 'combinator')
+        if (!combinators.length) return
+
+        const [invalidCombinator] =  combinators.filter(x => x.value !== '>')
+        if (!invalidCombinator) return
+        if (invalidCombinator.value === ' ') {
         const { first } = root.first
         if (first && first.type === 'attribute' && first.attribute.startsWith('data-context-')) return
+        }
 
-        report(rule, messages['only direct child selectors'](combinator.value), combinator.sourceIndex)
+        report(rule, messages['only direct child selectors'](invalidCombinator.value), invalidCombinator.sourceIndex)
       })
     }
   })

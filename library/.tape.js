@@ -533,6 +533,10 @@ module.exports = {
       source: `[data-context-scrolldir='down'] .good { color: 0; }`,
       warnings: 0
     },
+    {
+      source: `[data-context-scrolldir='down'] + .bad { color: 0; }`,
+      warnings: [message('only direct child selectors')('+')]
+    },
   ],
   'kaliber/valid-flex-context-in-root': [
     {
