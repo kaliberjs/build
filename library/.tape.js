@@ -701,6 +701,28 @@ module.exports = {
       warnings: 0,
     },
     {
+      title: 'valid - allow @value in cssGlobal',
+      source: {
+        filename: 'src/cssGlobal/abc.css',
+        source: `
+          @value _x x;
+          :root { --x: 0; }
+        `
+      },
+      warnings: 0,
+    },
+    {
+      title: 'valid - allow :export in cssGlobal',
+      source: {
+        filename: 'src/cssGlobal/abc.css',
+        source: `
+          :export { x: 0; }
+          :root { --x: 0; }
+        `
+      },
+      warnings: 0,
+    },
+    {
       title: 'invalid - only allow :root in cssGlobal directory',
       source: {
         filename: 'src/cssGlobal/abc.css',

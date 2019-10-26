@@ -34,7 +34,7 @@ const allowedInRootAndChild = [
 ]
 
 const allowedInCssGlobal = {
-  selectors: [':root'],
+  selectors: [':root', ':export'],
   atRules: ['custom-media', 'custom-selector'],
 }
 
