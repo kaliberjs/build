@@ -1,5 +1,6 @@
 {
-  "ignoreFiles": ["src/**/*.js"],
+  "defaultSeverity": "warning",
+  "ignoreFiles": ["node_modules/**/*", "src/**/*.js", "src/**/*.svg"],
   "plugins": ["stylelint-use-nesting", "./stylelint-plugins/kaliber.js"],
   "rules": {
     "csstools/use-nesting": "always",
