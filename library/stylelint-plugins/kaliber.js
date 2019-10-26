@@ -396,7 +396,7 @@ function noTagSelectors() {
         const root = selectorParser.astSync(rule)
         const [tag] = root.first.filter(x => x.type === 'tag')
         if (!tag) return
-          report(rule, messages['no tag selectors'], tag.sourceIndex)
+        report(rule, messages['no tag selectors'], tag.sourceIndex)
       })
     }
   })
@@ -405,11 +405,15 @@ function noTagSelectors() {
 function onlyDirectChildSelectors() {
   const messages = {
     'only direct child selectors': type =>
-     `no \`${type}\` selector combinator\n` +
-     `it is only allowed to use direct child selectors - ` +
-     `restructure the css in a way that does not require this, if a third library forces ` +
-     `you to use this type of selector, disable the rule for this line and add a comment ` +
-     `stating the reason`
+      `no \`${type}\` selector combinator\n` +
+      `it is only allowed to use direct child selectors - ` +
+      `restructure the css in a way that does not require this, if a third library forces ` +
+      `you to use this type of selector, disable the rule for this line and add a comment ` +
+      `stating the reason`,
+     'no _root child selectors':
+      `Unexpected _root selector\n` +
+      `_root or component_root selectors can not be used as a child selector - ` +
+      `remove the _root or component_root prefix`,
   }
   return createPlugin({
     ruleName: 'kaliber/only-direct-child-selectors',
@@ -421,11 +425,16 @@ function onlyDirectChildSelectors() {
         const combinators = root.first.filter(x => x.type === 'combinator')
         if (!combinators.length) return
 
+        const [rootSelector] = root.first.filter(x =>
+          x.type === 'class' && (x.value.startsWith('_root') || x.value.startsWith('component_root'))
+        )
+        if (rootSelector) report(rule, messages['no _root child selectors'], rootSelector.sourceIndex)
+
         const [invalidCombinator] =  combinators.filter(x => x.value !== '>')
         if (!invalidCombinator) return
         if (invalidCombinator.value === ' ') {
-        const { first } = root.first
-        if (first && first.type === 'attribute' && first.attribute.startsWith('data-context-')) return
+          const { first } = root.first
+          if (first && first.type === 'attribute' && first.attribute.startsWith('data-context-')) return
         }
 
         report(rule, messages['only direct child selectors'](invalidCombinator.value), invalidCombinator.sourceIndex)
