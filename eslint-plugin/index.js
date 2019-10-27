@@ -6,7 +6,8 @@ const messages = {
   'no root className': `invalid className\nonly root nodes can have a className that starts with 'app', 'page' or 'component'`,
   'no className': 'className is not allowed on custom components, use layoutClassName\nonly native (lower case) elements can have a className',
   'no export base': 'base components can not be exported\nremove the `export` keyword',
-  'no layoutClassName': 'layoutClassName can not be used on child components\nset the layoutClassName as the className of the root node',
+  'no layoutClassName in child': 'layoutClassName can not be used on child components\nset the layoutClassName as the className of the root node',
+  'no _root with layoutClassName': 'layoutClassName can not be used in combination with _root',
   'invalid component name': expected => `invalid component name\nexpected '${expected}'`,
   'invalid css file name': expected => `invalid css file name\nexpected '${expected}'`,
   'invalid styles variable name': `invalid variable name\nexpected name to be 'styles'`,
@@ -26,12 +27,13 @@ module.exports = {
             if (checked.has(jsxElement)) return
             else checked.add(jsxElement)
 
-            if (hasParentsWithClassName(jsxElement) || isInJSXBranch(jsxElement)) noRootNameInChildren(node)
-            else correctRootName(node)
+            const { property } = node
+            if (hasParentsWithClassName(jsxElement) || isInJSXBranch(jsxElement)) noRootNameInChildren(property)
+            else correctRootName(property)
           }
         }
 
-        function correctRootName(node) {
+        function correctRootName(property) {
           const prefix = new RegExp(`^${getBaseFilename(context)}`)
           const name = getFunctionName(context).replace(prefix, '')
           const expected =
@@ -39,24 +41,24 @@ module.exports = {
             isPage(context) ? [`page`] :
             [`component${name}`, `component_root${name}`]
 
-          const { property } = node
-          if (expected.includes(property.name)) return
+          const className = getPropertyName(property)
+          if (expected.includes(className)) return
 
           const [common, withRoot = common] = expected
           context.report({
-            message: messages['invalid className'](property.name.includes('root') ? withRoot : common),
+            message: messages['invalid className'](className.includes('root') ? withRoot : common),
             node: property,
           })
         }
 
-        function noRootNameInChildren(node) {
-          const className = getPropertyClassName(node)
+        function noRootNameInChildren(property) {
+          const className = getPropertyName(property)
           const forbidden = ['app', 'page', 'component']
           if (!forbidden.some(x => className.startsWith(x))) return
 
           context.report({
             message: messages['no root className'],
-            node: node.property,
+            node: property,
           })
         }
       }
@@ -103,17 +105,45 @@ module.exports = {
     },
     'child-no-layout-class-name': {
       create(context) {
-        const checked = new Set()
-        return {
-          [`ReturnStatement JSXAttribute[name.name = 'className'] Identifier[name = 'layoutClassName']`](node) {
-            const jsxElement = getParentJSXElement(node)
-            if (checked.has(jsxElement)) return
-            else checked.add(jsxElement)
+        const checkedLayoutClassName = new Set()
+        const foundRootReferences = new Map()
 
-            if (isRootJSXElement(jsxElement)) return
+        return {
+          [`ReturnStatement JSXAttribute[name.name = 'className'] MemberExpression[object.name = 'styles']`](node) {
+            const jsxElement = getParentJSXElement(node)
+
+            if (!isRootJSXElement(jsxElement)) return
+
+            const { property } = node
+            const className = getPropertyName(property)
+            if (!['_root', 'component_root'].some(x => className.startsWith(x))) return
+
+            foundRootReferences.set(jsxElement, property)
+
+            if (!checkedLayoutClassName.has(jsxElement)) return
 
             context.report({
-              message: messages['no layoutClassName'],
+              message: messages['no _root with layoutClassName'],
+              node: property
+            })
+          },
+          [`ReturnStatement JSXAttribute[name.name = 'className'] Identifier[name = 'layoutClassName']`](node) {
+            const jsxElement = getParentJSXElement(node)
+            if (checkedLayoutClassName.has(jsxElement)) return
+            else checkedLayoutClassName.add(jsxElement)
+
+            if (isRootJSXElement(jsxElement)) {
+              if (!foundRootReferences.has(jsxElement)) return
+
+              context.report({
+                message: messages['no _root with layoutClassName'],
+                node: foundRootReferences.get(jsxElement)
+              })
+              return
+            }
+
+            context.report({
+              message: messages['no layoutClassName in child'],
               node,
             })
           }
@@ -243,7 +273,7 @@ function isTemplate(context) {
   return /.+\.[^.]+\.js/.test(filename)
 }
 
-function getPropertyClassName({ property }) {
+function getPropertyName(property) {
   switch (property.type) {
     case 'Identifier': return property.name
     case 'TemplateLiteral':
@@ -331,5 +361,4 @@ function getParentJSXElement({ parent }) {
   return parent.type === 'JSXElement'
     ? parent
     : getParentJSXElement(parent)
-
 }
