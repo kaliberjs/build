@@ -10,6 +10,15 @@ module.exports = {
         }
       `,
     },
+    `
+      function Test() {
+        return (
+          <div className={styles.componentTest}>
+            <div className={styles.test} />
+          </div>
+        )
+      }
+    `,
     {
       filename: 'Test.js',
       code: `
@@ -34,6 +43,24 @@ module.exports = {
         }
       `,
     },
+    `
+      function Test() {
+        return (
+          <div {...{ test }} className={styles.componentTest}>
+            <div className={styles.test} />
+          </div>
+        )
+      }
+    `,
+    `
+      function Test() {
+        return (
+          <div className={styles.componentTest}>
+            <div className={styles[\`test\`]} />
+          </div>
+        )
+      }
+    `,
     {
       filename: 'Test.js',
       code: `
@@ -146,6 +173,18 @@ module.exports = {
       }
       `,
       errors: [{ message: messages['invalid className']('component'), type: 'Identifier' }],
+    },
+    {
+      code: `
+        function Test2() {
+          return (
+            <div className={styles.componentTest2}>
+              <div className={styles.componentX} />
+            </div>
+          )
+        }
+      `,
+      errors: [ { message: messages['no root className'], type: 'Identifier' }]
     },
     {
       filename: 'Test.js',

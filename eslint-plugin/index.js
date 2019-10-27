@@ -3,7 +3,7 @@ const eslintPluginImport = require('eslint-plugin-import')
 
 const messages = {
   'invalid className': expected => `invalid className\nexpected '${expected}'`,
-  'no component className': `invalid className\nonly root nodes can have a className that starts with 'component'`,
+  'no root className': `invalid className\nonly root nodes can have a className that starts with 'app', 'page' or 'component'`,
   'no className': 'className is not allowed on custom components, use layoutClassName\nonly native (lower case) elements can have a className',
   'no export base': 'base components can not be exported\nremove the `export` keyword',
   'no layoutClassName': 'layoutClassName can not be used on child components\nset the layoutClassName as the className of the root node',
@@ -26,43 +26,38 @@ module.exports = {
             if (checked.has(jsxElement)) return
             else checked.add(jsxElement)
 
-            if (hasParentsWithClassName(jsxElement)) return
-
-            const prefix = new RegExp(`^${getBaseFilename(context)}`)
-            const name = getFunctionName(context).replace(prefix, '')
-            const expected =
-              isApp(context) ? [`app`] :
-              isPage(context) ? [`page`] :
-              [`component${name}`, `component_root${name}`]
-
-            const { property } = node
-            if (expected.includes(property.name)) return
-
-            const [common, withRoot = common] = expected
-            context.report({
-              message: messages['invalid className'](property.name.includes('root') ? withRoot : common),
-              node: property,
-            })
+            if (hasParentsWithClassName(jsxElement)) noRootNameInChildren(node)
+            else correctRootName(node)
           }
         }
-      }
-    },
-    'child-no-component-class-name': {
-      create(context) {
-        return {
-          [`ReturnStatement JSXAttribute[name.name = 'className'] MemberExpression[object.name = 'styles']`](node) {
-            const jsxElement = getParentJSXElement(node)
 
-            if (
-              !hasParentsWithClassName(jsxElement) ||
-              !getPropertyClassName(node).startsWith('component')
-            ) return
+        function correctRootName(node) {
+          const prefix = new RegExp(`^${getBaseFilename(context)}`)
+          const name = getFunctionName(context).replace(prefix, '')
+          const expected =
+            isApp(context) ? [`app`] :
+            isPage(context) ? [`page`] :
+            [`component${name}`, `component_root${name}`]
 
-            context.report({
-              message: messages['no component className'],
-              node: node.property,
-            })
-          },
+          const { property } = node
+          if (expected.includes(property.name)) return
+
+          const [common, withRoot = common] = expected
+          context.report({
+            message: messages['invalid className'](property.name.includes('root') ? withRoot : common),
+            node: property,
+          })
+        }
+
+        function noRootNameInChildren(node) {
+          const className = getPropertyClassName(node)
+          const forbidden = ['app', 'page', 'component']
+          if (!forbidden.some(x => className.startsWith(x))) return
+
+          context.report({
+            message: messages['no root className'],
+            node: node.property,
+          })
         }
       }
     },

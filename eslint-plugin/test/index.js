@@ -14,7 +14,6 @@ const ruleTester = new RuleTester({
 })
 
 test('root-class-name')
-test('child-no-component-class-name')
 test('no-custom-component-class-name')
 test('no-export-base')
 test('child-no-layout-class-name')
