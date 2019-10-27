@@ -26,7 +26,7 @@ module.exports = {
             if (checked.has(jsxElement)) return
             else checked.add(jsxElement)
 
-            if (hasParentsWithClassName(jsxElement)) noRootNameInChildren(node)
+            if (hasParentsWithClassName(jsxElement) || isInJSXBranch(jsxElement)) noRootNameInChildren(node)
             else correctRootName(node)
           }
         }
@@ -307,6 +307,16 @@ function hasParentsWithClassName(jsxElement) {
   function hasClassName(jsxElement) {
     return jsxElement.openingElement.attributes
       .some(x => x.type === 'JSXAttribute' && x.name.name === 'className')
+  }
+}
+
+function isInJSXBranch(jsxElement) {
+  return getParentJSXElements(jsxElement).some(hasBranchingChildren)
+
+  function hasBranchingChildren(jsxElement) {
+    const branchCandidate = ['JSXElement', 'JSXExpressionContainer']
+    const [first, ...rest] = jsxElement.children.filter(x => branchCandidate.includes(x.type))
+    return rest.length > 0 || first.type === 'JSXExpressionContainer'
   }
 }
 

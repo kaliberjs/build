@@ -36,6 +36,19 @@ module.exports = {
       code: `
         function Test2() {
           return (
+            <div>
+              <div className={styles.test1} />
+              <div className={styles.test2} />
+            </div>
+          )
+        }
+      `,
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
             <div {...{ test }} className={styles.component2}>
               <div className={styles.test} />
             </div>
@@ -247,6 +260,66 @@ module.exports = {
         function Test2() {
           return (
             <Wrapper>
+              <div className={styles.component2} />
+              <div className={styles.component2} />
+            </Wrapper>
+          )
+        }
+      `,
+      errors: Array(2).fill({ message: messages['no root className'], type: 'Identifier' }),
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
+            <Wrapper>
+              <div className={styles.component2} />
+              <div>
+                <div className={styles.component2} />
+              </div>
+            </Wrapper>
+          )
+        }
+      `,
+      errors: Array(2).fill({ message: messages['no root className'], type: 'Identifier' }),
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
+            <Wrapper>
+              <div />
+              <div>
+                <div className={styles.component2} />
+              </div>
+            </Wrapper>
+          )
+        }
+      `,
+      errors: [{ message: messages['no root className'], type: 'Identifier' }],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          const x = ['a', 'b']
+          return (
+            <Wrapper>
+              {x.map(x => <div key={x} className={styles.component2} />)}
+            </Wrapper>
+          )
+        }
+      `,
+      errors: [{ message: messages['no root className'], type: 'Identifier' }],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
+            <Wrapper>
               <div className={styles.component_rootTest2} />
             </Wrapper>
           )
@@ -254,5 +327,26 @@ module.exports = {
       `,
       errors: [{ message: messages['invalid className']('component_root2'), type: 'Identifier' }],
     },
+    {
+      filename: 'Menu.js',
+      code: `
+        export function Menu({ layoutClassName }) {
+          return (
+            <Wrapper>
+              {style.map(({ item, key, props: { transform, opacity } }) =>
+                item && (
+                  <ReactSpring.animated.div
+                    className={cx(styles.component_root, layoutClassName)}
+                    style={{ transform }}
+                    {...{ key }}
+                  />
+                )
+              )}
+            </Wrapper>
+          )
+        }
+      `,
+      errors: [{ message: messages['no root className'], type: 'Identifier' }],
+    }
   ]
 }
