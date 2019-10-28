@@ -127,6 +127,8 @@ module.exports = {
           top: 0; right: 0; bottom: 0; left: 0;
           margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+          grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
           max-width: 0; min-width: 0; max-height: 0; min-height: 0;
         }
       `,
@@ -136,6 +138,8 @@ module.exports = {
         'top', 'right', 'bottom', 'left',
         'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+        'grid', 'grid-area', 'grid-column', 'grid-row',
+        'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
         'max-width', 'min-width', 'max-height', 'min-height',
       ])
     },
@@ -153,6 +157,8 @@ module.exports = {
             top: 0; right: 0; bottom: 0; left: 0;
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
           }
         }
       `,
@@ -162,6 +168,8 @@ module.exports = {
         'top', 'right', 'bottom', 'left',
         'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+        'grid', 'grid-area', 'grid-column', 'grid-row',
+        'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
       ])
     },
     {
@@ -175,6 +183,8 @@ module.exports = {
             top: 0; right: 0; bottom: 0; left: 0;
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
           }
         `,
       },
@@ -184,6 +194,8 @@ module.exports = {
         'top', 'right', 'bottom', 'left',
         'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+        'grid', 'grid-area', 'grid-column', 'grid-row',
+        'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
       ])
     },
     {
@@ -206,6 +218,8 @@ module.exports = {
             top: 0; right: 0; bottom: 0; left: 0;
             margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
           }
         }
       `,
@@ -234,6 +248,8 @@ module.exports = {
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
           }
         `,
       },
@@ -241,6 +257,8 @@ module.exports = {
         'position: absolute',
         'top', 'right', 'bottom', 'left',
         'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
+        'grid', 'grid-area', 'grid-column', 'grid-row',
+        'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
       ])
     },
     {
@@ -252,6 +270,8 @@ module.exports = {
           top: 0; right: 0; bottom: 0; left: 0;
           margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+          grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
         }
 
         .component_rootTest {
@@ -260,6 +280,8 @@ module.exports = {
           top: 0; right: 0; bottom: 0; left: 0;
           margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
           flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+          grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+          grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
         }
       `,
       warnings: 0
@@ -583,6 +605,54 @@ module.exports = {
 
           & > .test {
             flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
+          }
+        }
+      `,
+      warnings: 0
+    }
+  ],
+  'kaliber/valid-grid-context-in-root': [
+    {
+      title: 'report missing grid',
+      source: `
+        .bad {
+          & > .test {
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
+          }
+        }
+      `,
+      warnings: createMessages('nested - require display grid in parent', [
+        'grid', 'grid-area', 'grid-column', 'grid-row',
+        'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
+      ])
+    },
+    {
+      title: "└─ take @media into account",
+      source: `
+        .bad {
+          & > .test {
+            @media x {
+              grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+              grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
+            }
+          }
+        }
+      `,
+      warnings: createMessages('nested - require display grid in parent', [
+        'grid', 'grid-area', 'grid-column', 'grid-row',
+        'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
+      ])
+    },
+    {
+      title: "don't report when display grid is present",
+      source: `
+        .good {
+          display: grid;
+
+          & > .test {
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
           }
         }
       `,

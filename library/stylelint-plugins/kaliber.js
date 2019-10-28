@@ -25,6 +25,11 @@ const flexChildProps = [
   'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
 ]
 
+const gridChildProps = [
+  'grid', 'grid-area', 'grid-column', 'grid-row',
+  'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
+]
+
 const allowedInRootAndChild = [
   'z-index',  // handled by valid-stacking-context-in-root
   ['position', 'relative'], // is safe to use
@@ -50,6 +55,7 @@ const layoutRelatedProps = [ // only allowed in child
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
   ...flexChildProps,
+  ...gridChildProps,
   ...allowedInRootAndChild,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
@@ -77,6 +83,12 @@ const childParentRelations = {
     nestedHasOneOf: flexChildProps,
     requireInRoot: [
       ['display', 'flex']
+    ]
+  },
+  rootHasPositionGrid: {
+    nestedHasOneOf: gridChildProps,
+    requireInRoot: [
+      ['display', 'grid']
     ]
   },
   validPointerEvents: {
@@ -112,6 +124,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   requireStackingContextInParent(),
   absoluteHasRelativeParent(),
   requireDisplayFlexInParent(),
+  requireDisplayGridInParent(),
   validStackingContextInRoot(),
   noLayoutRelatedPropsInRoot(),
   onlyLayoutRelatedPropsInNested(),
@@ -460,6 +473,29 @@ function requireDisplayFlexInParent() {
 
         result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
           report(triggerDecl, messages['nested - require display flex in parent'](triggerDecl.prop))
+        })
+      })
+    }
+  })
+}
+
+function requireDisplayGridInParent() {
+  const messages = {
+    'nested - require display grid in parent': prop =>
+      `missing \`display: grid;\`\n` +
+      `\`${prop}\` can only be used when the containing root rule has \`display: grid;\` - ` +
+      `add \`display: grid;\` to the containing root rule`,
+  }
+  return createPlugin({
+    ruleName: 'kaliber/valid-grid-context-in-root',
+    messages,
+    testWithNormalizedMediaQueries: true,
+    plugin: ({ root, report }) => {
+      withNestedRules(root, (rule, parent) => {
+        const result = checkChildParentRelation(rule, childParentRelations.rootHasPositionGrid)
+
+        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
+          report(triggerDecl, messages['nested - require display grid in parent'](triggerDecl.prop))
         })
       })
     }
