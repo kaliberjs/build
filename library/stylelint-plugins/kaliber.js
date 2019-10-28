@@ -54,6 +54,7 @@ const layoutRelatedProps = [ // only allowed in child
   'top', 'right', 'bottom', 'left',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
+  'justify-self', 'align-self',
   ...flexChildProps,
   ...gridChildProps,
   ...allowedInRootAndChild,
