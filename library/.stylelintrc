@@ -25,6 +25,7 @@
     "kaliber/custom-selectors": true,
     "kaliber/color-scheme": true,
     "kaliber/no-import": true,
+    "kaliber/value-starts-with-underscore": true,
 
     "at-rule-blacklist": [
       'apply',

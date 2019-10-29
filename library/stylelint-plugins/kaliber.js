@@ -143,6 +143,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   customSelectors(),
   colorSchemes(),
   noImport(),
+  valueStartsWithUnderscore(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -716,6 +717,28 @@ function noImport() {
   })
 }
 
+function valueStartsWithUnderscore() {
+  const messages = {
+    'value should start with underscore':
+      `Expected underscore \`_\`\n` +
+      `to prevent conflicts all values should start with an underscore - ` +
+      `prefix the value with an underscore or, if you want to export a value, use \`:export { ... }\``
+  }
+
+  return createPlugin({
+    ruleName: 'kaliber/value-starts-with-underscore',
+    messages,
+    skipModulesValuesResolver: true,
+    plugin: ({ root, report }) => {
+      root.walkAtRules('value', rule => {
+        if (rule.params.startsWith('_')) return
+
+        report(rule, messages['value should start with underscore'], 8)
+      })
+    }
+  })
+}
+
 function hasChildSelector(rule) {
   return !!getChildSelectors(rule).length
 }
@@ -869,6 +892,7 @@ function createPlugin({
   skipCustomPropertyResolving = false,
   skipCustomMediaResolving = false,
   skipCustomSelectorsResolving = false,
+  skipModulesValuesResolver = false,
 }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
@@ -888,7 +912,9 @@ function createPlugin({
       const importFrom = findCssGlobalFiles(originalRoot.source.input.file)
 
       const root = originalRoot.clone()
-      await postcssModulesValuesResolver(root, result)
+      if (!skipModulesValuesResolver) {
+        await postcssModulesValuesResolver(root, result)
+      }
       if (!skipCustomPropertyResolving) {
         const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false, importFrom })
         await postcssCustomPropertiesResolver(root, result)

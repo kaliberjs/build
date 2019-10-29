@@ -936,5 +936,15 @@ module.exports = {
       },
       warnings: [messages['only import font']]
     },
+  ],
+  'kaliber/value-starts-with-underscore': [
+    {
+      source: `@value _abc: 0;`,
+      warnings: 0
+    },
+    {
+      source: `@value abc: 0;`,
+      warnings: [messages['value should start with underscore']]
+    },
   ]
 }
