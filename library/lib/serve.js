@@ -28,6 +28,8 @@ const internalServerError = resolve(target, dir, '500.html')
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
 
+const notCached = ['html', 'txt', 'json', 'xml']
+
 // hsts-headers are sent by our loadbalancer
 app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
@@ -38,7 +40,13 @@ app.use((req, res, next) => {
     res.send()
   } else next()
 })
-app.use(express.static(target))
+app.use(express.static(target, {
+  maxAge: '1y',
+  immutable: true,
+  setHeaders: (res, path) => {
+    if (notCached.some(x => path.endsWith('.' + x))) res.setHeader('Cache-Control', 'public, max-age=0')
+  }
+}))
 
 app.use((req, res, next) => {
   fileExists(indexWithRouting)
