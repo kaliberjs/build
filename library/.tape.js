@@ -943,6 +943,17 @@ module.exports = {
       warnings: 0
     },
     {
+      title: `don't crash on syntax`,
+      source: `
+        @value _height: 30px;
+
+        .inner {
+          border-radius: calc(_height / 2);
+        }
+      `,
+      warnings: 0
+    },
+    {
       source: `@value abc: 0;`,
       warnings: [messages['value should start with underscore']]
     },

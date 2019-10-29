@@ -729,6 +729,7 @@ function valueStartsWithUnderscore() {
     ruleName: 'kaliber/value-starts-with-underscore',
     messages,
     skipModulesValuesResolver: true,
+    skipCalcResolver: true,
     plugin: ({ root, report }) => {
       root.walkAtRules('value', rule => {
         if (rule.params.startsWith('_')) return
@@ -893,6 +894,7 @@ function createPlugin({
   skipCustomMediaResolving = false,
   skipCustomSelectorsResolving = false,
   skipModulesValuesResolver = false,
+  skipCalcResolver = false,
 }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
@@ -927,7 +929,9 @@ function createPlugin({
         const postcssCustomSelectorsResolver = createPostcssCustomSelectorsResolver({ preserve: false, importFrom })
         await postcssCustomSelectorsResolver(root, result)
       }
-      await postcssCalcResolver(root, result)
+      if (!skipCalcResolver) {
+        await postcssCalcResolver(root, result)
+      }
       plugin({ root, report })
 
       /*
