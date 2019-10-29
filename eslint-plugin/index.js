@@ -13,6 +13,7 @@ const messages = {
   'invalid styles variable name': `invalid variable name\nexpected name to be 'styles'`,
   'incorrect variable passing': name => `incorrect variable passing\nexpected \`{...{ ${name} }}\``,
   'destructure props': `props need to be destructured`,
+  'no styles with _': `properties of styles can not start with an underscore \`_\`\nif you exported using @value switch to \`:export { ... }\``,
 }
 module.exports = {
   messages,
@@ -254,7 +255,24 @@ module.exports = {
         if (isApp(context) || isTemplate(context)) return {}
         return eslintPluginImport.rules['no-default-export'].create(context)
       }
-    }
+    },
+    'no-underscore-styles': {
+      create(context) {
+        return {
+          [`MemberExpression[object.name = 'styles']`](node) {
+            const { property } = node
+            const name = getPropertyName(property)
+
+            if (!name.startsWith('_') || name.startsWith('_root')) return
+
+            context.report({
+              message: messages['no styles with _'],
+              node: property
+            })
+          }
+        }
+      }
+    },
   }
 }
 
@@ -276,6 +294,8 @@ function isTemplate(context) {
 function getPropertyName(property) {
   switch (property.type) {
     case 'Identifier': return property.name
+    case 'Literal': return property.value
+    case 'BinaryExpression': return getPropertyName(property.left)
     case 'TemplateLiteral':
       const [name] = property.quasis
       return name.value.raw
