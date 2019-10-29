@@ -84,6 +84,7 @@
           "first-nested"
         ],
         "ignore": [
+          "after-comment",
           "stylelint-commands"
         ]
       }
