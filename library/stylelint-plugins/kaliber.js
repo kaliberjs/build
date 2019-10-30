@@ -144,6 +144,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   colorSchemes(),
   noImport(),
   valueStartsWithUnderscore(),
+  propertyLowerCase(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -740,6 +741,41 @@ function valueStartsWithUnderscore() {
   })
 }
 
+function propertyLowerCase() {
+  const messages = {
+    'property lower case': (actual, expected) =>
+      `Expected "${actual}" to be "${expected}"`
+  }
+
+  return createPlugin({
+    ruleName: 'kaliber/property-lower-case',
+    messages,
+    skipCustomPropertyResolving: true,
+    skipCustomMediaResolving: true,
+    skipCustomSelectorsResolving: true,
+    skipModulesValuesResolver: true,
+    skipCalcResolver: true,
+    plugin: ({ root, report, context }) => {
+      root.walkDecls(decl => {
+        const { prop, parent } = decl
+
+        if (prop.startsWith('--')) return
+
+        const expectedProp = prop.toLowerCase()
+
+        if (prop === expectedProp) return
+        if (parent.type === 'rule' && parent.selector === ':export') return
+        if (context.fix) {
+          decl.prop = expectedProp
+          return
+        }
+
+        report(decl, messages['property lower case'](prop, expectedProp))
+      })
+    }
+  })
+}
+
 function hasChildSelector(rule) {
   return !!getChildSelectors(rule).length
 }
@@ -905,7 +941,7 @@ function createPlugin({
     ruleName
   }
 
-  function pluginWrapper(primaryOption, secondaryOptionObject) {
+  function pluginWrapper(primaryOption, secondaryOptionObject, context) {
     return async (originalRoot, result) => {
       const check = { actual: primaryOption, possible: [true] }
       if (!stylelint.utils.validateOptions(result, ruleName, check)) return
@@ -913,7 +949,15 @@ function createPlugin({
       const reported = {}
       const importFrom = findCssGlobalFiles(originalRoot.source.input.file)
 
-      const root = originalRoot.clone()
+      const needsClone =
+        testWithNormalizedMediaQueries ||
+        !skipCustomPropertyResolving ||
+        !skipCustomMediaResolving ||
+        !skipCustomSelectorsResolving ||
+        !skipModulesValuesResolver ||
+        !skipCalcResolver
+
+      const root = needsClone ? originalRoot.clone() : originalRoot
       if (!skipModulesValuesResolver) {
         await postcssModulesValuesResolver(root, result)
       }
@@ -932,7 +976,7 @@ function createPlugin({
       if (!skipCalcResolver) {
         await postcssCalcResolver(root, result)
       }
-      plugin({ root, report })
+      plugin({ root, report, context })
 
       /*
         We create new root nodes for each applicable media query.

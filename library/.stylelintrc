@@ -26,6 +26,7 @@
     "kaliber/color-scheme": true,
     "kaliber/no-import": true,
     "kaliber/value-starts-with-underscore": true,
+    "kaliber/property-lower-case": true,
 
     "at-rule-blacklist": [
       'apply',
@@ -170,7 +171,7 @@
     "no-missing-end-of-source-newline": true,
     "number-leading-zero": "always",
     "number-no-trailing-zeros": true,
-    "property-case": "lower",
+    "property-case": null,
     "property-no-unknown": true,
     "rule-empty-line-before": [
       "always-multi-line",

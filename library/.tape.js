@@ -957,5 +957,27 @@ module.exports = {
       source: `@value abc: 0;`,
       warnings: [messages['value should start with underscore']]
     },
-  ]
+  ],
+  'kaliber/property-lower-case': [
+    { source: 'a { }', warnings: 0 },
+    { source: 'a { display: block; }', warnings: 0 },
+    { source: ':root { --custom-PropertyName: red; }', warnings: 0 },
+    { source: ':export { customPropertyName: red; }', warnings: 0 },
+    {
+      source: 'a { Display: block; }',
+      expect: 'a { display: block; }',
+    },
+    {
+      source: 'a { Display: block; }',
+      warnings: [messages['property lower case']('Display', 'display')],
+    },
+    {
+      source: ':root { customPropertyName: red; }',
+      expect: ':root { custompropertyname: red; }',
+    },
+    {
+      source: ':root { customPropertyName: red; }',
+      warnings: [messages['property lower case']('customPropertyName', 'custompropertyname')],
+    },
+  ],
 }
