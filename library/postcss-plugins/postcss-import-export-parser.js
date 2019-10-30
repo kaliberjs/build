@@ -18,8 +18,8 @@ module.exports = postcss.plugin(
         plugin,
         type: 'export',
         item: { key, value },
-      });
-    });
+      })
+    })
   }
 )
 
