@@ -24,6 +24,7 @@ test('force-jsx-spreaded-variable-passing')
 test('force-destructured-props')
 test('no-default-export')
 test('no-underscore-styles')
+test('no-relative-parent-import')
 
 function test(name) {
   const rule = rules[name]

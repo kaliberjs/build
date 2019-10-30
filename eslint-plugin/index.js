@@ -14,6 +14,7 @@ const messages = {
   'incorrect variable passing': name => `incorrect variable passing\nexpected \`{...{ ${name} }}\``,
   'destructure props': `props need to be destructured`,
   'no styles with _': `properties of styles can not start with an underscore \`_\`\nif you exported using @value switch to \`:export { ... }\``,
+  'no relative parent import': `relative parent import not allowed, use a root slash import`,
 }
 module.exports = {
   messages,
@@ -273,6 +274,23 @@ module.exports = {
         }
       }
     },
+    'no-relative-parent-import': {
+      create(context) {
+        return {
+          'ImportDeclaration': checkSource,
+          'ExportNamedDeclaration': checkSource,
+          'ExportAllDeclaration': checkSource,
+        }
+
+        function checkSource({ source }) {
+          if (!source || !source.value.includes('..')) return
+          context.report({
+            message: messages['no relative parent import'],
+            node: source
+          })
+        }
+      }
+    }
   }
 }
 

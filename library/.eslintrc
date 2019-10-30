@@ -51,6 +51,7 @@
     "@kaliber/force-destructured-props": "warn",
     "@kaliber/no-default-export": "warn",
     "@kaliber/no-underscore-styles": "warn",
+    "@kaliber/no-relative-parent-import": "warn",
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
