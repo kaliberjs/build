@@ -27,6 +27,7 @@
     "kaliber/no-import": true,
     "kaliber/value-starts-with-underscore": true,
     "kaliber/property-lower-case": true,
+    "kaliber/prevent-export-collisions": true,
 
     "at-rule-blacklist": [
       'apply',

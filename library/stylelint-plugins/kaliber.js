@@ -145,6 +145,7 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   noImport(),
   valueStartsWithUnderscore(),
   propertyLowerCase(),
+  preventExportCollisions(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -725,7 +726,6 @@ function valueStartsWithUnderscore() {
       `to prevent conflicts all values should start with an underscore - ` +
       `prefix the value with an underscore or, if you want to export a value, use \`:export { ... }\``
   }
-
   return createPlugin({
     ruleName: 'kaliber/value-starts-with-underscore',
     messages,
@@ -746,15 +746,10 @@ function propertyLowerCase() {
     'property lower case': (actual, expected) =>
       `Expected "${actual}" to be "${expected}"`
   }
-
   return createPlugin({
     ruleName: 'kaliber/property-lower-case',
     messages,
-    skipCustomPropertyResolving: true,
-    skipCustomMediaResolving: true,
-    skipCustomSelectorsResolving: true,
-    skipModulesValuesResolver: true,
-    skipCalcResolver: true,
+    skipAll: true,
     plugin: ({ root, report, context }) => {
       root.walkDecls(decl => {
         const { prop, parent } = decl
@@ -771,6 +766,33 @@ function propertyLowerCase() {
         }
 
         report(decl, messages['property lower case'](prop, expectedProp))
+      })
+    }
+  })
+}
+
+function preventExportCollisions() {
+  const messages = {
+    'export collision':
+      `Detected export collision\n` +
+      `a class is exported with this exact name - ` +
+      `rename the export`
+  }
+  return createPlugin({
+    ruleName: 'kaliber/prevent-export-collisions',
+    messages,
+    skipAll: true,
+    plugin: ({ root, report }) => {
+      const classes = []
+      root.walkRules(rule => {
+        selectorParser.astSync(rule).walkClasses(x => { classes.push(x.value) })
+      })
+      root.walkRules(':export', rule => {
+        rule.each(node => {
+          if (node.type !== 'decl') return
+          if (!classes.includes(node.prop)) return
+          report(node, messages['export collision'])
+        })
       })
     }
   })
@@ -926,11 +948,12 @@ function invalidTarget(targets, { prop, value }) {
 function createPlugin({
   ruleName, messages, plugin,
   testWithNormalizedMediaQueries = false,
-  skipCustomPropertyResolving = false,
-  skipCustomMediaResolving = false,
-  skipCustomSelectorsResolving = false,
-  skipModulesValuesResolver = false,
-  skipCalcResolver = false,
+  skipAll = false,
+  skipCustomPropertyResolving = skipAll,
+  skipCustomMediaResolving = skipAll,
+  skipCustomSelectorsResolving = skipAll,
+  skipModulesValuesResolver = skipAll,
+  skipCalcResolver = skipAll,
 }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 

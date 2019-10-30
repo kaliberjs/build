@@ -980,4 +980,51 @@ module.exports = {
       warnings: [messages['property lower case']('customPropertyName', 'custompropertyname')],
     },
   ],
+  'kaliber/prevent-export-collisions': [
+    {
+      title: 'no collision',
+      source: `
+        .test1 { }
+        :export {
+          test2: 0;
+        }
+      `,
+      warnings: 0
+    },
+    {
+      title: 'no collision - case difference',
+      source: `
+        .testit { }
+        :export {
+          testIt: 0;
+        }
+      `,
+      warnings: 0
+    },
+    {
+      title: 'obvious collision',
+      source: `
+        .test { }
+        :export {
+          test: 0;
+        }
+      `,
+      warnings: [messages['export collision']]
+    },
+    {
+      title: 'nested collisions',
+      source: `
+        .test1 {
+          & > .test2 { }
+          &.test3 > .test4 { }
+        }
+        :export {
+          test2: 0;
+          test3: 0;
+          test4: 0;
+        }
+      `,
+      warnings: Array(3).fill(messages['export collision'])
+    },
+  ],
 }
