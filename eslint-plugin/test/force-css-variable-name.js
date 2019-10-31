@@ -8,7 +8,7 @@ module.exports = {
     {
       filename: 'Test.js',
       code: `import notStyles from './Test.css'`,
-      errors: [{ message: messages['invalid styles variable name'], type: 'Identifier' }]
+      errors: [{ message: messages['invalid styles variable name']('notStyles', 'styles'), type: 'Identifier' }]
     },
   ]
 }

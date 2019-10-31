@@ -10,7 +10,7 @@ module.exports = {
     {
       filename: 'Test.js',
       code: `import styles from './Something.css'`,
-      errors: [{ message: messages['invalid css file name']('./Test.css'), type: 'Literal' }]
+      errors: [{ message: messages['invalid css file name']('./Something.css', './Test.css'), type: 'Literal' }]
     }
   ]
 }

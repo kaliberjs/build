@@ -185,7 +185,7 @@ module.exports = {
         return <div className={styles.test} />
       }
       `,
-      errors: [{ message: messages['invalid className']('component'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('test', 'component'), type: 'Identifier' }],
     },
     {
       code: `
@@ -197,7 +197,7 @@ module.exports = {
           )
         }
       `,
-      errors: [ { message: messages['no root className'], type: 'Identifier' }]
+      errors: [ { message: messages['no root className']('componentX'), type: 'Identifier' }]
     },
     {
       filename: 'Test.js',
@@ -208,7 +208,7 @@ module.exports = {
         }
       }
       `,
-      errors: [{ message: messages['invalid className']('component???'), type: 'Identifier'}]
+      errors: [{ message: messages['invalid className']('test', 'component???'), type: 'Identifier'}]
     },
     {
       filename: 'App.js',
@@ -217,7 +217,7 @@ module.exports = {
         return <div className={styles.test} />
       }
       `,
-      errors: [{ message: messages['invalid className']('app'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('test', 'app'), type: 'Identifier' }],
     },
     {
       filename: 'src/pages/MyPage.js',
@@ -226,7 +226,7 @@ module.exports = {
         return <div className={styles.test} />
       }
       `,
-      errors: [{ message: messages['invalid className']('page'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('test', 'page'), type: 'Identifier' }],
     },
     {
       filename: 'Test.js',
@@ -239,7 +239,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['invalid className']('component2'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('test', 'component2'), type: 'Identifier' }],
     },
     {
       filename: 'Test.js',
@@ -252,7 +252,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['invalid className']('component2'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('test', 'component2'), type: 'Identifier' }],
     },
     {
       filename: 'Test.js',
@@ -266,7 +266,7 @@ module.exports = {
           )
         }
       `,
-      errors: Array(2).fill({ message: messages['no root className'], type: 'Identifier' }),
+      errors: Array(2).fill({ message: messages['no root className']('component2'), type: 'Identifier' }),
     },
     {
       filename: 'Test.js',
@@ -282,7 +282,7 @@ module.exports = {
           )
         }
       `,
-      errors: Array(2).fill({ message: messages['no root className'], type: 'Identifier' }),
+      errors: Array(2).fill({ message: messages['no root className']('component2'), type: 'Identifier' }),
     },
     {
       filename: 'Test.js',
@@ -298,7 +298,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['no root className'], type: 'Identifier' }],
+      errors: [{ message: messages['no root className']('component2'), type: 'Identifier' }],
     },
     {
       filename: 'Test.js',
@@ -312,7 +312,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['no root className'], type: 'Identifier' }],
+      errors: [{ message: messages['no root className']('component2'), type: 'Identifier' }],
     },
     {
       filename: 'Test.js',
@@ -325,7 +325,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['invalid className']('component_root2'), type: 'Identifier' }],
+      errors: [{ message: messages['invalid className']('component_rootTest2', 'component_root2'), type: 'Identifier' }],
     },
     {
       filename: 'Menu.js',
@@ -346,7 +346,7 @@ module.exports = {
           )
         }
       `,
-      errors: [{ message: messages['no root className'], type: 'Identifier' }],
+      errors: [{ message: messages['no root className']('component_root'), type: 'Identifier' }],
     }
   ]
 }

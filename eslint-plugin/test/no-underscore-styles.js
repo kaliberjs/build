@@ -12,15 +12,15 @@ module.exports = {
   invalid: [
     {
       code: `styles._test`,
-      errors: [{ message: messages['no styles with _'], type: 'Identifier' }]
+      errors: [{ message: messages['no styles with _']('_test'), type: 'Identifier' }]
     },
     {
       code: `export function Test() { return <div className={styles._test} /> }`,
-      errors: [{ message: messages['no styles with _'], type: 'Identifier' }]
+      errors: [{ message: messages['no styles with _']('_test'), type: 'Identifier' }]
     },
     {
       code: `export function Test() { return <div className={cx(styles._test)} /> }`,
-      errors: [{ message: messages['no styles with _'], type: 'Identifier' }]
+      errors: [{ message: messages['no styles with _']('_test'), type: 'Identifier' }]
     },
   ]
 }

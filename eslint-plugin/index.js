@@ -1,21 +1,15 @@
-const path = require('path')
 const eslintPluginImport = require('eslint-plugin-import')
+const messages = require('./messages')
 
-const messages = {
-  'invalid className': expected => `invalid className\nexpected '${expected}'`,
-  'no root className': `invalid className\nonly root nodes can have a className that starts with 'app', 'page' or 'component'`,
-  'no className': 'className is not allowed on custom components, use layoutClassName\nonly native (lower case) elements can have a className',
-  'no export base': 'base components can not be exported\nremove the `export` keyword',
-  'no layoutClassName in child': 'layoutClassName can not be used on child components\nset the layoutClassName as the className of the root node',
-  'no _root with layoutClassName': 'layoutClassName can not be used in combination with _root',
-  'invalid component name': expected => `invalid component name\nexpected '${expected}'`,
-  'invalid css file name': expected => `invalid css file name\nexpected '${expected}'`,
-  'invalid styles variable name': `invalid variable name\nexpected name to be 'styles'`,
-  'incorrect variable passing': name => `incorrect variable passing\nexpected \`{...{ ${name} }}\``,
-  'destructure props': `props need to be destructured`,
-  'no styles with _': `properties of styles can not start with an underscore \`_\`\nif you exported using @value switch to \`:export { ... }\``,
-  'no relative parent import': `relative parent import not allowed, use a root slash import`,
-}
+const { isApp, isPage, isTemplate, getBaseFilename } = require('./machinery/filename')
+const {
+  getPropertyName,
+  getFunctionName,
+  getJSXElementName, getParentJSXElement,
+  isRootJSXElement, hasParentsJSXElementsWithClassName, isInJSXBranch
+} = require('./machinery/ast')
+const { firstLetterLowerCase } = require('./machinery/word')
+
 module.exports = {
   messages,
   rules: {
@@ -30,7 +24,10 @@ module.exports = {
             else checked.add(jsxElement)
 
             const { property } = node
-            if (hasParentsWithClassName(jsxElement) || isInJSXBranch(jsxElement)) noRootNameInChildren(property)
+            if (
+              hasParentsJSXElementsWithClassName(jsxElement) ||
+              isInJSXBranch(jsxElement)
+            ) noRootNameInChildren(property)
             else correctRootName(property)
           }
         }
@@ -38,17 +35,18 @@ module.exports = {
         function correctRootName(property) {
           const prefix = new RegExp(`^${getBaseFilename(context)}`)
           const name = getFunctionName(context).replace(prefix, '')
-          const expected =
+          const expectedClassNames =
             isApp(context) ? [`app`] :
             isPage(context) ? [`page`] :
             [`component${name}`, `component_root${name}`]
 
           const className = getPropertyName(property)
-          if (expected.includes(className)) return
+          if (expectedClassNames.includes(className)) return
 
-          const [common, withRoot = common] = expected
+          const [common, withRoot = common] = expectedClassNames
+          const expected = className.includes('root') ? withRoot : common
           context.report({
-            message: messages['invalid className'](className.includes('root') ? withRoot : common),
+            message: messages['invalid className'](className, expected),
             node: property,
           })
         }
@@ -59,7 +57,7 @@ module.exports = {
           if (!forbidden.some(x => className.startsWith(x))) return
 
           context.report({
-            message: messages['no root className'],
+            message: messages['no root className'](className),
             node: property,
           })
         }
@@ -79,7 +77,7 @@ module.exports = {
           if (firstLetterLowerCase(name) || name.endsWith('Base')) return
 
           context.report({
-            message: messages['no className'],
+            message: messages['no className on custom component'],
             node,
           })
         }
@@ -169,7 +167,7 @@ module.exports = {
 
             const expected = suggestFilename ? expectedPrefix : `${expectedPrefix}${name}`
             context.report({
-              message: messages['invalid component name'](expected),
+              message: messages['invalid component name'](name, expected),
               node: node.id,
             })
           }
@@ -188,7 +186,7 @@ module.exports = {
             if (source === expected) return
 
             context.report({
-              message: messages['invalid css file name'](expected),
+              message: messages['invalid css file name'](source, expected),
               node: node.source,
             })
           }
@@ -202,15 +200,18 @@ module.exports = {
             const source = node.source.value
             if (!source.endsWith('.css')) return
 
-            const name = getBaseFilename(context)
-            const mainCss = `./${name}.css`
+            const filename = getBaseFilename(context)
+            const mainCss = `./${filename}.css`
             if (source !== mainCss) return
 
-            const specifier = node.specifiers[0].local
-            if (specifier.name === 'styles') return
+            const [firstSpecifier] = node.specifiers
+            const specifier = firstSpecifier.local
+            const { name } = specifier
+            const expected = 'styles'
+            if (name === expected) return
 
             context.report({
-              message: messages['invalid styles variable name'],
+              message: messages['invalid styles variable name'](name, expected),
               node: specifier,
             })
           }
@@ -267,7 +268,7 @@ module.exports = {
             if (!name.startsWith('_') || name.startsWith('_root')) return
 
             context.report({
-              message: messages['no styles with _'],
+              message: messages['no styles with _'](name),
               node: property
             })
           }
@@ -283,9 +284,12 @@ module.exports = {
         }
 
         function checkSource({ source }) {
-          if (!source || !source.value.includes('..')) return
+          if (!source) return
+          const { value } = source
+          if (!value.includes('..')) return
+
           context.report({
-            message: messages['no relative parent import'],
+            message: messages['no relative parent import'](value),
             node: source
           })
         }
@@ -294,109 +298,3 @@ module.exports = {
   }
 }
 
-function isApp(context) {
-  const filename = context.getFilename()
-  return !!filename && filename.endsWith('App.js')
-}
-
-function isPage(context) {
-  const filename = context.getFilename()
-  return /.+\/pages\/[^/]+\.js/.test(filename)
-}
-
-function isTemplate(context) {
-  const filename = context.getFilename()
-  return /.+\.[^.]+\.js/.test(filename)
-}
-
-function getPropertyName(property) {
-  switch (property.type) {
-    case 'Identifier': return property.name
-    case 'Literal': return property.value
-    case 'BinaryExpression': return getPropertyName(property.left)
-    case 'TemplateLiteral':
-      const [name] = property.quasis
-      return name.value.raw
-    default: throw new Error(`Can not determine name for '${property.type}'`)
-  }
-}
-
-function getBaseFilename(context) {
-  const filename = context.getFilename()
-  const basename = path.basename(filename, '.js')
-
-  if (isTemplate(context)) {
-    const [name] = basename.split('.')
-    return name.slice(0, 1).toUpperCase() + name.slice(1)
-  } else return basename
-}
-
-function firstLetterLowerCase(word) {
-  const firstLetter = word.slice(0, 1)
-  return firstLetter.toLowerCase() === firstLetter
-}
-
-function getJSXElementName(jsxElement) {
-  const { name } = jsxElement.openingElement
-  switch (name.type) {
-    case 'JSXIdentifier': return name.name
-    case 'JSXMemberExpression': return name.property.name
-    default: throw new Error(`Can not determine name for '${name.type}'`)
-  }
-}
-
-function getFunctionName(context) {
-  return getRootFunctionName(context.getScope())
-
-  function getRootFunctionName(node, previous = []) {
-    const { upper } = node
-    const [lastSeen] = previous
-    if (upper.type === 'module') {
-      if (node.type === 'function') return getName(node)
-      else if (lastSeen) return getName(lastSeen)
-      else throw new Error('Could not find root function name')
-    } else {
-      return getRootFunctionName(upper, [...(node.type === 'function' ? [node] : []), ...previous])
-    }
-
-    function getName({ block: { id } }) {
-      return id ? id.name : '???'
-    }
-  }
-}
-
-function isRootJSXElement(jsxElement) {
-  return !getParentJSXElement(jsxElement)
-}
-
-function hasParentsWithClassName(jsxElement) {
-  return getParentJSXElements(jsxElement).some(hasClassName)
-
-  function hasClassName(jsxElement) {
-    return jsxElement.openingElement.attributes
-      .some(x => x.type === 'JSXAttribute' && x.name.name === 'className')
-  }
-}
-
-function isInJSXBranch(jsxElement) {
-  return getParentJSXElements(jsxElement).some(hasBranchingChildren)
-
-  function hasBranchingChildren(jsxElement) {
-    const branchCandidate = ['JSXElement', 'JSXExpressionContainer']
-    const [first, ...rest] = jsxElement.children.filter(x => branchCandidate.includes(x.type))
-    return rest.length > 0 || first.type === 'JSXExpressionContainer'
-  }
-}
-
-function getParentJSXElements(jsxElement) {
-  const parent = getParentJSXElement(jsxElement)
-  if (!parent) return []
-  else return [parent, ...getParentJSXElements(parent)]
-}
-
-function getParentJSXElement({ parent }) {
-  if (!parent) return
-  return parent.type === 'JSXElement'
-    ? parent
-    : getParentJSXElement(parent)
-}

@@ -13,15 +13,15 @@ module.exports = {
   invalid: [
     {
       code: `<Test className='test' />`,
-      errors: [{ message: messages['no className'], type: 'JSXAttribute' }]
+      errors: [{ message: messages['no className on custom component'], type: 'JSXAttribute' }]
     },
     {
       code: `<Test className={styles.test} />`,
-      errors: [{ message: messages['no className'], type: 'JSXAttribute' }]
+      errors: [{ message: messages['no className on custom component'], type: 'JSXAttribute' }]
     },
     {
       code: `<Test {...{ className }} />`,
-      errors: [{ message: messages['no className'], type: 'Property' }]
+      errors: [{ message: messages['no className on custom component'], type: 'Property' }]
     }
   ]
 }

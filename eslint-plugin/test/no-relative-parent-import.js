@@ -15,5 +15,5 @@ module.exports = {
     `import x from '../test'`,
     `export { x } from '../test'`,
     `export * from '../test'`,
-  ].map(code => ({ code, errors: [{ message: messages['no relative parent import'] }] }))
+  ].map(code => ({ code, errors: [{ message: messages['no relative parent import']('../test') }] }))
 }
