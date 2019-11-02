@@ -1,4 +1,4 @@
-const { messages } = require('..')
+const { messages } = require('./')
 
 module.exports = {
   valid: [

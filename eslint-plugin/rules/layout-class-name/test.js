@@ -1,6 +1,7 @@
-const { messages } = require('../')
+const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('layout-class-name', {
   valid: [
     `function Test({ layoutClassName }) { return <div className={layoutClassName} /> }`,
     `function Test({ layoutClassName }) { return <div className={cx(layoutClassName, styles.test)} /> }`,
@@ -13,6 +14,16 @@ module.exports = {
       )
     }
     `,
+    `<div className='test' />`,
+    `<div className={styles.test} />`,
+    `<div {...{ className }} />`,
+    `<TestBase className='test' />`,
+    `<TestBase className={styles.test} />`,
+    `<TestBase {...{ className }} />`,
+    `<ReactSpring.animated.article className={styles.test} />`,
+    `export function Test() {}`,
+    `export function testBase() {}`,
+    `function TestBase({ className }) { return <div {...{ className }} /> }`,
   ],
   invalid: [
     {
@@ -35,5 +46,28 @@ module.exports = {
       code: `function Test({ layoutClassName }) { return <div className={cx(layoutClassName, styles.component, styles._root)} /> }`,
       errors: [{ message: messages['no _root with layoutClassName'], type: 'Identifier' }]
     },
+    {
+      code: `<Test className='test' />`,
+      errors: [{ message: messages['no className on custom component'], type: 'JSXAttribute' }]
+    },
+    {
+      code: `<Test className={styles.test} />`,
+      errors: [{ message: messages['no className on custom component'], type: 'JSXAttribute' }]
+    },
+    {
+      code: `<Test {...{ className }} />`,
+      errors: [{ message: messages['no className on custom component'], type: 'Property' }]
+    },
+    {
+      code: `export function TestBase() {}`,
+      errors: [{
+        message: messages['no export base'],
+        type: 'ExportNamedDeclaration',
+        line: 1,
+        endLine: 1,
+        column: 1,
+        endColumn: 8,
+      }],
+    },
   ]
-}
+})

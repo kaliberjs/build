@@ -1,7 +1,7 @@
 {
   "name": "@kaliber/eslint-plugin",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha '**/test.js'"
   },
   "version": "0.0.1-alpha.1",
   "devDependencies": {

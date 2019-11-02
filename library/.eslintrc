@@ -40,17 +40,10 @@
 
   "rules": {
     // http://eslint.org/docs/rules/
-    "@kaliber/root-class-name": "warn",
-    "@kaliber/no-custom-component-class-name": "warn",
-    "@kaliber/no-export-base": "warn",
-    "@kaliber/child-no-layout-class-name": "warn",
-    "@kaliber/component-name-starts-with-file-name": "warn",
-    "@kaliber/force-css-file-name": "warn",
-    "@kaliber/force-css-variable-name": "warn",
-    "@kaliber/force-jsx-spreaded-variable-passing": "warn",
-    "@kaliber/force-destructured-props": "warn",
+    "@kaliber/component-properties": "warn",
+    "@kaliber/layout-class-name": "warn",
+    "@kaliber/naming-policy": "warn",
     "@kaliber/no-default-export": "warn",
-    "@kaliber/no-underscore-styles": "warn",
     "@kaliber/no-relative-parent-import": "warn",
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],

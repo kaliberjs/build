@@ -1,6 +1,6 @@
-const { messages } = require('../')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('no-default-export', {
   valid: [
     `export function Test() {}`,
     {
@@ -30,4 +30,4 @@ module.exports = {
       errors: [{ message: 'Prefer named exports.' }]
     },
   ]
-}
+})

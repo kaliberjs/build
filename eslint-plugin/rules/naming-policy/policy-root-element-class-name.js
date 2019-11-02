@@ -1,4 +1,4 @@
-const { messages } = require('../')
+const { messages } = require('.')
 
 module.exports = {
   valid: [
@@ -10,15 +10,26 @@ module.exports = {
         }
       `,
     },
-    `
-      function Test() {
-        return (
-          <div className={styles.componentTest}>
-            <div className={styles.test} />
-          </div>
-        )
-      }
-    `,
+    {
+      filename: 'Test.js',
+      code: `
+        function Test() {
+          return <div className={cx(styles.component, styles.test)} />
+        }
+      `,
+    },
+    {
+      filename: 'NotTest.js',
+      code: `
+        function Test() {
+          return (
+            <div className={styles.componentTest}>
+              <div className={styles.test} />
+            </div>
+          )
+        }
+      `
+    },
     {
       filename: 'Test.js',
       code: `
@@ -105,9 +116,19 @@ module.exports = {
       `,
     },
     {
-      filename: 'src/pages/MyPage.js',
+      filename: 'TestApp.js',
       code: `
-        function MyPage() {
+        function TestApp() {
+          return (
+            <div className={styles.app} />
+          )
+        }
+      `,
+    },
+    {
+      filename: 'src/pages/Something.js',
+      code: `
+        function Something() {
           return (
             <div className={styles.page} />
           )
@@ -188,6 +209,40 @@ module.exports = {
       errors: [{ message: messages['invalid className']('test', 'component'), type: 'Identifier' }],
     },
     {
+      filename: 'Test.js',
+      code: `
+      function Test() {
+        return <div className={styles.test, styles.component} />
+      }
+      `,
+      errors: [
+        { message: messages['invalid className']('test', 'component'), type: 'Identifier' },
+      ],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+      function Test() {
+        return <div className={styles.test, styles.componentTest} />
+      }
+      `,
+      errors: [
+        { message: messages['invalid className']('test', 'component'), type: 'Identifier' },
+        { message: messages['invalid className']('componentTest', 'component'), type: 'Identifier' },
+      ],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+      function Test() {
+        return <div className={styles.component, styles.componentTest} />
+      }
+      `,
+      errors: [
+        { message: messages['invalid className']('componentTest', 'component'), type: 'Identifier' },
+      ],
+    },
+    {
       code: `
         function Test2() {
           return (
@@ -197,7 +252,7 @@ module.exports = {
           )
         }
       `,
-      errors: [ { message: messages['no root className']('componentX'), type: 'Identifier' }]
+      errors: [{ message: messages['no root className']('componentX'), type: 'Identifier' }]
     },
     {
       filename: 'Test.js',
@@ -220,9 +275,9 @@ module.exports = {
       errors: [{ message: messages['invalid className']('test', 'app'), type: 'Identifier' }],
     },
     {
-      filename: 'src/pages/MyPage.js',
+      filename: 'src/pages/Something.js',
       code: `
-      function MyPage() {
+      function Something() {
         return <div className={styles.test} />
       }
       `,
@@ -257,6 +312,20 @@ module.exports = {
     {
       filename: 'Test.js',
       code: `
+        function Test() {
+          return (
+            <Wrapper>
+              <div className={styles.component} />
+              <div className={styles.component} />
+            </Wrapper>
+          )
+        }
+      `,
+      errors: Array(2).fill({ message: messages['no root className']('component'), type: 'Identifier' }),
+    },
+    {
+      filename: 'Test.js',
+      code: `
         function Test2() {
           return (
             <Wrapper>
@@ -271,18 +340,16 @@ module.exports = {
     {
       filename: 'Test.js',
       code: `
-        function Test2() {
+        function TestAbc() {
           return (
             <Wrapper>
-              <div className={styles.component2} />
-              <div>
-                <div className={styles.component2} />
-              </div>
+              <div className={styles.componentAbc} />
+              <div />
             </Wrapper>
           )
         }
       `,
-      errors: Array(2).fill({ message: messages['no root className']('component2'), type: 'Identifier' }),
+      errors: [{ message: messages['no root className']('componentAbc'), type: 'Identifier' }],
     },
     {
       filename: 'Test.js',
