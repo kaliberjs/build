@@ -296,7 +296,8 @@ module.exports = function build({ watch }) {
         }),
         new webpack.ProvidePlugin({
           React: 'react',
-          Component: ['react', 'Component']
+          Component: ['react', 'Component'],
+          cx: 'classnames',
         }),
         sourceMapPlugin(),
       ].filter(Boolean),
