@@ -1,7 +1,4 @@
 const stylelint = require('stylelint')
-const createSelectorParser = require('postcss-selector-parser')
-const createValueParser = require('postcss-values-parser')
-const selectorParser = createSelectorParser()
 const path = require('path')
 const createPostcssModulesValuesResolver = require('postcss-modules-values')
 const createPostcssCustomPropertiesResolver = require('postcss-custom-properties')
@@ -13,56 +10,21 @@ const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
 const postcssCalcResolver = createPostcssCalcResolver()
 
-function parseValue(value) { return createValueParser(value).parse() }
+const { matchesFile } = require('./machinery/filename')
+const { flexChildProps, gridChildProps } = require('./machinery/css')
+const {
+  declMatches, findDecls,
+  parseSelector,
+  withRootRules, withNestedRules,
+  isRoot, hasChildSelector,
+  getParentRule, getChildSelectors,
+} = require('./machinery/ast')
 
 const allowedInReset = [
   'width', 'height',
   'max-width', 'max-height',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
 ]
-
-const flexChildProps = [
-  'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
-]
-
-const gridChildProps = [
-  'grid', 'grid-area', 'grid-column', 'grid-row',
-  'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
-]
-
-const allowedInRootAndChild = [
-  'z-index',  // handled by valid-stacking-context-in-root
-  ['position', 'relative'], // is safe to use
-  'overflow', // is safe to use
-  'pointer-events', // handled by valid-pointer-events
-  ['display', 'none'], // is safe to use
-]
-
-const allowedInCssGlobal = {
-  selectors: [':root', ':export'],
-  atRules: ['custom-media', 'custom-selector'],
-}
-
-const allowedInColorScheme = [
-  'color', 'background-color', 'border-color',
-  'stroke', 'fill',
-]
-
-const layoutRelatedProps = [ // only allowed in child
-  'width', 'height',
-  ['position', 'absolute'], ['position', 'fixed'],
-  'top', 'right', 'bottom', 'left',
-  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-  'max-width', 'min-width', 'max-height', 'min-height',
-  'justify-self', 'align-self',
-  ...flexChildProps,
-  ...gridChildProps,
-  ...allowedInRootAndChild,
-]
-const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
-
-const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
-const intrinsicProps = ['width', 'height', 'max-width', 'min-width', 'max-height', 'min-height']
 
 const childParentRelations = {
   validStackingContextInRoot: {
@@ -121,28 +83,114 @@ const rootCombos = {
   to their needs.
 */
 
+const colorSchemes = require('./rules/color-schemes')
+const cssGlobal = require('./rules/css-global')
+const layoutRelatedProperties = require('./rules/layout-related-properties')
+
+const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties].reduce(
+  (result, { ruleInteraction }) => ({
+    ...result,
+    ...Object.entries(ruleInteraction || {}).reduce(
+      (result, [rule, configuration]) => ({
+        ...result,
+        [rule]: [...(result[rule] || []), configuration]
+      }),
+      result
+    )
+  }),
+  {
+    'layout-related-properties': [{
+      allowDeclInRoot: decl => isReset(decl.root()) && declMatches(decl, allowedInReset),
+    }]
+  }
+)
+
+function toPluginConfiguration(cssRequirements) {
+  if (!cssRequirements) return { skipAll: true }
+  const {
+    normalizedMediaQueries = false,
+    resolvedCustomProperties = false,
+    resolvedCustomMedia = false,
+    resolvedCustomSelectors = false,
+    resolvedModuleValues = false,
+    resolvedCalc = false,
+  } = cssRequirements
+  return {
+    testWithNormalizedMediaQueries: normalizedMediaQueries,
+    skipCustomPropertyResolving: !resolvedCustomProperties,
+    skipCustomMediaResolving: !resolvedCustomMedia,
+    skipCustomSelectorsResolving: !resolvedCustomSelectors,
+    skipModulesValuesResolver: !resolvedModuleValues,
+    skipCalcResolver: !resolvedCalc,
+  }
+}
+
+const config = Object.entries(interaction).reduce(
+  (result, [rule, configs]) => ({ ...result, [rule]: merge(configs) }),
+  {}
+)
+
+function toPlugin({ cssRequirements, messages, ruleName, create }) {
+  return createPlugin({
+    ...toPluginConfiguration(cssRequirements),
+    ruleName: `kaliber/${ruleName}`,
+    messages,
+    plugin: create(config[ruleName]),
+  })
+}
+
+function merge(configs) {
+  return configs.reduce(
+    (result, {
+      allowNonLayoutRelatedProperties = result.allowNonLayoutRelatedProperties,
+      allowDoubleChildSelectors = result.allowDoubleChildSelectors,
+      allowNonDirectChildSelectors = result.allowNonDirectChildSelectors,
+      allowDeclInRoot = result.allowDeclInRoot,
+    }) => ({
+      ...result,
+      allowNonLayoutRelatedProperties: x => result.allowNonLayoutRelatedProperties(x) || allowNonLayoutRelatedProperties(x),
+      allowDoubleChildSelectors: x => result.allowDoubleChildSelectors(x) || allowDoubleChildSelectors(x),
+      allowNonDirectChildSelectors: x => result.allowNonDirectChildSelectors(x) || allowNonDirectChildSelectors(x),
+      allowDeclInRoot: x => result.allowDeclInRoot(x) || allowDeclInRoot(x),
+    }),
+    {
+      allowNonLayoutRelatedProperties: _ => false,
+      allowDoubleChildSelectors: _ => false,
+      allowNonDirectChildSelectors: _ => false,
+      allowDeclInRoot: _ => false,
+    }
+  )
+}
+
 const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
+  // root-policy
+  validStackingContextInRoot(),
+
+  // parent-child-policy
   requireStackingContextInParent(),
   absoluteHasRelativeParent(),
   requireDisplayFlexInParent(),
   requireDisplayGridInParent(),
-  validStackingContextInRoot(),
-  noLayoutRelatedPropsInRoot(),
-  onlyLayoutRelatedPropsInNested(),
-  noDoubleNesting(),
-  noComponentNameInNested(),
-  noChildSelectorsAtRoot(),
-  noDoubleChildSelectorsInNested(),
-  noTagSelectors(),
-  onlyDirectChildSelectors(),
-  noChildElementSelectorsInMedia(),
-  onlyTagSelectorsInResetAndIndex(),
   validPointerEvents(),
-  customProperties(),
-  customMedia(),
-  customSelectors(),
-  colorSchemes(),
+
+  // selector-policy
+  onlyDirectChildSelectors(config['selector-policy']),
+  onlyTagSelectorsInResetAndIndex(config['selector-policy']),
+  noDoubleNesting(config['selector-policy']),
+  noChildSelectorsAtRoot(config['selector-policy']),
+  noDoubleChildSelectorsInNested(config['selector-policy']),
+  noTagSelectors(config['selector-policy']),
+  noRulesInsideMedia(config['selector-policy']),
+
+  toPlugin(colorSchemes),
+  toPlugin(cssGlobal),
+  toPlugin(layoutRelatedProperties),
+
+  // no-import
   noImport(),
+
+  // naming-policy
+  noComponentNameInNested(),
   valueStartsWithUnderscore(),
   propertyLowerCase(),
   preventExportCollisions(),
@@ -244,90 +292,6 @@ function validStackingContextInRoot() {
   })
 }
 
-function noLayoutRelatedPropsInRoot() {
-  const messages = {
-    'root - no layout related props': prop =>
-      `illegal layout related prop\n` +
-      `\`${prop}\` can only be used by root rules in nested selectors - ` +
-      `move to a nested selector in a another root rule, if you are forced by a third party ` +
-      `library, you can rename your selector to \`_rootXyz\` or \`component_rootXyz\`` + (
-        intrinsicProps.includes(prop)
-        ? `\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
-          `one of \`${intrinsicUnits.join('`, `')}\` and add \`!important\``
-        : ''
-      )
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-layout-related-props-in-root',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      const reset = isReset(root)
-      withRootRules(root, rule => {
-
-        const isRoot = rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
-        if (isRoot) return
-
-        const decls = findDecls(rule, layoutRelatedProps)
-        decls.forEach(decl => {
-          if (matches(decl, intrinsicProps) && isIntrinsicValue(decl)) return
-          if (isRatioHack(decl, rule)) return
-          if (reset && matches(decl, allowedInReset)) return
-          if (matches(decl, allowedInRootAndChild)) return
-          const { prop } = decl
-          const hasValue = layoutRelatedPropsWithValues[prop]
-          report(decl, messages['root - no layout related props'](prop + (hasValue ? `: ${decl.value}` : '')))
-        })
-      })
-    }
-  })
-
-  function isIntrinsicValue({ important, value }) {
-    const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
-    return important && number && intrinsicUnits.includes(number.unit)
-  }
-
-  function isRatioHack({ prop, value }, rule) {
-    return prop === 'height' && value === '0' && hasValidPadding(rule)
-
-    function hasValidPadding(rule) {
-      const decls = findDecls(rule, ['padding-bottom', 'padding-top'])
-      return !!decls.length && decls.every(isPercentage)
-    }
-
-    function isPercentage({ value }) {
-      const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
-      return number && number.unit === '%'
-    }
-  }
-}
-
-function onlyLayoutRelatedPropsInNested() {
-  const messages = {
-    'nested - only layout related props in nested':  prop =>
-      `illegal non-layout related prop\n` +
-      `\`${prop}\` can only be used by root rules - ` +
-      `move to another root rule`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/only-layout-related-props-in-nested',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      if (isColorScheme(root)) return
-      withNestedRules(root, (rule, parent) => {
-        const root = selectorParser.astSync(rule)
-        const pseudos = root.first.filter(isPseudoElement)
-        if (pseudos.length) return
-        const decls = findDecls(rule, layoutRelatedProps, { onlyInvalidTargets: true })
-        decls.forEach(decl => {
-          report(decl, messages['nested - only layout related props in nested'](decl.prop))
-        })
-      })
-    }
-  })
-}
-
 function noComponentNameInNested() {
   const messages = {
     'nested - no component class name in nested': className =>
@@ -340,7 +304,7 @@ function noComponentNameInNested() {
     messages,
     plugin: ({ root, report }) => {
       withNestedRules(root, (rule, parent) => {
-        selectorParser.astSync(rule).walkClasses(x => {
+        parseSelector(rule).walkClasses(x => {
           const className = x.value
           if (className.startsWith('component'))
             report(rule, messages['nested - no component class name in nested'](className), x.sourceIndex)
@@ -362,7 +326,7 @@ function noChildSelectorsAtRoot() {
     messages,
     plugin: ({ root, report }) => {
       withRootRules(root, rule => {
-        selectorParser.astSync(rule).walkCombinators(x => {
+        parseSelector(rule).walkCombinators(x => {
           if (x.value === '>')
             report(rule, messages['root - no child selectors'], x.sourceIndex)
         })
@@ -371,7 +335,7 @@ function noChildSelectorsAtRoot() {
   })
 }
 
-function noDoubleChildSelectorsInNested() {
+function noDoubleChildSelectorsInNested({ allowDoubleChildSelectors }) {
   const messages = {
     'nested - no double child selectors':
       `no double child selector in nested selector\n` +
@@ -382,7 +346,7 @@ function noDoubleChildSelectorsInNested() {
     ruleName: 'kaliber/no-double-child-selectors-in-nested',
     messages,
     plugin: ({ root, report }) => {
-      if (isColorScheme(root)) return
+      if (allowDoubleChildSelectors(root)) return
       withNestedRules(root, (rule, parent) => {
         const [, double] = getChildSelectors(rule)
         if (double) {
@@ -410,7 +374,7 @@ function noTagSelectors() {
       root.walkRules(rule => {
         const { parent } = rule
         if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
-        const root = selectorParser.astSync(rule)
+        const root = parseSelector(rule)
         const [tag] = root.first.filter(x => x.type === 'tag')
         if (!tag) return
         report(rule, messages['no tag selectors'], tag.sourceIndex)
@@ -419,7 +383,7 @@ function noTagSelectors() {
   })
 }
 
-function onlyDirectChildSelectors() {
+function onlyDirectChildSelectors({ allowNonDirectChildSelectors }) {
   const messages = {
     'only direct child selectors': type =>
       `no \`${type}\` selector combinator\n` +
@@ -436,9 +400,9 @@ function onlyDirectChildSelectors() {
     ruleName: 'kaliber/only-direct-child-selectors',
     messages,
     plugin: ({ root, report }) => {
-      if (isColorScheme(root)) return
+      if (allowNonDirectChildSelectors(root)) return
       root.walkRules(rule => {
-        const root = selectorParser.astSync(rule)
+        const root = parseSelector(rule)
         const combinators = root.first.filter(x => x.type === 'combinator')
         if (!combinators.length) return
 
@@ -506,7 +470,7 @@ function requireDisplayGridInParent() {
   })
 }
 
-function noChildElementSelectorsInMedia() {
+function noRulesInsideMedia() {
   const messages = {
     'media - no nested child':
       `unexpected rule in @media\n` +
@@ -539,7 +503,7 @@ function onlyTagSelectorsInResetAndIndex() {
     plugin: ({ root, report }) => {
       if (!isReset(root) && !isIndex(root)) return
       root.walkRules(rule => {
-        const root = selectorParser.astSync(rule)
+        const root = parseSelector(rule)
         const [classNode] = root.first.filter(x => x.type === 'class')
         if (!classNode) return
         report(rule, messages['no class selectors'], classNode.sourceIndex + 1)
@@ -564,126 +528,6 @@ function validPointerEvents() {
         result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
           report(triggerDecl, messages['invalid pointer events'])
         })
-      })
-    }
-  })
-}
-
-function customProperties() {
-  const messages = {
-    'no root selector':
-      `Unexpected :root selector\n` +
-      `you can only use the :root selector in the \`cssGlobal\` directory - ` +
-      `move the :root selector and it's contents to the \`cssGlobal\` directory`,
-    'only root selector':
-      `Unexpected selector\n` +
-      `only :root selectors are allowed in the \`cssGlobal\` directory - ` +
-      `move the selector to \`reset.css\` or \`index.css\``
-  }
-  return createPlugin({
-    ruleName: 'kaliber/custom-properties',
-    messages,
-    skipCustomPropertyResolving: true,
-    skipCustomMediaResolving: true,
-    skipCustomSelectorsResolving: true,
-    plugin: ({ root, report }) => {
-      root.walkRules(rule => {
-        const { selector } = rule
-        if (selector === ':root') {
-          if (isInCssGlobal(root)) return
-          report(rule, messages['no root selector'])
-        } else {
-          if (!isInCssGlobal(root)) return
-          if (allowedInCssGlobal.selectors.includes(selector)) return
-          report(rule, messages['only root selector'])
-        }
-      })
-    }
-  })
-}
-
-function customMedia() {
-  const messages = {
-    'no custom media':
-      `Unexpected @custom-media\n` +
-      `you can only use @custom-media in the \`cssGlobal\` directory - ` +
-      `move @custom-media to the \`cssGlobal\` directory`,
-    'only custom media':
-      `Unexpected at rule\n` +
-      `only @custom-media is allowed in the \`cssGlobal\` directory - ` +
-      `move the at rule to \`reset.css\` or \`index.css\``
-  }
-  return createPlugin({
-    ruleName: 'kaliber/custom-media',
-    messages,
-    skipCustomMediaResolving: true,
-    skipCustomPropertyResolving: true,
-    skipCustomSelectorsResolving: true,
-    plugin: ({ root, report }) => {
-      root.walkAtRules(rule => {
-        const { name } = rule
-        if (name === 'custom-media') {
-          if (isInCssGlobal(root)) return
-          report(rule, messages['no custom media'])
-        } else {
-          if (!isInCssGlobal(root)) return
-          if (allowedInCssGlobal.atRules.includes(name)) return
-          report(rule, messages['only custom media'])
-        }
-      })
-    }
-  })
-}
-
-function customSelectors() {
-  const messages = {
-    'no custom selector':
-      `Unexpected @custom-selector\n` +
-      `you can only use @custom-selector in the \`cssGlobal\` directory - ` +
-      `move @custom-selector to the \`cssGlobal\` directory`,
-    'only custom selector':
-      `Unexpected at rule\n` +
-      `only @custom-selector is allowed in the \`cssGlobal\` directory - ` +
-      `move the at rule to \`reset.css\` or \`index.css\``
-  }
-  return createPlugin({
-    ruleName: 'kaliber/custom-selectors',
-    messages,
-    skipCustomMediaResolving: true,
-    skipCustomPropertyResolving: true,
-    skipCustomSelectorsResolving: true,
-    plugin: ({ root, report }) => {
-      root.walkAtRules(rule => {
-        const { name } = rule
-        if (name === 'custom-selector') {
-          if (isInCssGlobal(root)) return
-          report(rule, messages['no custom selector'])
-        } else {
-          if (!isInCssGlobal(root)) return
-          if (allowedInCssGlobal.atRules.includes(name)) return
-          report(rule, messages['only custom selector'])
-        }
-      })
-    }
-  })
-}
-
-function colorSchemes() {
-  const messages = {
-    'only color related properties': prop =>
-      `Unexpected property ${prop}\n` +
-      `you can only use color related properties in color schemes - ` +
-      `move the property to another file or use one of the advanced color values like #RRGGBBAA or color-mod(...)`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/color-scheme',
-    messages,
-    plugin: ({ root, report }) => {
-      if (!isColorScheme(root)) return
-      root.walkDecls(decl => {
-        const { prop } = decl
-        if (allowedInColorScheme.includes(prop)) return
-        report(decl, messages['only color related properties'](prop))
       })
     }
   })
@@ -785,7 +629,7 @@ function preventExportCollisions() {
     plugin: ({ root, report }) => {
       const classes = []
       root.walkRules(rule => {
-        selectorParser.astSync(rule).walkClasses(x => { classes.push(x.value) })
+        parseSelector(rule).walkClasses(x => { classes.push(x.value) })
       })
       root.walkRules(':export', rule => {
         rule.each(node => {
@@ -796,19 +640,6 @@ function preventExportCollisions() {
       })
     }
   })
-}
-
-function hasChildSelector(rule) {
-  return !!getChildSelectors(rule).length
-}
-
-function getChildSelectors(rule) {
-  const root = selectorParser.astSync(rule)
-  return root.first.filter(x => x.type === 'combinator' || isPseudoElement(x))
-}
-
-function isPseudoElement({ type, value }) {
-  return type === 'pseudo' && value.startsWith('::')
 }
 
 function splitByMediaQueries(root) {
@@ -873,78 +704,6 @@ function splitByMediaQueries(root) {
   }
 }
 
-function extractPropsWithValues(props) {
-  return props.reduce(
-    (result, x) => {
-      if (Array.isArray(x)) {
-        const [prop] = x
-        return { ...result, [prop]: true }
-      } else return result
-    },
-    {}
-  )
-}
-
-function withNestedRules(root, f) {
-  root.walkRules(rule => {
-    if (isRoot(rule)) return
-    f(rule, getParentRule(rule))
-  })
-}
-
-function withRootRules(root, f) {
-  root.walkRules(rule => {
-    if (!isRoot(rule)) return
-    f(rule)
-  })
-}
-
-function isRoot(rule) {
-  const parent = getParentRule(rule)
-  return !parent || (isRoot(parent) && !hasChildSelector(rule))
-}
-
-function findDecls(rule, targets, { onlyInvalidTargets = false } = {}) {
-  let result = []
-  const normalizedTargets = normalize(targets)
-
-  rule.each(node => {
-    if (
-      node.type !== 'decl' ||
-      (onlyInvalidTargets && !invalidTarget(normalizedTargets, node)) ||
-      (!onlyInvalidTargets && invalidTarget(normalizedTargets, node))
-    ) return
-
-    result.push(node)
-    const continueIteration = onlyInvalidTargets || result.length !== targets.length
-    return continueIteration
-  })
-
-  return result
-}
-
-function matches(decl, targets) {
-  const normalizedTargets = normalize(targets)
-  return !invalidTarget(normalizedTargets, decl)
-}
-
-function normalize(targets) {
-  return targets.reduce(
-    (result, x) => {
-      const [name, value] = Array.isArray(x) ? x : [x, []]
-      const values = result[name] || []
-      return { ...result, [name]: values.concat(value) }
-    },
-    {}
-  )
-}
-
-function invalidTarget(targets, { prop, value }) {
-  const hasProp = targets.hasOwnProperty(prop)
-  const targetValue = targets[prop]
-  return !hasProp || (!!targetValue.length && !targetValue.includes(value))
-}
-
 function createPlugin({
   ruleName, messages, plugin,
   testWithNormalizedMediaQueries = false,
@@ -961,7 +720,6 @@ function createPlugin({
     ...stylelintPlugin,
     rawMessages: messages,
     messages: stylelint.utils.ruleMessages(ruleName, messages),
-    ruleName
   }
 
   function pluginWrapper(primaryOption, secondaryOptionObject, context) {
@@ -1065,23 +823,12 @@ function createPlugin({
   }
 }
 
-function getParentRule({ parent }) {
-  return parent.type !== 'root' &&
-        (parent.type === 'rule' ? parent : getParentRule(parent))
-}
-
 function isReset(root) { return isFile(root, 'reset.css') }
 function isIndex(root) { return isFile(root, 'index.css') }
-function isInCssGlobal(root) { return matchesFile(root, filename => filename.includes('/cssGlobal/')) }
-function isColorScheme(root) { return matchesFile(root, filename => /color-scheme.*\.css/.test(filename)) }
 function isEntryCss(root) { return matchesFile(root, filename => filename.endsWith('.entry.css')) }
 
 function isFile(root, name) {
   return matchesFile(root, filename => path.basename(filename) === name)
-}
-
-function matchesFile({ source: { input } }, predicate) {
-  return !!input.file && predicate(input.file)
 }
 
 function checkChildParentRelation(childRule, { nestedHasOneOf, requireInRoot }) {
