@@ -1,8 +1,7 @@
 const {
-  declMatches, findDecls,
-  parseValue, parseSelector,
+  parseSelector,
   withRootRules, withNestedRules,
-  isPseudoElement, isRoot, hasChildSelector,
+  isRoot, hasChildSelector,
   getParentRule, getChildSelectors,
 } = require('../../machinery/ast')
 

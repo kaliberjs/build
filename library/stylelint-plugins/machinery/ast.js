@@ -8,7 +8,7 @@ module.exports = {
   parseValue, parseSelector,
   withRootRules, withNestedRules,
   isPseudoElement, isRoot, hasChildSelector,
-  getParentRule, getChildSelectors,
+  getParentRule, getChildSelectors, getRootRules,
 }
 
 function withRootRules(root, f) {
@@ -33,6 +33,13 @@ function isRoot(rule) {
 function getParentRule({ parent }) {
   return parent.type !== 'root' &&
         (parent.type === 'rule' ? parent : getParentRule(parent))
+}
+
+function getRootRules(node) {
+  if (!node) return []
+  const parent = getParentRule(node)
+  if (isRoot(node)) return getRootRules(parent).concat(node)
+  return getRootRules(parent)
 }
 
 function hasChildSelector(rule) {

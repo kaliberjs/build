@@ -1,5 +1,4 @@
 const stylelint = require('stylelint')
-const path = require('path')
 const createPostcssModulesValuesResolver = require('postcss-modules-values')
 const createPostcssCustomPropertiesResolver = require('postcss-custom-properties')
 const createPostcssCustomMediaResolver = require('postcss-custom-media')
@@ -11,66 +10,6 @@ const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
 const postcssCalcResolver = createPostcssCalcResolver()
 
 const { matchesFile } = require('./machinery/filename')
-const { flexChildProps, gridChildProps } = require('./machinery/css')
-const {
-  declMatches, findDecls,
-  parseSelector,
-  withRootRules, withNestedRules,
-  isRoot, hasChildSelector,
-  getParentRule, getChildSelectors,
-} = require('./machinery/ast')
-
-const allowedInReset = [
-  'width', 'height',
-  'max-width', 'max-height',
-  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-]
-
-const childParentRelations = {
-  validStackingContextInRoot: {
-    nestedHasOneOf: ['z-index'],
-    requireInRoot: [
-      ['z-index', '0'],
-      ['position', 'relative']
-    ],
-  },
-  absoluteHasRelativeParent: {
-    nestedHasOneOf: [
-      ['position', 'absolute']
-    ],
-    requireInRoot: [
-      ['position', 'relative']
-    ]
-  },
-  rootHasPositionFlex: {
-    nestedHasOneOf: flexChildProps,
-    requireInRoot: [
-      ['display', 'flex']
-    ]
-  },
-  rootHasPositionGrid: {
-    nestedHasOneOf: gridChildProps,
-    requireInRoot: [
-      ['display', 'grid']
-    ]
-  },
-  validPointerEvents: {
-    nestedHasOneOf: ['pointer-events'],
-    requireInRoot: [
-      ['pointer-events', 'none']
-    ]
-  },
-}
-
-const rootCombos = {
-  validStackingContext: {
-    rootHasOneOf: ['z-index'],
-    require: [
-      ['z-index', '0'],
-      ['position', 'relative']
-    ]
-  },
-}
 
 /*
   Motivation
@@ -88,8 +27,13 @@ const cssGlobal = require('./rules/css-global')
 const layoutRelatedProperties = require('./rules/layout-related-properties')
 const namingPolicy = require('./rules/naming-policy')
 const selectorPolicy = require('./rules/selector-policy')
+const parentChildPolicy = require('./rules/parent-child-policy')
+const rootPolicy = require('./rules/root-policy')
+const noImport = require('./rules/no-import')
+const index = require('./rules/index')
+const reset = require('./rules/reset')
 
-const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties, namingPolicy, selectorPolicy].reduce(
+const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties, namingPolicy, selectorPolicy, parentChildPolicy, rootPolicy, noImport, index, reset].reduce(
   (result, { ruleInteraction }) => ({
     ...result,
     ...Object.entries(ruleInteraction || {}).reduce(
@@ -101,11 +45,8 @@ const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties, namingPol
     )
   }),
   {
-    'layout-related-properties': [{
-      allowDeclInRoot: decl => isReset(decl.root()) && declMatches(decl, allowedInReset),
-    }],
-    'selector-policy': [{
-      allowTagSelectors: root => isReset(root) || isIndex(root)
+    'no-import': [{
+      allowImport: isEntryCss,
     }],
   }
 )
@@ -152,6 +93,8 @@ function merge(configs) {
       allowNonDirectChildSelectors = result.allowNonDirectChildSelectors,
       allowDeclInRoot = result.allowDeclInRoot,
       allowTagSelectors = result.allowTagSelectors,
+      allowImport = result.allowImport,
+      allowSpecificImport = result.allowSpecificImport,
     }) => ({
       ...result,
       allowNonLayoutRelatedProperties: x => result.allowNonLayoutRelatedProperties(x) || allowNonLayoutRelatedProperties(x),
@@ -159,6 +102,8 @@ function merge(configs) {
       allowNonDirectChildSelectors: x => result.allowNonDirectChildSelectors(x) || allowNonDirectChildSelectors(x),
       allowDeclInRoot: x => result.allowDeclInRoot(x) || allowDeclInRoot(x),
       allowTagSelectors: x => result.allowTagSelectors(x) || allowTagSelectors(x),
+      allowImport: x => result.allowImport(x) || allowImport(x),
+      allowSpecificImport: x => result.allowSpecificImport(x) || allowSpecificImport(x),
     }),
     {
       allowNonLayoutRelatedProperties: _ => false,
@@ -166,229 +111,26 @@ function merge(configs) {
       allowNonDirectChildSelectors: _ => false,
       allowDeclInRoot: _ => false,
       allowTagSelectors: _ => false,
+      allowImport: _ => false,
+      allowSpecificImport: _ => false,
     }
   )
 }
 
 const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
-  // root-policy
-  validStackingContextInRoot(),
-
-  // parent-child-policy
-  requireStackingContextInParent(),
-  absoluteHasRelativeParent(),
-  requireDisplayFlexInParent(),
-  requireDisplayGridInParent(),
-  validPointerEvents(),
-
-  // index & reset
-  onlyTagSelectorsInResetAndIndex(),
-
+  toPlugin(index),
+  toPlugin(reset),
   toPlugin(colorSchemes),
   toPlugin(cssGlobal),
   toPlugin(layoutRelatedProperties),
   toPlugin(namingPolicy),
   toPlugin(selectorPolicy),
-
-  // no-import
-  noImport(),
+  toPlugin(parentChildPolicy),
+  toPlugin(rootPolicy),
+  toPlugin(noImport),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
-
-function absoluteHasRelativeParent() {
-  const messages = {
-    'nested - absolute has relative parent':
-      'missing `position: relative;` in parent\n' +
-      '`position: absolute` is only allowed when the containing root rule is set to `position: relative` -' +
-      'add `position: relative;` to the containing root rule'
-  }
-  return createPlugin({
-    ruleName: 'kaliber/absolute-has-relative-parent',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
-        const result = checkChildParentRelation(rule, childParentRelations.absoluteHasRelativeParent)
-
-        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          report(triggerDecl, messages['nested - absolute has relative parent'])
-        })
-      })
-    }
-  })
-}
-
-function requireStackingContextInParent() {
-  const messages = {
-    'nested - missing stacking context in parent':
-      'missing stacking context (`position: relative; z-index: 0;`)\n' +
-      '`z-index` can only be used when the containing root rule creates a new stacking context - ' +
-      'add `position: relative;` and `z-index: 0` to the containing root rule',
-  }
-  return createPlugin({
-    ruleName: 'kaliber/require-stacking-context-in-parent',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
-        const result = checkChildParentRelation(rule, childParentRelations.validStackingContextInRoot)
-
-        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          report(triggerDecl, messages['nested - missing stacking context in parent'])
-        })
-      })
-    },
-  })
-}
-
-function validStackingContextInRoot() {
-  const messages = {
-    'root - z-index without position relative':
-      'missing `position: relative;`\n' +
-      '`z-index` can only be used at the root level to create a non invasive stacking context - ' +
-      'add `position: relative;` or set the `z-index` with a nested selector in another root rule',
-    'root - z-index not 0':
-      'not 0\n' +
-      '`z-index` can only be used at the root level when creating a non invasive stacking context - ' +
-      'set to 0 or set the `z-index` with a nested selector in another root rule',
-  }
-  return createPlugin({
-    ruleName: 'kaliber/valid-stacking-context-in-root',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      withRootRules(root, rule => {
-
-        const result = checkRootCombo(rule, rootCombos.validStackingContext)
-
-        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          if (prop === 'position') report(triggerDecl, messages['root - z-index without position relative'])
-          if (prop === 'z-index') report(triggerDecl, messages['root - z-index not 0'])
-        })
-      })
-    },
-  })
-}
-
-function requireDisplayFlexInParent() {
-  const messages = {
-    'nested - require display flex in parent': prop =>
-      `missing \`display: flex;\`\n` +
-      `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` - ` +
-      `add \`display: flex;\` to the containing root rule`,
-  }
-  return createPlugin({
-    ruleName: 'kaliber/valid-flex-context-in-root',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
-        const result = checkChildParentRelation(rule, childParentRelations.rootHasPositionFlex)
-
-        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          report(triggerDecl, messages['nested - require display flex in parent'](triggerDecl.prop))
-        })
-      })
-    }
-  })
-}
-
-function requireDisplayGridInParent() {
-  const messages = {
-    'nested - require display grid in parent': prop =>
-      `missing \`display: grid;\`\n` +
-      `\`${prop}\` can only be used when the containing root rule has \`display: grid;\` - ` +
-      `add \`display: grid;\` to the containing root rule`,
-  }
-  return createPlugin({
-    ruleName: 'kaliber/valid-grid-context-in-root',
-    messages,
-    testWithNormalizedMediaQueries: true,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
-        const result = checkChildParentRelation(rule, childParentRelations.rootHasPositionGrid)
-
-        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          report(triggerDecl, messages['nested - require display grid in parent'](triggerDecl.prop))
-        })
-      })
-    }
-  })
-}
-
-function onlyTagSelectorsInResetAndIndex() {
-  const messages = {
-    'no class selectors':
-      `Unexpected class selector\n` +
-      `only tag selectors are allowed in index.css and reset.css - ` +
-      `move the selector to another file or wrap it in \`:global(...)\``
-  }
-  return createPlugin({
-    ruleName: 'kaliber/only-tag-selectors-in-reset-and-index',
-    messages,
-    plugin: ({ root, report }) => {
-      if (!isReset(root) && !isIndex(root)) return
-      root.walkRules(rule => {
-        const root = parseSelector(rule)
-        const [classNode] = root.first.filter(x => x.type === 'class')
-        if (!classNode) return
-        report(rule, messages['no class selectors'], classNode.sourceIndex + 1)
-      })
-    }
-  })
-}
-
-function validPointerEvents() {
-  const messages = {
-    'invalid pointer events':
-      `Incorrect pointer events combination\n` +
-      `you can only set pointer events in a child if the parent disables pointer events - ` +
-      `add pointer-events: none to parent`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/valid-pointer-events',
-    messages,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, rule => {
-        const result = checkChildParentRelation(rule, childParentRelations.validPointerEvents)
-        result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
-          report(triggerDecl, messages['invalid pointer events'])
-        })
-      })
-    }
-  })
-}
-
-function noImport() {
-  const messages = {
-    'no import':
-      `Unexpected @import\n` +
-      `you can only use @import in \`*.entry.css\` files or in \`index.css\` files - ` +
-      `you might not need the import, for custom variables, custom media and custom selectors you can place the code in \`src/cssGlobal/\`\n` +
-      `in other cases try another method of reuse, for example create another class`,
-    'only import font':
-      `Invalid @import value\n` +
-      `you can only import fonts`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-import',
-    messages,
-    plugin: ({ root, report }) => {
-      const index = isIndex(root)
-      if (isEntryCss(root)) return
-      root.walkAtRules(rule => {
-        if (rule.name !== 'import') return
-        if (index) {
-          if (rule.params.includes('font')) return
-          report(rule, messages['only import font'])
-        } else {
-          report(rule, messages['no import'])
-        }
-      })
-    }
-  })
-}
 
 function splitByMediaQueries(root) {
   const mediaQueries = gatherMediaQueries(root)
@@ -575,82 +317,4 @@ function createPlugin({
   }
 }
 
-function isReset(root) { return isFile(root, 'reset.css') }
-function isIndex(root) { return isFile(root, 'index.css') }
 function isEntryCss(root) { return matchesFile(root, filename => filename.endsWith('.entry.css')) }
-
-function isFile(root, name) {
-  return matchesFile(root, filename => path.basename(filename) === name)
-}
-
-function checkChildParentRelation(childRule, { nestedHasOneOf, requireInRoot }) {
-  if (isRoot(childRule)) throw new Error('You should not call this function with a root rule')
-
-  return checkRuleRelation({
-    rule: childRule,
-    triggerProperties: nestedHasOneOf,
-    rulesToCheck: getRootRules(childRule),
-    requiredProperties: requireInRoot,
-  })
-}
-
-function checkRootCombo(rootRule, { rootHasOneOf, require }) {
-  if (!isRoot(rootRule)) throw new Error('You should not call this function with a non-root rule')
-
-  return checkRuleRelation({
-    rule: rootRule,
-    triggerProperties: rootHasOneOf,
-    rulesToCheck: getRootRules(rootRule),
-    requiredProperties: require
-  })
-}
-
-function checkRuleRelation({ rule, triggerProperties, rulesToCheck, requiredProperties }) {
-  const triggerDecls = findDecls(rule, triggerProperties)
-  const relationApplicable = !!triggerDecls.length
-  if (!relationApplicable) return []
-
-  const normalizedRequiredProperties = requiredProperties.map(x => {
-    const [prop] = Array.isArray(x) ? x : [x]
-    return prop
-  })
-  const resolvedPropDecls =
-    rulesToCheck.reduce(
-      (result, rootRule) => ({
-        ...result,
-        ...findDecls(rootRule, normalizedRequiredProperties).reduce(
-          (result, x) => ({ ...result, [x.prop]: x }),
-          {}
-        )
-      }),
-      {}
-    )
-
-  return requiredProperties
-    .map(
-      x => {
-        const [prop, expectedValue] = Array.isArray(x) ? x : [x]
-        const invalidDecl = resolvedPropDecls[prop]
-        if (!invalidDecl) return { result: 'missing', prop }
-        if (!expectedValue) return
-        const { value } = invalidDecl
-        if (value === expectedValue) return
-        return { result: 'invalid', prop, invalidDecl, value, expectedValue }
-      }
-    )
-    .filter(Boolean)
-    .reduce(
-      (result, x) => [
-        ...result,
-        ...triggerDecls.map(triggerDecl => ({ ...x, triggerDecl }))
-      ],
-      []
-    )
-}
-
-function getRootRules(node) {
-  if (!node) return []
-  const parent = getParentRule(node)
-  if (isRoot(node)) return getRootRules(parent).concat(node)
-  return getRootRules(parent)
-}
