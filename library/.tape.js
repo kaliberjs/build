@@ -25,37 +25,21 @@ const tests = createTests()
 const colorSchemeTests = require('./stylelint-plugins/rules/color-schemes/test')
 const cssGlobalTests = require('./stylelint-plugins/rules/css-global/test')
 const layoutRelatedPropertiesTests = require('./stylelint-plugins/rules/layout-related-properties/test')
+const namingPolicyTests = require('./stylelint-plugins/rules/naming-policy/test')
+const selectorPolicyTests = require('./stylelint-plugins/rules/selector-policy/test')
 const testEntries = [
   ...Object.entries(colorSchemeTests),
   ...Object.entries(cssGlobalTests),
   ...Object.entries(layoutRelatedPropertiesTests),
-].reduce(
-  (result, [rule, tests]) => [
-    ...result,
-    ...translate(rule).map(oldRule => [oldRule, tests])
-  ],
-  []
-)
-
-function translate(rule) {
-  return {
-    'selector-policy': [
-      'only-direct-child-selectors',
-      'only-tag-selectors-in-reset-and-index',
-      'no-double-nesting',
-      'no-child-selectors-in-root',
-      'no-double-child-selectors-in-nested',
-      'no-tag-selectors',
-      'media-no-child',
-    ]
-  }[rule] || [rule]
-}
+  ...Object.entries(namingPolicyTests),
+  ...Object.entries(selectorPolicyTests),
+]
 
 const allTests = testEntries.reduce(
   (result, [rule, { valid, invalid }]) => ({
     ...result,
     [`kaliber/${rule}`]: (result[`kaliber/${rule}`] || [])
-      .concat(valid.map(x => (x.warnings = x.warnings || 0, x)))
+      .concat(valid.map(x => (!x.expect && (x.warnings = x.warnings || 0), x)))
       .concat(invalid)
   }),
   tests
@@ -225,20 +209,6 @@ function createTests() {
         ])
       },
     ],
-    'kaliber/no-double-nesting': [
-      {
-        source: '.bad { & > .test1 { & > .test2 { } } }',
-        warnings: [message('nested - no double nesting')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '.bad { & > .test1 { @media x { & > .test2 { } } } }',
-        warnings: [message('nested - no double nesting')]
-      },
-      { source: '.good { &.test1 { & > .test2 { } } }', warnings: 0 },
-      { source: '.good { & > .test { } }', warnings: 0 },
-      { source: '.good { & > .test { &:not(:last-child) { } } }', warnings: 0 },
-    ],
     'kaliber/absolute-has-relative-parent': [
       {
         source: '.bad { & > .test { position: absolute; } }',
@@ -251,91 +221,7 @@ function createTests() {
       },
       { source: '.good { position: relative; & > .test { position: absolute; } }'}
     ],
-    'kaliber/no-component-class-name-in-nested': [
-      {
-        source: '.bad { & > .componentTest { } }',
-        warnings: [message('nested - no component class name in nested')('componentTest')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '.bad { @media x { & > .componentTest { } } }',
-        warnings: [message('nested - no component class name in nested')('componentTest')]
-      },
-      { source: '.componentGood { & > .test { } }', warnings: 0 },
-      { source: '.good { & > .test { } }', warnings: 0 },
-    ],
-    'kaliber/no-child-selectors-in-root': [
-      {
-        source: '.bad > .test { }',
-        warnings: [message('root - no child selectors')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '@media x { .bad > .test { } }',
-        warnings: [message('root - no child selectors')]
-      },
-      { source: '.good { & > .test { } }', warnings: 0 }
-    ],
-    'kaliber/no-double-child-selectors-in-nested': [
-      {
-        source: '.bad { & > .one > .two { } }',
-        warnings: [message('nested - no double child selectors')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '.bad { @media x { & > .one > .two { } } }',
-        warnings: [message('nested - no double child selectors')]
-      },
-      {
-        title: 'correctly nested',
-        source: `
-          .good { & > .one { } }
-
-          .one { & > .two { } }
-        `,
-        warnings: 0
-      },
-      {
-        source: '.bad { & > .test::after { } }',
-        warnings: [message('nested - no double child selectors')]
-      },
-      {
-        title: 'correctly nested pseudo element',
-        source: `
-          .good { & > .one { } }
-
-          .one { &::after { } }
-        `,
-        warnings: 0
-      },
-      { source: '.good { & > *:not(:first-child) { } }', warnings: 0 },
-    ],
-    'kaliber/no-tag-selectors': [
-      {
-        source: 'div { }',
-        warnings: [message('no tag selectors')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '@media x { div { } }',
-        warnings: [message('no tag selectors')]
-      },
-      { source: '.good { }', warnings: 0 },
-      { source: '@keyframes test { from { opacity: 0; } }', warnings: 0 },
-      {
-        source: '.bad { & > div { } }',
-        warnings: [message('no tag selectors')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '.bad { @media x { & > div { } } }',
-        warnings: [message('no tag selectors')]
-      },
-      {
-        source: '.bad { & > div { } }',
-        warnings: [message('no tag selectors')]
-      },
-      { source: '.good { & > .test { } }', warnings: 0 },
+    'kaliber/selector-policy': [
       {
         title: 'allow tag selectors in reset.css',
         source: { filename: 'reset.css', source: 'div { }' },
@@ -345,56 +231,6 @@ function createTests() {
         title: 'allow tag selectors in index.css',
         source: { filename: 'index.css', source: 'div { }' },
         warnings: 0
-      },
-    ],
-    'kaliber/only-direct-child-selectors': [
-      {
-        source: '.bad .test { }',
-        warnings: [message('only direct child selectors')(' ')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '@media x { .bad .test { } }',
-        warnings: [message('only direct child selectors')(' ')]
-      },
-      {
-        source: '.bad { & .test { } }',
-        warnings: [message('only direct child selectors')(' ')]
-      },
-      {
-        source: '.bad { & > .test .one { } }',
-        warnings: [message('only direct child selectors')(' ')]
-      },
-      {
-        title: "└─ take @media into account",
-        source: '.bad { @media x { & > .test .one { } } }',
-        warnings: [message('only direct child selectors')(' ')]
-      },
-      {
-        source: '.bad + .test { }',
-        warnings: [message('only direct child selectors')('+')]
-      },
-      {
-        source: '.bad { & + * { } }',
-        warnings: [message('only direct child selectors')('+')]
-      },
-      { source: '.good { &.test { } }', warnings: 0 },
-      { source: '.good { & > .test { } }', warnings: 0 },
-      {
-        source: `[data-context-scrolldir='down'] .good { color: 0; }`,
-        warnings: 0
-      },
-      {
-        source: `[data-context-scrolldir='down'] + .bad { color: 0; }`,
-        warnings: [message('only direct child selectors')('+')]
-      },
-      {
-        source: `.bad { & > ._root { color: 0; } }`,
-        warnings: [message('no _root child selectors')]
-      },
-      {
-        source: `.bad { & > .component_root { color: 0; } }`,
-        warnings: [message('no _root child selectors')]
       },
     ],
     'kaliber/valid-flex-context-in-root': [
@@ -488,56 +324,6 @@ function createTests() {
         warnings: 0
       }
     ],
-    'kaliber/media-no-child': [
-      {
-        title: "report nested child in media",
-        source: `
-          .bad {
-            @media x {
-              & > {
-                width: 10px;
-              }
-            }
-          }
-        `,
-        warnings: [messages['media - no nested child']]
-      },
-      {
-        title: "don't report media in nested child",
-        source: `
-          .good {
-            & > {
-              @media x {
-                width: 10px;
-              }
-            }
-          }
-        `,
-        warnings: 0
-      },
-      {
-        title: "report nested child in media (root)",
-        source: `
-          @media x {
-            .bad {
-              width: 10px;
-            }
-          }
-        `,
-        warnings: [messages['media - no nested child']]
-      },
-      {
-        title: "don't report media in nested child (root)",
-        source: `
-          .good {
-            @media x {
-              width: 10px;
-            }
-          }
-        `,
-        warnings: 0
-      },
-    ],
     'kaliber/only-tag-selectors-in-reset-and-index': [
       {
         title: 'invalid - no class in reset.css',
@@ -617,96 +403,6 @@ function createTests() {
           source: `@import 'x';`
         },
         warnings: [messages['only import font']]
-      },
-    ],
-    'kaliber/value-starts-with-underscore': [
-      {
-        source: `@value _abc: 0;`,
-        warnings: 0
-      },
-      {
-        title: `don't crash on syntax`,
-        source: `
-          @value _height: 30px;
-
-          .inner {
-            border-radius: calc(_height / 2);
-          }
-        `,
-        warnings: 0
-      },
-      {
-        source: `@value abc: 0;`,
-        warnings: [messages['value should start with underscore']]
-      },
-    ],
-    'kaliber/property-lower-case': [
-      { source: 'a { }', warnings: 0 },
-      { source: 'a { display: block; }', warnings: 0 },
-      { source: ':root { --custom-PropertyName: red; }', warnings: 0 },
-      { source: ':export { customPropertyName: red; }', warnings: 0 },
-      {
-        source: 'a { Display: block; }',
-        expect: 'a { display: block; }',
-      },
-      {
-        source: 'a { Display: block; }',
-        warnings: [messages['property lower case']('Display', 'display')],
-      },
-      {
-        source: ':root { customPropertyName: red; }',
-        expect: ':root { custompropertyname: red; }',
-      },
-      {
-        source: ':root { customPropertyName: red; }',
-        warnings: [messages['property lower case']('customPropertyName', 'custompropertyname')],
-      },
-    ],
-    'kaliber/prevent-export-collisions': [
-      {
-        title: 'no collision',
-        source: `
-          .test1 { }
-          :export {
-            test2: 0;
-          }
-        `,
-        warnings: 0
-      },
-      {
-        title: 'no collision - case difference',
-        source: `
-          .testit { }
-          :export {
-            testIt: 0;
-          }
-        `,
-        warnings: 0
-      },
-      {
-        title: 'obvious collision',
-        source: `
-          .test { }
-          :export {
-            test: 0;
-          }
-        `,
-        warnings: [messages['export collision']]
-      },
-      {
-        title: 'nested collisions',
-        source: `
-          .test1 {
-            & > .test2 { }
-            &.test3 > .test4 { }
-          }
-          :export {
-            test2: 0;
-            test3: 0;
-            test4: 0;
-          }
-        `,
-        warnings: Array(3).fill(messages['export collision'])
       },
     ],
   }

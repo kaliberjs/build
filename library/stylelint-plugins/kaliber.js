@@ -86,8 +86,10 @@ const rootCombos = {
 const colorSchemes = require('./rules/color-schemes')
 const cssGlobal = require('./rules/css-global')
 const layoutRelatedProperties = require('./rules/layout-related-properties')
+const namingPolicy = require('./rules/naming-policy')
+const selectorPolicy = require('./rules/selector-policy')
 
-const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties].reduce(
+const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties, namingPolicy, selectorPolicy].reduce(
   (result, { ruleInteraction }) => ({
     ...result,
     ...Object.entries(ruleInteraction || {}).reduce(
@@ -101,7 +103,10 @@ const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties].reduce(
   {
     'layout-related-properties': [{
       allowDeclInRoot: decl => isReset(decl.root()) && declMatches(decl, allowedInReset),
-    }]
+    }],
+    'selector-policy': [{
+      allowTagSelectors: root => isReset(root) || isIndex(root)
+    }],
   }
 )
 
@@ -146,18 +151,21 @@ function merge(configs) {
       allowDoubleChildSelectors = result.allowDoubleChildSelectors,
       allowNonDirectChildSelectors = result.allowNonDirectChildSelectors,
       allowDeclInRoot = result.allowDeclInRoot,
+      allowTagSelectors = result.allowTagSelectors,
     }) => ({
       ...result,
       allowNonLayoutRelatedProperties: x => result.allowNonLayoutRelatedProperties(x) || allowNonLayoutRelatedProperties(x),
       allowDoubleChildSelectors: x => result.allowDoubleChildSelectors(x) || allowDoubleChildSelectors(x),
       allowNonDirectChildSelectors: x => result.allowNonDirectChildSelectors(x) || allowNonDirectChildSelectors(x),
       allowDeclInRoot: x => result.allowDeclInRoot(x) || allowDeclInRoot(x),
+      allowTagSelectors: x => result.allowTagSelectors(x) || allowTagSelectors(x),
     }),
     {
       allowNonLayoutRelatedProperties: _ => false,
       allowDoubleChildSelectors: _ => false,
       allowNonDirectChildSelectors: _ => false,
       allowDeclInRoot: _ => false,
+      allowTagSelectors: _ => false,
     }
   )
 }
@@ -173,27 +181,17 @@ const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
   requireDisplayGridInParent(),
   validPointerEvents(),
 
-  // selector-policy
-  onlyDirectChildSelectors(config['selector-policy']),
-  onlyTagSelectorsInResetAndIndex(config['selector-policy']),
-  noDoubleNesting(config['selector-policy']),
-  noChildSelectorsAtRoot(config['selector-policy']),
-  noDoubleChildSelectorsInNested(config['selector-policy']),
-  noTagSelectors(config['selector-policy']),
-  noRulesInsideMedia(config['selector-policy']),
+  // index & reset
+  onlyTagSelectorsInResetAndIndex(),
 
   toPlugin(colorSchemes),
   toPlugin(cssGlobal),
   toPlugin(layoutRelatedProperties),
+  toPlugin(namingPolicy),
+  toPlugin(selectorPolicy),
 
   // no-import
   noImport(),
-
-  // naming-policy
-  noComponentNameInNested(),
-  valueStartsWithUnderscore(),
-  propertyLowerCase(),
-  preventExportCollisions(),
 ])
 rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
@@ -216,25 +214,6 @@ function absoluteHasRelativeParent() {
         result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
           report(triggerDecl, messages['nested - absolute has relative parent'])
         })
-      })
-    }
-  })
-}
-
-function noDoubleNesting() {
-  const messages = {
-    'nested - no double nesting':
-      'no double nesting\n' +
-      'nesting is only allowed one level - ' +
-      'create a root rule and move the nested block there'
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-double-nesting',
-    messages,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
-        if (isRoot(parent) || (!hasChildSelector(rule) && isRoot(getParentRule(parent)))) return
-        report(rule, messages['nested - no double nesting'])
       })
     }
   })
@@ -292,138 +271,6 @@ function validStackingContextInRoot() {
   })
 }
 
-function noComponentNameInNested() {
-  const messages = {
-    'nested - no component class name in nested': className =>
-      `illegal class name\n` +
-      `\`${className}\` can not be used in nested selectors - ` +
-      `remove \`component\` from the name`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-component-class-name-in-nested',
-    messages,
-    plugin: ({ root, report }) => {
-      withNestedRules(root, (rule, parent) => {
-        parseSelector(rule).walkClasses(x => {
-          const className = x.value
-          if (className.startsWith('component'))
-            report(rule, messages['nested - no component class name in nested'](className), x.sourceIndex)
-        })
-      })
-    }
-  })
-}
-
-function noChildSelectorsAtRoot() {
-  const messages = {
-    'root - no child selectors':
-      `no child selector at root level\n` +
-      `it is not allowed to use child selectors on root level - ` +
-      `write the child selector nested using the \`&\``
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-child-selectors-in-root',
-    messages,
-    plugin: ({ root, report }) => {
-      withRootRules(root, rule => {
-        parseSelector(rule).walkCombinators(x => {
-          if (x.value === '>')
-            report(rule, messages['root - no child selectors'], x.sourceIndex)
-        })
-      })
-    }
-  })
-}
-
-function noDoubleChildSelectorsInNested({ allowDoubleChildSelectors }) {
-  const messages = {
-    'nested - no double child selectors':
-      `no double child selector in nested selector\n` +
-      `it is not allowed to select the child of a child - ` +
-      `write a separate root rule and select the child from there`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-double-child-selectors-in-nested',
-    messages,
-    plugin: ({ root, report }) => {
-      if (allowDoubleChildSelectors(root)) return
-      withNestedRules(root, (rule, parent) => {
-        const [, double] = getChildSelectors(rule)
-        if (double) {
-          const i = double.sourceIndex
-          const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
-          report(rule, messages['nested - no double child selectors'], correctSourceIndex)
-        }
-      })
-    }
-  })
-}
-
-function noTagSelectors() {
-  const messages = {
-    'no tag selectors':
-      `no tag selectors\n` +
-      `it is not allowed to select tags outside of reset.css and index.css - ` +
-      `give the element a class and select on that or move to reset.css or index.css`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/no-tag-selectors',
-    messages,
-    plugin: ({ root, report }) => {
-      if (isReset(root) || isIndex(root)) return
-      root.walkRules(rule => {
-        const { parent } = rule
-        if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
-        const root = parseSelector(rule)
-        const [tag] = root.first.filter(x => x.type === 'tag')
-        if (!tag) return
-        report(rule, messages['no tag selectors'], tag.sourceIndex)
-      })
-    }
-  })
-}
-
-function onlyDirectChildSelectors({ allowNonDirectChildSelectors }) {
-  const messages = {
-    'only direct child selectors': type =>
-      `no \`${type}\` selector combinator\n` +
-      `it is only allowed to use direct child selectors - ` +
-      `restructure the css in a way that does not require this, if a third library forces ` +
-      `you to use this type of selector, disable the rule for this line and add a comment ` +
-      `stating the reason`,
-     'no _root child selectors':
-      `Unexpected _root selector\n` +
-      `_root or component_root selectors can not be used as a child selector - ` +
-      `remove the _root or component_root prefix`,
-  }
-  return createPlugin({
-    ruleName: 'kaliber/only-direct-child-selectors',
-    messages,
-    plugin: ({ root, report }) => {
-      if (allowNonDirectChildSelectors(root)) return
-      root.walkRules(rule => {
-        const root = parseSelector(rule)
-        const combinators = root.first.filter(x => x.type === 'combinator')
-        if (!combinators.length) return
-
-        const [rootSelector] = root.first.filter(x =>
-          x.type === 'class' && (x.value.startsWith('_root') || x.value.startsWith('component_root'))
-        )
-        if (rootSelector) report(rule, messages['no _root child selectors'], rootSelector.sourceIndex)
-
-        const [invalidCombinator] =  combinators.filter(x => x.value !== '>')
-        if (!invalidCombinator) return
-        if (invalidCombinator.value === ' ') {
-          const { first } = root.first
-          if (first && first.type === 'attribute' && first.attribute.startsWith('data-context-')) return
-        }
-
-        report(rule, messages['only direct child selectors'](invalidCombinator.value), invalidCombinator.sourceIndex)
-      })
-    }
-  })
-}
-
 function requireDisplayFlexInParent() {
   const messages = {
     'nested - require display flex in parent': prop =>
@@ -464,26 +311,6 @@ function requireDisplayGridInParent() {
 
         result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
           report(triggerDecl, messages['nested - require display grid in parent'](triggerDecl.prop))
-        })
-      })
-    }
-  })
-}
-
-function noRulesInsideMedia() {
-  const messages = {
-    'media - no nested child':
-      `unexpected rule in @media\n` +
-      `@media should be placed inside rules and not the other way around - ` +
-      `swap the selector and @media statement`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/media-no-child',
-    messages,
-    plugin: ({ root, report }) => {
-      root.walkAtRules('media', rule => {
-        rule.walkRules(rule => {
-          report(rule, messages['media - no nested child'])
         })
       })
     }
@@ -558,85 +385,6 @@ function noImport() {
         } else {
           report(rule, messages['no import'])
         }
-      })
-    }
-  })
-}
-
-function valueStartsWithUnderscore() {
-  const messages = {
-    'value should start with underscore':
-      `Expected underscore \`_\`\n` +
-      `to prevent conflicts all values should start with an underscore - ` +
-      `prefix the value with an underscore or, if you want to export a value, use \`:export { ... }\``
-  }
-  return createPlugin({
-    ruleName: 'kaliber/value-starts-with-underscore',
-    messages,
-    skipModulesValuesResolver: true,
-    skipCalcResolver: true,
-    plugin: ({ root, report }) => {
-      root.walkAtRules('value', rule => {
-        if (rule.params.startsWith('_')) return
-
-        report(rule, messages['value should start with underscore'], 8)
-      })
-    }
-  })
-}
-
-function propertyLowerCase() {
-  const messages = {
-    'property lower case': (actual, expected) =>
-      `Expected "${actual}" to be "${expected}"`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/property-lower-case',
-    messages,
-    skipAll: true,
-    plugin: ({ root, report, context }) => {
-      root.walkDecls(decl => {
-        const { prop, parent } = decl
-
-        if (prop.startsWith('--')) return
-
-        const expectedProp = prop.toLowerCase()
-
-        if (prop === expectedProp) return
-        if (parent.type === 'rule' && parent.selector === ':export') return
-        if (context.fix) {
-          decl.prop = expectedProp
-          return
-        }
-
-        report(decl, messages['property lower case'](prop, expectedProp))
-      })
-    }
-  })
-}
-
-function preventExportCollisions() {
-  const messages = {
-    'export collision':
-      `Detected export collision\n` +
-      `a class is exported with this exact name - ` +
-      `rename the export`
-  }
-  return createPlugin({
-    ruleName: 'kaliber/prevent-export-collisions',
-    messages,
-    skipAll: true,
-    plugin: ({ root, report }) => {
-      const classes = []
-      root.walkRules(rule => {
-        parseSelector(rule).walkClasses(x => { classes.push(x.value) })
-      })
-      root.walkRules(':export', rule => {
-        rule.each(node => {
-          if (node.type !== 'decl') return
-          if (!classes.includes(node.prop)) return
-          report(node, messages['export collision'])
-        })
       })
     }
   })
@@ -757,7 +505,7 @@ function createPlugin({
       if (!skipCalcResolver) {
         await postcssCalcResolver(root, result)
       }
-      plugin({ root, report, context })
+      callPlugin(root)
 
       /*
         We create new root nodes for each applicable media query.
@@ -788,8 +536,12 @@ function createPlugin({
       */
       if (testWithNormalizedMediaQueries)
         Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
-          plugin({ root, report })
+          callPlugin(root)
         })
+
+      function callPlugin(root) {
+        plugin({ root, modifiedRoot: root, originalRoot, report, context })
+      }
 
       function report(node, message, index) {
         const id = getId(node, message, index)

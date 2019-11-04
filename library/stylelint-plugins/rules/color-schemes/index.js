@@ -26,9 +26,9 @@ module.exports = {
   cssRequirements: null,
   messages,
   create(config) {
-    return ({ root, report }) => {
-      if (!isColorScheme(root)) return
-      root.walkDecls(decl => {
+    return ({ originalRoot, report }) => {
+      if (!isColorScheme(originalRoot)) return
+      originalRoot.walkDecls(decl => {
         const { prop } = decl
         if (allowedInColorScheme.includes(prop)) return
         report(decl, messages['only color related properties'](prop))

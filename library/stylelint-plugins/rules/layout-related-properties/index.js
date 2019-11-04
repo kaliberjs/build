@@ -60,15 +60,15 @@ module.exports = {
   },
   messages,
   create({ allowDeclInRoot, allowNonLayoutRelatedProperties }) {
-    return ({ root, report }) => {
-      noLayoutRelatedPropsInRoot({ root, report, allowDeclInRoot })
-      onlyLayoutRelatedPropsInNested({ root, report, allowNonLayoutRelatedProperties })
+    return ({ modifiedRoot, report }) => {
+      noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowDeclInRoot })
+      onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties })
     }
   }
 }
 
-function noLayoutRelatedPropsInRoot({ root, report, allowDeclInRoot }) {
-  withRootRules(root, rule => {
+function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowDeclInRoot }) {
+  withRootRules(modifiedRoot, rule => {
     const isRoot = rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
     if (isRoot) return
 
@@ -85,9 +85,9 @@ function noLayoutRelatedPropsInRoot({ root, report, allowDeclInRoot }) {
   })
 }
 
-function onlyLayoutRelatedPropsInNested({ root, report, allowNonLayoutRelatedProperties }) {
-  if (allowNonLayoutRelatedProperties(root)) return
-  withNestedRules(root, (rule, parent) => {
+function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties }) {
+  if (allowNonLayoutRelatedProperties(modifiedRoot)) return
+  withNestedRules(modifiedRoot, (rule, parent) => {
     const root = parseSelector(rule)
     const pseudos = root.first.filter(isPseudoElement)
     if (pseudos.length) return
