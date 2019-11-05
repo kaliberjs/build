@@ -6,30 +6,14 @@ const allowedInCssGlobal = {
 }
 
 const messages = {
-  'no custom selector':
-    `Unexpected @custom-selector\n` +
-    `you can only use @custom-selector in the \`cssGlobal\` directory - ` +
-    `move @custom-selector to the \`cssGlobal\` directory`,
-  'only custom selector':
-    `Unexpected at rule\n` +
-    `only @custom-selector is allowed in the \`cssGlobal\` directory - ` +
-    `move the at rule to \`reset.css\` or \`index.css\``,
-  'no custom media':
-    `Unexpected @custom-media\n` +
-    `you can only use @custom-media in the \`cssGlobal\` directory - ` +
-    `move @custom-media to the \`cssGlobal\` directory`,
-  'only custom media':
-    `Unexpected at rule\n` +
-    `only @custom-media is allowed in the \`cssGlobal\` directory - ` +
-    `move the at rule to \`reset.css\` or \`index.css\``,
-  'no root selector':
-    `Unexpected :root selector\n` +
-    `you can only use the :root selector in the \`cssGlobal\` directory - ` +
-    `move the :root selector and it's contents to the \`cssGlobal\` directory`,
-  'only root selector':
-    `Unexpected selector\n` +
-    `only :root selectors are allowed in the \`cssGlobal\` directory - ` +
-    `move the selector to \`reset.css\` or \`index.css\``,
+  'no': name =>
+    `Unexpected ${name}\n` +
+    `you can only use ${name} in the \`cssGlobal\` directory - ` +
+    `move ${name} to to the \`cssGlobal\` directory`,
+  'only': name =>
+    `Unexpected ${name}\n` +
+    `only @custom-selector, @custom-media, @value, :export and :root are allowed in the \`cssGlobal\` directory - ` +
+    `move ${name} to \`reset.css\` or \`index.css\``,
 }
 
 module.exports = {
@@ -39,53 +23,32 @@ module.exports = {
   messages,
   create(config) {
     return ({ originalRoot, report }) => {
-      customSelectors({ originalRoot, report })
-      customMedia({ originalRoot, report })
-      customProperties({ originalRoot, report })
+      checkAtRules({ originalRoot, report })
+      checkRules({ originalRoot, report })
     }
   }
 }
 
 function isInCssGlobal(root) { return matchesFile(root, filename => filename.includes('/cssGlobal/')) }
 
-function customSelectors({ originalRoot, report }) {
+function checkAtRules({ originalRoot, report }) {
+  const inCssGlobal = isInCssGlobal(originalRoot)
   originalRoot.walkAtRules(rule => {
     const { name } = rule
-    if (name === 'custom-selector') {
-      if (isInCssGlobal(originalRoot)) return
-      report(rule, messages['no custom selector'])
-    } else {
-      if (!isInCssGlobal(originalRoot)) return
-      if (allowedInCssGlobal.atRules.includes(name)) return
-      report(rule, messages['only custom selector'])
-    }
+    const allowed = allowedInCssGlobal.atRules.includes(name)
+
+    if (!inCssGlobal && allowed) report(rule, messages['no'](`@${name}`))
+    if (inCssGlobal && !allowed) report(rule, messages['only'](`@${name}`))
   })
 }
 
-function customMedia({ originalRoot, report }) {
-  originalRoot.walkAtRules(rule => {
-    const { name } = rule
-    if (name === 'custom-media') {
-      if (isInCssGlobal(originalRoot)) return
-      report(rule, messages['no custom media'])
-    } else {
-      if (!isInCssGlobal(originalRoot)) return
-      if (allowedInCssGlobal.atRules.includes(name)) return
-      report(rule, messages['only custom media'])
-    }
-  })
-}
-
-function customProperties({ originalRoot, report }) {
+function checkRules({ originalRoot, report }) {
+  const inCssGlobal = isInCssGlobal(originalRoot)
   originalRoot.walkRules(rule => {
     const { selector } = rule
-    if (selector === ':root') {
-      if (isInCssGlobal(originalRoot)) return
-      report(rule, messages['no root selector'])
-    } else {
-      if (!isInCssGlobal(originalRoot)) return
-      if (allowedInCssGlobal.selectors.includes(selector)) return
-      report(rule, messages['only root selector'])
-    }
+    const allowed = allowedInCssGlobal.selectors.includes(selector)
+
+    if (!inCssGlobal && allowed) report(rule, messages['no'](selector))
+    if (inCssGlobal && !allowed) report(rule, messages['only'](selector))
   })
 }

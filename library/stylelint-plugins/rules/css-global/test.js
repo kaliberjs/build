@@ -32,39 +32,15 @@ module.exports = {
         source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);` },
       },
       {
-        title: 'valid - allow custom selectors in globalCss',
-        source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;` },
-      },
-      {
-        title: 'valid - allow custom media in cssGlobal directory',
-        source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);` },
-      },
-      {
         title: 'valid - allow custom properties in globalCss',
         source: { filename: 'src/cssGlobal/abc.css', source: `:root { --x: 0; }` },
       },
       {
         title: 'valid - allow custom selectors in globalCss',
         source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;` },
-      },
-      {
-        title: 'valid - allow custom selectors in cssGlobal directory',
-        source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;` },
-      },
-      {
-        title: 'valid - allow custom properties in globalCss',
-        source: { filename: 'src/cssGlobal/abc.css', source: `:root { --x: 0; }` },
-      },
-      {
-        title: 'valid - allow custom media in globalCss',
-        source: { filename: 'src/cssGlobal/abc.css', source: `@custom-media --x (max-width: 30em);` },
       },
     ],
     invalid: [
-      {
-        source: `:root { --x: 0; }`,
-        warnings: [messages['no root selector']]
-      },
       {
         title: 'invalid - only allow :root in cssGlobal directory',
         source: {
@@ -74,38 +50,36 @@ module.exports = {
             .test { }
           `
         },
-        warnings: Array(2).fill(messages['only root selector']),
+        warnings: [
+          messages['only']('div'),
+          messages['only']('.test')
+        ],
+      },
+      {
+        title: 'invalid - only allow @custom-media and @custom-selector in cssGlobal directory',
+        source: {
+          filename: 'src/cssGlobal/abc.css',
+          source: `
+            @keyframes x { }
+            @media x { }
+          `
+        },
+        warnings: [
+          messages['only']('@keyframes'),
+          messages['only']('@media')
+        ],
+      },
+      {
+        source: `:root { --x: 0; }`,
+        warnings: [messages['no'](':root')]
       },
       {
         source: `@custom-media --x (max-width: 30em);`,
-        warnings: [messages['no custom media']]
-      },
-      {
-        title: 'invalid - only allow @custom-media in cssGlobal directory',
-        source: {
-          filename: 'src/cssGlobal/abc.css',
-          source: `
-            @keyframe { }
-            @media x { }
-          `
-        },
-        // TODO: No need to report more than one error
-        warnings: Array(2).fill(messages['only custom selector']).concat(Array(2).fill(messages['only custom media'])),
+        warnings: [messages['no']('@custom-media')]
       },
       {
         source: `@custom-selector :--x x;`,
-        warnings: [messages['no custom selector']]
-      },
-      {
-        title: 'invalid - only allow custom selector in cssGlobal directory',
-        source: {
-          filename: 'src/cssGlobal/abc.css',
-          source: `
-            @keyframe { }
-            @media x { }
-          `
-        },
-        warnings: Array(2).fill(messages['only custom selector']).concat(Array(2).fill(messages['only custom media'])),
+        warnings: [messages['no']('@custom-selector')]
       },
     ],
   },

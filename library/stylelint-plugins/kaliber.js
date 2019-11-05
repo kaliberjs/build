@@ -197,11 +197,11 @@ function getId(node, message, index) {
   return `${getNodeId(node)}-${message}${index}`
 }
 
-function getNodeId({ type, prop, selector, params, parent }) {
+function getNodeId({ type, prop, selector, name, params, parent }) {
   const nodeId =
     type === 'decl' ? `decl-${prop}` :
     type === 'rule' ? `rule-${selector}` :
-    type === 'atrule' ? `atrule-${params}` :
+    type === 'atrule' ? `atrule-${name}-${params}` :
     type
 
   const parentId = parent
