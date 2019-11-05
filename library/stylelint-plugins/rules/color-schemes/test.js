@@ -8,7 +8,7 @@ module.exports = {
       {
         title: 'allow color related properties in color scheme css files',
         source: {
-          filename: 'color-scheme/abc.css',
+          filename: 'colorScheme/abc.css',
           source: '.good { & .test { color: 0; background-color: 0; border-color: 0; stroke: 0; fill: 0; } }'
         },
       },
@@ -24,7 +24,7 @@ module.exports = {
       {
         title: 'only allow color related properties in color scheme css files',
         source: {
-          filename: 'color-scheme/abc.css',
+          filename: 'colorScheme/abc.css',
           source: '.bad { padding: 0; & .test { margin: 0; } }'
         },
         warnings: createMessages('only color related properties', [
@@ -38,7 +38,7 @@ module.exports = {
       {
         title: 'allow color related properties in color scheme css files',
         source: {
-          filename: 'color-scheme/abc.css',
+          filename: 'colorScheme/abc.css',
           source: '.good { & .test { color: 0; background-color: 0; border-color: 0; stroke: 0; fill: 0; } }'
         },
       },
@@ -50,14 +50,14 @@ module.exports = {
       {
         title: 'allow double child selectors in color schemes',
         source: {
-          filename: 'color-scheme.css',
+          filename: 'colorScheme.css',
           source: '.good { & ::selection { } }'
         },
       },
       {
         title: 'allow non direct child selector in color scheme',
         source: {
-          filename: 'color-scheme/abc.css',
+          filename: 'colorScheme/abc.css',
           source: '.good { & .test { } }'
         },
       },

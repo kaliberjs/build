@@ -37,4 +37,4 @@ module.exports = {
   }
 }
 
-function isColorScheme(root) { return matchesFile(root, filename => /color-scheme.*\.css/.test(filename)) }
+function isColorScheme(root) { return matchesFile(root, filename => /colorScheme.*\.css/.test(filename)) }
