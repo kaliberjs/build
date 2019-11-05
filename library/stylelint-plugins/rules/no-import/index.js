@@ -1,3 +1,5 @@
+const { matchesFile } = require('../../machinery/filename')
+
 const messages = {
   'no import':
     `Unexpected @import\n` +
@@ -14,7 +16,9 @@ module.exports = {
     // resolvedModuleValues: true, TODO: add test case
   },
   messages,
-  create({ allowImport, allowSpecificImport }) {
+  create({ allowSpecificImport }) {
+    const allowImport = isEntryCss
+
     return ({ originalRoot, modifiedRoot, report, context }) => {
       noImport({ root: modifiedRoot, report, allowImport, allowSpecificImport })
     }
@@ -22,10 +26,10 @@ module.exports = {
 }
 
 function noImport({ root, report, allowImport, allowSpecificImport }) {
-  if (allowImport(root)) return
+  if (allowImport && allowImport(root)) return
   root.walkAtRules(rule => {
     if (rule.name !== 'import') return
-    const specific = allowSpecificImport(rule)
+    const specific = allowSpecificImport && allowSpecificImport(rule)
     if (specific) {
       if (typeof specific !== 'string') return
       report(rule, specific)
@@ -34,3 +38,5 @@ function noImport({ root, report, allowImport, allowSpecificImport }) {
     }
   })
 }
+
+function isEntryCss(root) { return matchesFile(root, filename => filename.endsWith('.entry.css')) }

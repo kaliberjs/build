@@ -9,6 +9,7 @@ module.exports = {
   withRootRules, withNestedRules,
   isPseudoElement, isRoot, hasChildSelector,
   getParentRule, getChildSelectors, getRootRules,
+  splitByMediaQueries,
 }
 
 function withRootRules(root, f) {
@@ -98,4 +99,66 @@ function invalidTarget(targets, { prop, value }) {
   const hasProp = targets.hasOwnProperty(prop)
   const targetValue = targets[prop]
   return !hasProp || (!!targetValue.length && !targetValue.includes(value))
+}
+
+function splitByMediaQueries(root) {
+  const mediaQueries = gatherMediaQueries(root)
+
+  const clone = root.clone()
+  clone.walkAtRules('media', x => { x.remove() })
+
+  const byMediaQueries = mediaQueries.reduce(
+    (result, params) => {
+      const clone = root.clone()
+
+      extractAndRemoveMediaRules(clone, params)
+        .forEach(({ parent, rule }) => { merge(rule, parent) })
+
+      return { ...result, [params]: clone }
+    },
+    { '': clone }
+  )
+
+  return byMediaQueries
+
+  function gatherMediaQueries(root) {
+    const mediaQueries = {}
+    root.walkAtRules('media', ({ params }) => { mediaQueries[params] = true })
+    return Object.keys(mediaQueries)
+  }
+
+  function extractAndRemoveMediaRules(container, params) {
+    const atRules = []
+    container.walkAtRules('media', rule => {
+      const { parent } = rule
+      rule.remove()
+      if (rule.params === params) atRules.push({ parent, rule })
+    })
+    return atRules
+  }
+
+  function merge(source, target) {
+    const ruleLookup = {}
+    const declLookup = {}
+    target.each(x => {
+      if (x.type === 'rule') ruleLookup[x.selector] = x
+      if (x.type === 'decl') declLookup[x.prop] = x
+    })
+
+    source.each(x => {
+      if (x.type === 'decl') {
+        const existing = declLookup[x.prop]
+        if (existing) existing.replaceWith(x)
+        else target.append(x)
+      }
+
+      if (x.type === 'rule') {
+        const existing = ruleLookup[x.selector]
+        if (existing) merge(x, existing)
+        else target.append(x)
+      }
+
+      if (x.type === 'atrule') target.append(x)
+    })
+  }
 }

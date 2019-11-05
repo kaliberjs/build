@@ -5,11 +5,10 @@ const createPostcssCustomMediaResolver = require('postcss-custom-media')
 const createPostcssCustomSelectorsResolver = require('postcss-custom-selectors')
 const createPostcssCalcResolver = require('postcss-calc')
 const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
+const { splitByMediaQueries } = require('./machinery/ast')
 
 const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
 const postcssCalcResolver = createPostcssCalcResolver()
-
-const { matchesFile } = require('./machinery/filename')
 
 /*
   Motivation
@@ -22,194 +21,97 @@ const { matchesFile } = require('./machinery/filename')
   to their needs.
 */
 
-const colorSchemes = require('./rules/color-schemes')
-const cssGlobal = require('./rules/css-global')
-const layoutRelatedProperties = require('./rules/layout-related-properties')
-const namingPolicy = require('./rules/naming-policy')
-const selectorPolicy = require('./rules/selector-policy')
-const parentChildPolicy = require('./rules/parent-child-policy')
-const rootPolicy = require('./rules/root-policy')
-const noImport = require('./rules/no-import')
-const index = require('./rules/index')
-const reset = require('./rules/reset')
-
-const interaction = [colorSchemes, cssGlobal, layoutRelatedProperties, namingPolicy, selectorPolicy, parentChildPolicy, rootPolicy, noImport, index, reset].reduce(
-  (result, { ruleInteraction }) => ({
-    ...result,
-    ...Object.entries(ruleInteraction || {}).reduce(
-      (result, [rule, configuration]) => ({
-        ...result,
-        [rule]: [...(result[rule] || []), configuration]
-      }),
-      result
-    )
-  }),
-  {
-    'no-import': [{
-      allowImport: isEntryCss,
-    }],
-  }
+const rules = toStyleLintPlugins(
+  require('./rules/color-schemes'),
+  require('./rules/css-global'),
+  require('./rules/layout-related-properties'),
+  require('./rules/naming-policy'),
+  require('./rules/selector-policy'),
+  require('./rules/parent-child-policy'),
+  require('./rules/root-policy'),
+  require('./rules/no-import'),
+  require('./rules/index'),
+  require('./rules/reset'),
 )
-
-function toPluginConfiguration(cssRequirements) {
-  if (!cssRequirements) return { skipAll: true }
-  const {
-    normalizedMediaQueries = false,
-    resolvedCustomProperties = false,
-    resolvedCustomMedia = false,
-    resolvedCustomSelectors = false,
-    resolvedModuleValues = false,
-    resolvedCalc = false,
-  } = cssRequirements
-  return {
-    testWithNormalizedMediaQueries: normalizedMediaQueries,
-    skipCustomPropertyResolving: !resolvedCustomProperties,
-    skipCustomMediaResolving: !resolvedCustomMedia,
-    skipCustomSelectorsResolving: !resolvedCustomSelectors,
-    skipModulesValuesResolver: !resolvedModuleValues,
-    skipCalcResolver: !resolvedCalc,
-  }
-}
-
-const config = Object.entries(interaction).reduce(
-  (result, [rule, configs]) => ({ ...result, [rule]: merge(configs) }),
-  {}
-)
-
-function toPlugin({ cssRequirements, messages, ruleName, create }) {
-  return createPlugin({
-    ...toPluginConfiguration(cssRequirements),
-    ruleName: `kaliber/${ruleName}`,
-    messages,
-    plugin: create(config[ruleName]),
-  })
-}
-
-function merge(configs) {
-  return configs.reduce(
-    (result, {
-      allowNonLayoutRelatedProperties = result.allowNonLayoutRelatedProperties,
-      allowDoubleChildSelectors = result.allowDoubleChildSelectors,
-      allowNonDirectChildSelectors = result.allowNonDirectChildSelectors,
-      allowDeclInRoot = result.allowDeclInRoot,
-      allowTagSelectors = result.allowTagSelectors,
-      allowImport = result.allowImport,
-      allowSpecificImport = result.allowSpecificImport,
-    }) => ({
-      ...result,
-      allowNonLayoutRelatedProperties: x => result.allowNonLayoutRelatedProperties(x) || allowNonLayoutRelatedProperties(x),
-      allowDoubleChildSelectors: x => result.allowDoubleChildSelectors(x) || allowDoubleChildSelectors(x),
-      allowNonDirectChildSelectors: x => result.allowNonDirectChildSelectors(x) || allowNonDirectChildSelectors(x),
-      allowDeclInRoot: x => result.allowDeclInRoot(x) || allowDeclInRoot(x),
-      allowTagSelectors: x => result.allowTagSelectors(x) || allowTagSelectors(x),
-      allowImport: x => result.allowImport(x) || allowImport(x),
-      allowSpecificImport: x => result.allowSpecificImport(x) || allowSpecificImport(x),
-    }),
-    {
-      allowNonLayoutRelatedProperties: _ => false,
-      allowDoubleChildSelectors: _ => false,
-      allowNonDirectChildSelectors: _ => false,
-      allowDeclInRoot: _ => false,
-      allowTagSelectors: _ => false,
-      allowImport: _ => false,
-      allowSpecificImport: _ => false,
-    }
-  )
-}
-
-const rules = /** @type {any[] & { messages: { [key: string]: any } }} */ ([
-  toPlugin(index),
-  toPlugin(reset),
-  toPlugin(colorSchemes),
-  toPlugin(cssGlobal),
-  toPlugin(layoutRelatedProperties),
-  toPlugin(namingPolicy),
-  toPlugin(selectorPolicy),
-  toPlugin(parentChildPolicy),
-  toPlugin(rootPolicy),
-  toPlugin(noImport),
-])
-rules.messages = rules.reduce((result, x) => ({ ...result, ...x.rawMessages }), {})
 module.exports = rules
 
-function splitByMediaQueries(root) {
-  const mediaQueries = gatherMediaQueries(root)
+function toStyleLintPlugins(...rules) {
+  const ruleInteraction = determineRuleInteraction(rules)
+  const ruleConfiguration = convertToConfiguration(ruleInteraction)
 
-  const clone = root.clone()
-  clone.walkAtRules('media', x => { x.remove() })
+  return rules.map(({ ruleName, cssRequirements, create }) =>
+    createPlugin({
+      ...(cssRequirements || {}),
+      ruleName: `kaliber/${ruleName}`,
+      plugin: create(ruleConfiguration[ruleName] || {}),
+    })
+  )
+}
 
-  const byMediaQueries = mediaQueries.reduce(
-    (result, params) => {
-      const clone = root.clone()
+function determineRuleInteraction(rules) {
+  /*
+    [{ ruleInteraction: { ruleA: { b: c } } }, { ruleInteraction: { ruleA: { c: d } } }, ...]
 
-      extractAndRemoveMediaRules(clone, params)
-        .forEach(({ parent, rule }) => { merge(rule, parent) })
+    to
 
-      return { ...result, [params]: clone }
-    },
-    { '': clone }
+    { ruleA: [{ b: c }, { c: d }], ... }
+  */
+  return rules.reduce(
+    (result, rule) => ({
+      ...result,
+      ...Object.entries(rule.ruleInteraction || {}).reduce(
+        (result, [rule, config]) => ({
+          ...result,
+          [rule]: [...(result[rule] || []), config]
+        }),
+        result
+      )
+    }),
+    {}
+  )
+}
+
+function convertToConfiguration(ruleInteraction) {
+  /*
+    { ruleA: [{ a: b }, { a: c }, { b: d }], ... }
+
+    to
+
+    { ruleA" { a: b or c, b: d }, ... }
+  */
+  return Object.entries(ruleInteraction).reduce(
+    (result, [rule, configs]) => ({ ...result, [rule]: merge(configs) }),
+    {}
   )
 
-  return byMediaQueries
-
-  function gatherMediaQueries(root) {
-    const mediaQueries = {}
-    root.walkAtRules('media', ({ params }) => { mediaQueries[params] = true })
-    return Object.keys(mediaQueries)
-  }
-
-  function extractAndRemoveMediaRules(container, params) {
-    const atRules = []
-    container.walkAtRules('media', rule => {
-      const { parent } = rule
-      rule.remove()
-      if (rule.params === params) atRules.push({ parent, rule })
-    })
-    return atRules
-  }
-
-  function merge(source, target) {
-    const ruleLookup = {}
-    const declLookup = {}
-    target.each(x => {
-      if (x.type === 'rule') ruleLookup[x.selector] = x
-      if (x.type === 'decl') declLookup[x.prop] = x
-    })
-
-    source.each(x => {
-      if (x.type === 'decl') {
-        const existing = declLookup[x.prop]
-        if (existing) existing.replaceWith(x)
-        else target.append(x)
-      }
-
-      if (x.type === 'rule') {
-        const existing = ruleLookup[x.selector]
-        if (existing) merge(x, existing)
-        else target.append(x)
-      }
-
-      if (x.type === 'atrule') target.append(x)
-    })
+  function merge(configs) {
+    return configs.reduce(
+      (result, config) => Object.entries(config).reduce(
+        (result, [key, value]) => {
+          if (typeof value !== 'function') throw new Error(`don't know how to handle config value`)
+          const existing = result[key]
+          return { ...result, [key]: existing ? x => existing(x) || value(x) : value }
+        },
+        result
+      ),
+      {}
+    )
   }
 }
 
 function createPlugin({
-  ruleName, messages, plugin,
-  testWithNormalizedMediaQueries = false,
-  skipAll = false,
-  skipCustomPropertyResolving = skipAll,
-  skipCustomMediaResolving = skipAll,
-  skipCustomSelectorsResolving = skipAll,
-  skipModulesValuesResolver = skipAll,
-  skipCalcResolver = skipAll,
+  ruleName, plugin,
+  normalizedMediaQueries = false,
+  resolvedCustomProperties = false,
+  resolvedCustomMedia = false,
+  resolvedCustomSelectors = false,
+  resolvedModuleValues = false,
+  resolvedCalc = false,
 }) {
   const stylelintPlugin = stylelint.createPlugin(ruleName, pluginWrapper)
 
   return {
     ...stylelintPlugin,
-    rawMessages: messages,
-    messages: stylelint.utils.ruleMessages(ruleName, messages),
   }
 
   function pluginWrapper(primaryOption, secondaryOptionObject, context) {
@@ -220,34 +122,26 @@ function createPlugin({
       const reported = {}
       const importFrom = findCssGlobalFiles(originalRoot.source.input.file)
 
-      const needsClone =
-        testWithNormalizedMediaQueries ||
-        !skipCustomPropertyResolving ||
-        !skipCustomMediaResolving ||
-        !skipCustomSelectorsResolving ||
-        !skipModulesValuesResolver ||
-        !skipCalcResolver
-
-      const root = needsClone ? originalRoot.clone() : originalRoot
-      if (!skipModulesValuesResolver) {
-        await postcssModulesValuesResolver(root, result)
+      const modifiedRoot = originalRoot.clone()
+      if (resolvedModuleValues) {
+        await postcssModulesValuesResolver(modifiedRoot, result)
       }
-      if (!skipCustomPropertyResolving) {
+      if (resolvedCustomProperties) {
         const postcssCustomPropertiesResolver = createPostcssCustomPropertiesResolver({ preserve: false, importFrom })
-        await postcssCustomPropertiesResolver(root, result)
+        await postcssCustomPropertiesResolver(modifiedRoot, result)
       }
-      if (!skipCustomMediaResolving) {
+      if (resolvedCustomMedia) {
         const postcssCustomMediaResolver = createPostcssCustomMediaResolver({ preserve: false, importFrom })
-        await postcssCustomMediaResolver(root, result)
+        await postcssCustomMediaResolver(modifiedRoot, result)
       }
-      if (!skipCustomSelectorsResolving) {
+      if (resolvedCustomSelectors) {
         const postcssCustomSelectorsResolver = createPostcssCustomSelectorsResolver({ preserve: false, importFrom })
-        await postcssCustomSelectorsResolver(root, result)
+        await postcssCustomSelectorsResolver(modifiedRoot, result)
       }
-      if (!skipCalcResolver) {
-        await postcssCalcResolver(root, result)
+      if (resolvedCalc) {
+        await postcssCalcResolver(modifiedRoot, result)
       }
-      callPlugin(root)
+      callPlugin(modifiedRoot)
 
       /*
         We create new root nodes for each applicable media query.
@@ -276,13 +170,13 @@ function createPlugin({
         rule that is configured in .stylelintrc. It would split the root once and then run the
         different rules manually (stylelint.rules['kaliber/xyz'](...)(splitRoot, result)).
       */
-      if (testWithNormalizedMediaQueries)
-        Object.entries(splitByMediaQueries(root)).forEach(([mediaQuery, root]) => {
-          callPlugin(root)
+      if (normalizedMediaQueries)
+        Object.entries(splitByMediaQueries(modifiedRoot)).forEach(([mediaQuery, modifiedRoot]) => {
+          callPlugin(modifiedRoot)
         })
 
-      function callPlugin(root) {
-        plugin({ root, modifiedRoot: root, originalRoot, report, context })
+      function callPlugin(modifiedRoot) {
+        plugin({ modifiedRoot, originalRoot, report, context })
       }
 
       function report(node, message, index) {
@@ -295,26 +189,24 @@ function createPlugin({
         })
         else stylelint.utils.report({ message, index, node, result, ruleName })
       }
-
-      function getId(node, message, index) {
-        return `${getNodeId(node)}-${message}${index}`
-      }
-
-      function getNodeId({ type, prop, selector, params, parent }) {
-        const nodeId =
-          type === 'decl' ? `decl-${prop}` :
-          type === 'rule' ? `rule-${selector}` :
-          type === 'atrule' ? `atrule-${params}` :
-          type
-
-        const parentId = parent
-          ? `${getNodeId(parent)}-`
-          : ''
-
-        return `${parentId}${nodeId}`
-      }
     }
   }
 }
 
-function isEntryCss(root) { return matchesFile(root, filename => filename.endsWith('.entry.css')) }
+function getId(node, message, index) {
+  return `${getNodeId(node)}-${message}${index}`
+}
+
+function getNodeId({ type, prop, selector, params, parent }) {
+  const nodeId =
+    type === 'decl' ? `decl-${prop}` :
+    type === 'rule' ? `rule-${selector}` :
+    type === 'atrule' ? `atrule-${params}` :
+    type
+
+  const parentId = parent
+    ? `${getNodeId(parent)}-`
+    : ''
+
+  return `${parentId}${nodeId}`
+}

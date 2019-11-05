@@ -76,7 +76,7 @@ function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowDeclInRoot }) {
     decls.forEach(decl => {
       if (declMatches(decl, intrinsicProps) && isIntrinsicValue(decl)) return
       if (isRatioHack(decl, rule)) return
-      if (allowDeclInRoot(decl)) return
+      if (allowDeclInRoot && allowDeclInRoot(decl)) return
       if (declMatches(decl, allowedInRootAndChild)) return
       const { prop } = decl
       const hasValue = layoutRelatedPropsWithValues[prop]
@@ -86,7 +86,7 @@ function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowDeclInRoot }) {
 }
 
 function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties }) {
-  if (allowNonLayoutRelatedProperties(modifiedRoot)) return
+  if (allowNonLayoutRelatedProperties && allowNonLayoutRelatedProperties(modifiedRoot)) return
   withNestedRules(modifiedRoot, (rule, parent) => {
     const root = parseSelector(rule)
     const pseudos = root.first.filter(isPseudoElement)

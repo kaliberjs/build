@@ -1,4 +1,3 @@
-const { messages } = require('./stylelint-plugins/kaliber')
 const stylelint = require('stylelint')
 
 // patch in order to add support for filenames to tape
@@ -10,64 +9,32 @@ stylelint.lint = function lint({ code, ...otherOptions }) {
   return originalLint({ ...options, ...otherOptions })
 }
 
+module.exports = [
+  require('./stylelint-plugins/rules/color-schemes/test'),
+  require('./stylelint-plugins/rules/css-global/test'),
+  require('./stylelint-plugins/rules/layout-related-properties/test'),
+  require('./stylelint-plugins/rules/naming-policy/test'),
+  require('./stylelint-plugins/rules/selector-policy/test'),
+  require('./stylelint-plugins/rules/parent-child-policy/test'),
+  require('./stylelint-plugins/rules/root-policy/test'),
+  require('./stylelint-plugins/rules/no-import/test'),
+  require('./stylelint-plugins/rules/reset/test'),
+  require('./stylelint-plugins/rules/index/test'),
+].reduce(
+  (result, ruleTests) =>
+    Object.entries(ruleTests).reduce(
+      (result, [ruleName, { valid, invalid }]) => {
+        const previous = result[`kaliber/${ruleName}`] || []
 
-function message(key) {
-  const x = messages[key]
-  return x || `programming error, message with key '${key}' not found`
-}
-
-function createMessages(key, values) {
-  const x = messages[key]
-  return values.map(x)
-}
-
-const tests = createTests()
-const colorSchemeTests = require('./stylelint-plugins/rules/color-schemes/test')
-const cssGlobalTests = require('./stylelint-plugins/rules/css-global/test')
-const layoutRelatedPropertiesTests = require('./stylelint-plugins/rules/layout-related-properties/test')
-const namingPolicyTests = require('./stylelint-plugins/rules/naming-policy/test')
-const selectorPolicyTests = require('./stylelint-plugins/rules/selector-policy/test')
-const parentChildPolicyTests = require('./stylelint-plugins/rules/parent-child-policy/test')
-const rootPolicyTests = require('./stylelint-plugins/rules/root-policy/test')
-const noImportTests = require('./stylelint-plugins/rules/no-import/test')
-const resetTests = require('./stylelint-plugins/rules/reset/test')
-const indexTests = require('./stylelint-plugins/rules/index/test')
-const testEntries = [
-  ...Object.entries(colorSchemeTests),
-  ...Object.entries(cssGlobalTests),
-  ...Object.entries(layoutRelatedPropertiesTests),
-  ...Object.entries(namingPolicyTests),
-  ...Object.entries(selectorPolicyTests),
-  ...Object.entries(parentChildPolicyTests),
-  ...Object.entries(rootPolicyTests),
-  ...Object.entries(noImportTests),
-  ...Object.entries(resetTests),
-  ...Object.entries(indexTests),
-]
-
-const allTests = testEntries.reduce(
-  (result, [rule, { valid, invalid }]) => ({
-    ...result,
-    [`kaliber/${rule}`]: (result[`kaliber/${rule}`] || [])
-      .concat(valid.map(x => (!x.expect && (x.warnings = x.warnings || 0), x)))
-      .concat(invalid)
-  }),
-  tests
-)
-
-module.exports = allTests
-
-function createTests() {
-  return {
-    'kaliber/no-import': [
-      {
-        title: 'allow @import in *.entry.css',
-        source: {
-          filename: 'abc.entry.css',
-          source: `@import 'x';`
-        },
-        warnings: 0
+        return {
+          ...result,
+          [`kaliber/${ruleName}`]: previous
+            // @ts-ignore - https://stackoverflow.com/questions/49510832/typescript-how-to-map-over-union-array-type
+            .concat(valid.map(x => x.expect ? x : { ...x, warnings: x.warnings || 0 }))
+            .concat(invalid)
+        }
       },
-    ],
-  }
-}
+      result
+    ),
+  {}
+)

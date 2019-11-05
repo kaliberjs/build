@@ -3,7 +3,14 @@ const { messages } = require('./')
 module.exports = {
   'no-import': {
     valid: [
-      { source: `.good { }` }
+      { source: `.good { }` },
+      {
+        title: 'allow @import in *.entry.css',
+        source: {
+          filename: 'abc.entry.css',
+          source: `@import 'x';`
+        },
+      },
     ],
     invalid: [
       {

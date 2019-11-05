@@ -97,16 +97,14 @@ module.exports = {
       { source: '.good { position: relative; & > .test { position: absolute; } }' },
       { source: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }' },
       { source: '.good { &::before { position: absolute; } }' },
-
-
-      { source: '.good { & > .test { width: 100%; } }', warnings: 0 },
-      { source: '.good { & > .test { position: relative; } }', warnings: 0 },
-      { source: '.good { & > .test { position: fixed; } }', warnings: 0 },
-      { source: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }', warnings: 0 },
-      { source: '.good { padding: 100px; }', warnings: 0 },
-      { source: `.good { &::before { content: ''; color: back; } }`, warnings: 0 },
-      { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }`, warnings: 0 },
-      { source: `.good { & > * { display: none; } }`, warnings: 0 },
+      { source: '.good { & > .test { width: 100%; } }' },
+      { source: '.good { & > .test { position: relative; } }' },
+      { source: '.good { & > .test { position: fixed; } }' },
+      { source: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }' },
+      { source: '.good { padding: 100px; }' },
+      { source: `.good { &::before { content: ''; color: back; } }` },
+      { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
+      { source: `.good { & > * { display: none; } }` },
     ],
     invalid: [
       {

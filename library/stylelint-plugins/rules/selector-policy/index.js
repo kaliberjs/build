@@ -54,7 +54,7 @@ module.exports = {
 }
 
 function onlyDirectChildSelectors({ root, report, allowNonDirectChildSelectors }) {
-  if (allowNonDirectChildSelectors(root)) return
+  if (allowNonDirectChildSelectors && allowNonDirectChildSelectors(root)) return
   root.walkRules(rule => {
     const root = parseSelector(rule)
     const combinators = root.first.filter(x => x.type === 'combinator')
@@ -89,7 +89,7 @@ function noChildSelectorsAtRoot({ root, report }) {
 }
 
 function noDoubleChildSelectorsInNested({ root, report, allowDoubleChildSelectors }) {
-  if (allowDoubleChildSelectors(root)) return
+  if (allowDoubleChildSelectors && allowDoubleChildSelectors(root)) return
   withNestedRules(root, (rule, parent) => {
     const [, double] = getChildSelectors(rule)
     if (double) {
@@ -101,7 +101,7 @@ function noDoubleChildSelectorsInNested({ root, report, allowDoubleChildSelector
 }
 
 function noTagSelectors({ root, report, allowTagSelectors }) {
-  if (allowTagSelectors(root)) return
+  if (allowTagSelectors && allowTagSelectors(root)) return
   root.walkRules(rule => {
     const { parent } = rule
     if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
