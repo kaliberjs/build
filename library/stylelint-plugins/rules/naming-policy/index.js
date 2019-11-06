@@ -26,7 +26,11 @@ const messages = {
 
 module.exports = {
   ruleName: 'naming-policy',
-  ruleInteraction: null,
+  ruleInteraction: {
+    'layout-related-properties': {
+      allowLayoutRelatedPropertiesInRule: isRoot,
+    },
+  },
   cssRequirements: {
     resolvedCustomSelectors: true,
   },
@@ -110,4 +114,8 @@ function noRootInChildSelector({ modifiedRoot, report }) {
 
     report(rule, messages['no _root child selectors'], rootSelector.sourceIndex)
   })
+}
+
+function isRoot(rule) {
+  return rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
 }

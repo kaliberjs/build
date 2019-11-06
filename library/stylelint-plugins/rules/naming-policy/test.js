@@ -117,4 +117,35 @@ module.exports = {
       },
     ]
   },
+  'layout-related-properties': {
+    valid: [
+      {
+        title: `don't report errors when layout related props are used in _root or component_root`,
+        source: `
+          ._rootTest {
+            width: 100%; height: 100%;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
+            justify-self: 0; align-self: 0;
+          }
+
+          .component_rootTest {
+            width: 100%; height: 100%;
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            margin: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;
+            flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
+            grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+            grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
+            justify-self: 0; align-self: 0;
+          }
+        `,
+      },
+    ],
+    invalid: []
+  }
 }

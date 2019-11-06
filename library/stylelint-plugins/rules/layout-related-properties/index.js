@@ -59,18 +59,17 @@ module.exports = {
     resolvedCalc: true,
   },
   messages,
-  create({ allowDeclInRoot, allowNonLayoutRelatedProperties }) {
+  create({ allowDeclInRoot, allowNonLayoutRelatedProperties, allowLayoutRelatedPropertiesInRule }) {
     return ({ modifiedRoot, report }) => {
-      noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowDeclInRoot })
+      noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowLayoutRelatedPropertiesInRule, allowDeclInRoot })
       onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties })
     }
   }
 }
 
-function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowDeclInRoot }) {
+function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowLayoutRelatedPropertiesInRule, allowDeclInRoot }) {
   withRootRules(modifiedRoot, rule => {
-    const isRoot = rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
-    if (isRoot) return
+    if (allowLayoutRelatedPropertiesInRule && allowLayoutRelatedPropertiesInRule(rule)) return
 
     const decls = findDecls(rule, layoutRelatedProps)
     decls.forEach(decl => {
