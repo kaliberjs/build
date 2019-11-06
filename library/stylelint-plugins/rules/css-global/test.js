@@ -39,6 +39,10 @@ module.exports = {
         title: 'valid - allow custom selectors in globalCss',
         source: { filename: 'src/cssGlobal/abc.css', source: `@custom-selector :--x x;` },
       },
+      {
+        title: 'valid - allow @value and :export in other files',
+        source: { filename: 'src/notCssGlobal/abc.css', source: `@value x: x; :export { x: 0; }` },
+      },
     ],
     invalid: [
       {

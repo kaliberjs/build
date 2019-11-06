@@ -1,8 +1,13 @@
 const { matchesFile } = require('../../machinery/filename')
 
+const exclusiveToCssGlobal = {
+  selectors: [':root'],
+  atRules: ['custom-media', 'custom-selector'],
+}
+
 const allowedInCssGlobal = {
-  selectors: [':root', ':export'],
-  atRules: ['custom-media', 'custom-selector', 'value'],
+  selectors: [':export'],
+  atRules: ['value'],
 }
 
 const messages = {
@@ -35,9 +40,10 @@ function checkAtRules({ originalRoot, report }) {
   const inCssGlobal = isInCssGlobal(originalRoot)
   originalRoot.walkAtRules(rule => {
     const { name } = rule
-    const allowed = allowedInCssGlobal.atRules.includes(name)
+    const exclusive = exclusiveToCssGlobal.atRules.includes(name)
+    const allowed = exclusive || allowedInCssGlobal.atRules.includes(name)
 
-    if (!inCssGlobal && allowed) report(rule, messages['no'](`@${name}`))
+    if (!inCssGlobal && exclusive) report(rule, messages['no'](`@${name}`))
     if (inCssGlobal && !allowed) report(rule, messages['only'](`@${name}`))
   })
 }
@@ -46,9 +52,10 @@ function checkRules({ originalRoot, report }) {
   const inCssGlobal = isInCssGlobal(originalRoot)
   originalRoot.walkRules(rule => {
     const { selector } = rule
-    const allowed = allowedInCssGlobal.selectors.includes(selector)
+    const exclusive = exclusiveToCssGlobal.selectors.includes(selector)
+    const allowed = exclusive || allowedInCssGlobal.selectors.includes(selector)
 
-    if (!inCssGlobal && allowed) report(rule, messages['no'](selector))
+    if (!inCssGlobal && exclusive) report(rule, messages['no'](selector))
     if (inCssGlobal && !allowed) report(rule, messages['only'](selector))
   })
 }
