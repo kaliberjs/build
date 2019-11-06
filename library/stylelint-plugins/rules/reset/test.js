@@ -16,12 +16,17 @@ module.exports = {
       {
         title: 'invalid - no class in reset.css',
         source: { filename: 'reset.css', source: `.bad { }` },
-        warnings: [messages['no class selectors']]
+        warnings: [messages['no class selectors']('bad')]
+      },
+      {
+        title: 'invalid - no class in reset.css',
+        source: { filename: 'reset.css', source: `:global(.bad) { }` },
+        warnings: [messages['no class selectors']('bad')]
       },
       {
         title: '└─ take @media into account',
         source: { filename: 'reset.css', source: `@media x { .bad { } }` },
-        warnings: [messages['no class selectors']]
+        warnings: [messages['no class selectors']('bad')]
       },
     ]
   },

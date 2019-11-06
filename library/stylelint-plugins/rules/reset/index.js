@@ -8,10 +8,8 @@ const allowedInReset = [
 ]
 
 const messages = {
-  'no class selectors':
-    `Unexpected class selector\n` +
-    `only tag selectors are allowed in index.css - ` +
-    `move the selector to another file or wrap it in \`:global(...)\``,
+  'no class selectors': selector =>
+    `Unexpected class selector '${selector}', only tag selectors are allowed in reset.css`,
 }
 
 module.exports = {
@@ -39,9 +37,13 @@ function onlyTagSelectorsInReset({ root, report }) {
   if (!isReset(root)) return
   root.walkRules(rule => {
     const root = parseSelector(rule)
-    const [classNode] = root.first.filter(x => x.type === 'class')
-    if (!classNode) return
-    report(rule, messages['no class selectors'], classNode.sourceIndex + 1)
+    let [classNode] = root.first.filter(x => x.type === 'class')
+    const [globalNode] = root.first.filter(x => x.type === 'pseudo' && x.value === ':global')
+    if (!classNode) {
+      if (!globalNode) return
+      [classNode] = globalNode.first.filter(x => x.type === 'class')
+    }
+    report(rule, messages['no class selectors'](classNode.value), classNode.sourceIndex + 1)
   })
 }
 
