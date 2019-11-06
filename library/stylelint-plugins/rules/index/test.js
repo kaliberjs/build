@@ -12,6 +12,10 @@ module.exports = {
         source: { filename: 'index.css', source: `:global(body.prevent-scroll) { overflow: hidden; }` },
       },
       {
+        title: 'valid - allow global class in index.css',
+        source: { filename: 'index.css', source: `:global(.external-library) { color: 0; }` },
+      },
+      {
         title: 'valid - class selector not in index.css',
         source: `.good { }`,
       },
@@ -20,7 +24,7 @@ module.exports = {
       {
         title: 'invalid - no class in index.css',
         source: { filename: 'index.css', source: `.bad { }` },
-        warnings: [messages['no class selectors']]
+        warnings: [messages['no class selectors']('bad')]
       },
     ]
   },

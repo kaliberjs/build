@@ -2,9 +2,9 @@ const { parseSelector } = require('../../machinery/ast')
 const { isFile } = require('../../machinery/filename')
 
 const messages = {
-  'no class selectors':
-      `Unexpected class selector\n` +
-      `only tag selectors are allowed in reset.css`,
+  'no class selectors': selector =>
+      `Unexpected class selector '${selector}', only tag selectors are allowed in index.css - ` +
+      `move the selector to another file or wrap it in \`:global(...)\``,
   'only import font':
     `Invalid @import value\n` +
     `you can only import fonts`,
@@ -40,7 +40,7 @@ function onlyTagSelectorsInIndex({ root, report }) {
     const root = parseSelector(rule)
     const [classNode] = root.first.filter(x => x.type === 'class')
     if (!classNode) return
-    report(rule, messages['no class selectors'], classNode.sourceIndex + 1)
+    report(rule, messages['no class selectors'](classNode.value), classNode.sourceIndex + 1)
   })
 }
 
