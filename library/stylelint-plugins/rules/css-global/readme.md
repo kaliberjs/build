@@ -61,3 +61,7 @@ div {
 
 @custom-selector :--x x;
 ```
+
+## Common refactorings
+
+...

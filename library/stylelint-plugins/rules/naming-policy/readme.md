@@ -191,3 +191,7 @@ Examples of *incorrect* code for this rule:
   }
 }
 ```
+
+## Common refactorings
+
+...

@@ -63,3 +63,21 @@ Examples of *incorrect* code for this rule:
 }
 ```
 
+## Common refactorings
+
+Before:
+```css
+.abc {
+  color: #AABBCC;
+  opacity: 0.5;
+}
+```
+
+After:
+```css
+.abc {
+  color: #AABBCC80;
+  /* or */
+  color: color-mod(#AABBCC alpha(50%));
+}
+```

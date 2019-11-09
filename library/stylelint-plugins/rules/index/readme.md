@@ -44,3 +44,19 @@ Examples of *incorrect* code for this rule:
   ...
 }
 ```
+
+## Common refactorings
+
+Before:
+```css
+.external-library-item {
+  ...
+}
+```
+
+After:
+```css
+:global(.external-library-item) {
+  ...
+}
+```

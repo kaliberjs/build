@@ -146,3 +146,21 @@ Examples of *incorrect* code for this rule:
   max-width: 0; min-width: 0; max-height: 0; min-height: 0;
 }
 ```
+
+## Common refactorings
+
+Before:
+```css
+.abc {
+  width: 100%;
+}
+```
+
+After:
+```css
+.abcParent {
+  & > .abc {
+    width: 100%;
+  }
+}
+```
