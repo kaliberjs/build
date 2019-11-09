@@ -27,6 +27,8 @@ module.exports = {
       },
       { source: '@keyframes test { from { opacity: 0; } }' },
       { source: `[data-context-scrolldir='down'] .good { color: 0; }` },
+      { source: `[data-context-scrolldir='down'] { & .good { color: 0; } }` },
+      { source: `[data-context-menu-state='is-open'], [data-context-menu-state='is-green'] { & .good { color: 0; } }` },
       {
         title: `don't report media in nested child`,
         source: `
@@ -202,6 +204,21 @@ module.exports = {
       {
         source: `[data-context-scrolldir='down'] + .bad { color: 0; }`,
         warnings: [messages['only direct child selectors']('+')]
+      },
+      {
+        source: `[data-context-scrolldir='down'] .good, .test .bad { color: 0; }`,
+        warnings: [messages['only direct child selectors'](' ')]
+      },
+      {
+        title: 'no nested data-context',
+        source: `
+          [data-context-scrolldir='down'] {
+            &.test {
+              & .bad { color: 0; }
+            }
+          }
+        `,
+        warnings: [messages['only direct child selectors'](' ')]
       },
       {
         title: `report nested child in media`,

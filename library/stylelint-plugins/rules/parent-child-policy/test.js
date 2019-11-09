@@ -38,6 +38,24 @@ module.exports = {
       {
         source: '.good { pointer-events: none; & > * { pointer-events: auto; } }',
       },
+      {
+        title: 'detect in non-direct children',
+        source: `
+        .Abc {
+          position: relative;
+          &.isX {
+            & .AbcDef { position: absolute; }
+            & > .AbcGhi { }
+          }
+          &:hover {
+            & .AbcDef { }
+            & > .AbcGhi {
+              & > .AbcJkl { position: absolute; }
+            }
+          }
+        }
+        `
+      }
     ],
     invalid: [
       {

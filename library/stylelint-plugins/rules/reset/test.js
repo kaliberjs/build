@@ -20,6 +20,11 @@ module.exports = {
       },
       {
         title: 'invalid - no class in reset.css',
+        source: { filename: 'reset.css', source: `div, .bad { }` },
+        warnings: [messages['no class selectors']('bad')]
+      },
+      {
+        title: 'invalid - no class in reset.css',
         source: { filename: 'reset.css', source: `:global(.bad) { }` },
         warnings: [messages['no class selectors']('bad')]
       },

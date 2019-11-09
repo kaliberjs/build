@@ -99,20 +99,22 @@ function preventExportCollisions({ originalRoot, report }) {
 
 function noRootInChildSelector({ modifiedRoot, report }) {
   withNestedRules(modifiedRoot, rule => {
-    const root = parseSelector(rule)
-    const [first, second] = root.first.filter(x =>
-      (x.type === 'combinator' && x.value === ' ') ||
-      (x.type === 'class' && (x.value.startsWith('_root') || x.value.startsWith('component_root')))
-    )
-    const rootSelector =
-      first && first.type === 'class' ? first :
-      second && second.type === 'class' ? second :
-      null
+    const selectors = parseSelector(rule)
+    selectors.each(selector => {
+      const [first, second] = selector.filter(x =>
+        (x.type === 'combinator' && x.value === ' ') ||
+        (x.type === 'class' && (x.value.startsWith('_root') || x.value.startsWith('component_root')))
+      )
+      const rootSelector =
+        first && first.type === 'class' ? first :
+        second && second.type === 'class' ? second :
+        null
 
-    if (!rootSelector) return
-    if (first.type === 'combinator') return
+      if (!rootSelector) return
+      if (first.type === 'combinator') return
 
-    report(rule, messages['no _root child selectors'], rootSelector.sourceIndex)
+      report(rule, messages['no _root child selectors'], rootSelector.sourceIndex)
+    })
   })
 }
 

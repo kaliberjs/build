@@ -109,6 +109,10 @@ module.exports = {
         warnings: [messages['no _root child selectors']]
       },
       {
+        source: `.bad { $ > .test, & > ._root { color: 0; } }`,
+        warnings: [messages['no _root child selectors']]
+      },
+      {
         source: `.bad { & > .component_root { color: 0; } }`,
         warnings: [
           messages['nested - no component class name in nested']('component_root'),

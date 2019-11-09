@@ -182,6 +182,10 @@ module.exports = {
         warnings: [messages['nested - only layout related props in nested']('display')]
       },
       {
+        source: '.bad { &::after, & > .test { display: block; } }',
+        warnings: [messages['nested - only layout related props in nested']('display')]
+      },
+      {
         source: '.bad { &:not(.is-open) > .test { padding: 0; } }',
         warnings: [messages['nested - only layout related props in nested']('padding')]
       },

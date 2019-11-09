@@ -87,12 +87,14 @@ function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowLayoutRelatedPr
 function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties }) {
   if (allowNonLayoutRelatedProperties && allowNonLayoutRelatedProperties(modifiedRoot)) return
   withNestedRules(modifiedRoot, (rule, parent) => {
-    const root = parseSelector(rule)
-    const pseudos = root.first.filter(isPseudoElement)
-    if (pseudos.length) return
-    const decls = findDecls(rule, layoutRelatedProps, { onlyInvalidTargets: true })
-    decls.forEach(decl => {
-      report(decl, messages['nested - only layout related props in nested'](decl.prop))
+    const selectors = parseSelector(rule)
+    selectors.each(selector => {
+      const pseudos = selector.filter(isPseudoElement)
+      if (pseudos.length) return
+      const decls = findDecls(rule, layoutRelatedProps, { onlyInvalidTargets: true })
+      decls.forEach(decl => {
+        report(decl, messages['nested - only layout related props in nested'](decl.prop))
+      })
     })
   })
 }

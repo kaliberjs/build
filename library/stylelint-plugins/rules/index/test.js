@@ -26,6 +26,11 @@ module.exports = {
         source: { filename: 'index.css', source: `.bad { }` },
         warnings: [messages['no class selectors']('bad')]
       },
+      {
+        title: 'invalid - no class in index.css',
+        source: { filename: 'index.css', source: `div, .bad { }` },
+        warnings: [messages['no class selectors']('bad')]
+      },
     ]
   },
   'selector-policy': {

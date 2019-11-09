@@ -2,7 +2,7 @@ const {
   parseSelector,
   withRootRules, withNestedRules,
   isRoot, hasChildSelector,
-  getParentRule, getChildSelectors,
+  getParentRule, getChildSelectors, getRootRules,
 } = require('../../machinery/ast')
 
 const messages = {
@@ -56,18 +56,26 @@ module.exports = {
 function onlyDirectChildSelectors({ root, report, allowNonDirectChildSelectors }) {
   if (allowNonDirectChildSelectors && allowNonDirectChildSelectors(root)) return
   root.walkRules(rule => {
-    const root = parseSelector(rule)
-    const combinators = root.first.filter(x => x.type === 'combinator')
-    if (!combinators.length) return
+    const selectors = parseSelector(rule)
+    selectors.each(selector => {
+      const combinators = selector.filter(x => x.type === 'combinator')
+      if (!combinators.length) return
 
-    const [invalidCombinator] =  combinators.filter(x => x.value !== '>')
-    if (!invalidCombinator) return
-    if (invalidCombinator.value === ' ') {
-      const { first } = root.first
-      if (first && first.type === 'attribute' && first.attribute.startsWith('data-context-')) return
-    }
+      const [invalidCombinator] =  combinators.filter(x => x.value !== '>')
+      if (!invalidCombinator) return
+      if (invalidCombinator.value === ' ') {
+        if (isDataContextSelector(selector.first)) return
+        const [[rootRule], parent] = [getRootRules(rule), getParentRule(rule)]
+        const rootSelectors = parseSelector(rootRule)
 
-    report(rule, messages['only direct child selectors'](invalidCombinator.value), invalidCombinator.sourceIndex)
+        if (
+          rootRule === parent &&
+          rootSelectors.every(selector => isDataContextSelector(selector.first))
+        ) return
+      }
+
+      report(rule, messages['only direct child selectors'](invalidCombinator.value), invalidCombinator.sourceIndex)
+    })
   })
 }
 
@@ -118,4 +126,8 @@ function noRulesInsideMedia({ root, report }) {
       report(rule, messages['media - no nested child'])
     })
   })
+}
+
+function isDataContextSelector(selector) {
+  return selector && selector.type === 'attribute' && selector.attribute.startsWith('data-context-')
 }

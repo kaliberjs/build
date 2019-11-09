@@ -37,10 +37,12 @@ module.exports = {
 function onlyTagSelectorsInIndex({ root, report }) {
   if (!isIndex(root)) return
   root.walkRules(rule => {
-    const root = parseSelector(rule)
-    const [classNode] = root.first.filter(x => x.type === 'class')
-    if (!classNode) return
-    report(rule, messages['no class selectors'](classNode.value), classNode.sourceIndex + 1)
+    const selectors = parseSelector(rule)
+    selectors.each(selector => {
+      const [classNode] = selector.filter(x => x.type === 'class')
+      if (!classNode) return
+      report(rule, messages['no class selectors'](classNode.value), classNode.sourceIndex + 1)
+    })
   })
 }
 

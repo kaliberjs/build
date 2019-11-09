@@ -36,14 +36,16 @@ module.exports = {
 function onlyTagSelectorsInReset({ root, report }) {
   if (!isReset(root)) return
   root.walkRules(rule => {
-    const root = parseSelector(rule)
-    let [classNode] = root.first.filter(x => x.type === 'class')
-    const [globalNode] = root.first.filter(x => x.type === 'pseudo' && x.value === ':global')
-    if (!classNode) {
-      if (!globalNode) return
-      [classNode] = globalNode.first.filter(x => x.type === 'class')
-    }
-    report(rule, messages['no class selectors'](classNode.value), classNode.sourceIndex + 1)
+    const selectors = parseSelector(rule)
+    selectors.each(selector => {
+      let [classNode] = selector.filter(x => x.type === 'class')
+      const [globalNode] = selector.filter(x => x.type === 'pseudo' && x.value === ':global')
+      if (!classNode) {
+        if (!globalNode) return
+        [classNode] = globalNode.first.filter(x => x.type === 'class')
+      }
+      report(rule, messages['no class selectors'](classNode.value), classNode.sourceIndex + 1)
+    })
   })
 }
 
