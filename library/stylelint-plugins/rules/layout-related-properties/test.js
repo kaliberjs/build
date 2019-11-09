@@ -80,6 +80,18 @@ module.exports = {
       { source: `.good { &::before { content: ''; color: back; } }` },
       { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
       { source: `.good { & > * { display: none; } }` },
+      {
+        title: 'take into account @supports',
+        source: `
+          .good {
+            & > .test {
+              @supports x {
+                width: 0;
+              }
+            }
+          }
+        `
+      },
     ],
     invalid: [
       {
@@ -172,6 +184,25 @@ module.exports = {
       {
         source: '.bad { &:not(.is-open) > .test { padding: 0; } }',
         warnings: [messages['nested - only layout related props in nested']('padding')]
+      },
+      {
+        title: 'take into account @supports',
+        source: `
+          .bad {
+            @supports x {
+              height: 0;
+            }
+            & > .test {
+              @supports x {
+                color: 0;
+              }
+            }
+          }
+        `,
+        warnings: [
+          messages['root - no layout related props']('height'),
+          messages['nested - only layout related props in nested']('color'),
+        ]
       },
     ]
   }

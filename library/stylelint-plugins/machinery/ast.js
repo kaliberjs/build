@@ -9,7 +9,7 @@ module.exports = {
   withRootRules, withNestedRules,
   isPseudoElement, isRoot, hasChildSelector,
   getParentRule, getChildSelectors, getRootRules,
-  splitByMediaQueries,
+  getNormalizedRoots,
 }
 
 function withRootRules(root, f) {
@@ -101,40 +101,84 @@ function invalidTarget(targets, { prop, value }) {
   return !hasProp || (!!targetValue.length && !targetValue.includes(value))
 }
 
-function splitByMediaQueries(root) {
-  const mediaQueries = gatherMediaQueries(root)
+/*
+  We create new root nodes for each applicable media query.
+
+  This is not a complete solution. Multiple media queries apply, and we now only check for
+  'same param queries'. This means that we might falsly report or miss some errors. We can
+  only make a full solution if we have a string params policy that allows us to sort and apply
+  the correct queries. An example (assuming that when y applies, x applies as well):
+
+    .test {
+      @media x {
+        position: relative;
+      }
+      @media y {
+        z-index: 0;
+
+        & > * {
+          position: absolute;
+          z-index: 1;
+        }
+      }
+    }
+*/
+function getNormalizedRoots(root) {
+  const combinations = gatherPossibleCombinations(root)
 
   const clone = root.clone()
   clone.walkAtRules('media', x => { x.remove() })
 
-  const byMediaQueries = mediaQueries.reduce(
-    (result, params) => {
+  const byMediaQueries = combinations.reduce(
+    (result, atRules) => {
       const clone = root.clone()
 
-      extractAndRemoveMediaRules(clone, params)
+      extractAndRemoveAtRules(clone, atRules)
         .forEach(({ parent, rule }) => { merge(rule, parent) })
 
-      return { ...result, [params]: clone }
+      return [ ...result, clone ]
     },
-    { '': clone }
+    [clone]
   )
 
   return byMediaQueries
 
-  function gatherMediaQueries(root) {
-    const mediaQueries = {}
-    root.walkAtRules('media', ({ params }) => { mediaQueries[params] = true })
-    return Object.keys(mediaQueries)
+  function gatherPossibleCombinations(root) {
+    const mediaQueriesSet = new Set()
+    const supportsSet = new Set()
+    root.walkAtRules('media', x => { mediaQueriesSet.add(x.params) })
+    root.walkAtRules('supports', x => { supportsSet.add(x.params) })
+
+    const supports = Array.from(supportsSet).map(params => ({ type: 'supports', params }))
+    const supportsCombinations = getAllPossibleCombinations(supports)
+    const combinations = Array.from(mediaQueriesSet).reduce(
+      (result, params) => {
+        const media = { type: 'media', params }
+
+        return result.concat(supportsCombinations.map(x => [...x, media]))
+      },
+      supportsCombinations
+    )
+    return combinations
   }
 
-  function extractAndRemoveMediaRules(container, params) {
-    const atRules = []
-    container.walkAtRules('media', rule => {
-      const { parent } = rule
-      rule.remove()
-      if (rule.params === params) atRules.push({ parent, rule })
+  function getAllPossibleCombinations(options) {
+    return options.reduce(
+      (result, option) => result.concat(result.map(previous => [...previous, option])),
+      [[]]
+    )
+  }
+
+  function extractAndRemoveAtRules(container, atRules) {
+    const extracted = []
+    atRules.forEach(({ type, params }) => {
+      container.walkAtRules(type, rule => {
+        const { parent } = rule
+        rule.remove()
+        if (rule.params === params) extracted.push({ parent, rule })
+      })
     })
-    return atRules
+    return extracted
   }
 
   function merge(source, target) {

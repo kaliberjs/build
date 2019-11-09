@@ -30,7 +30,7 @@ module.exports = {
   ruleName: 'root-policy',
   ruleInteraction: null,
   cssRequirements: {
-    normalizedMediaQueries: true,
+    normalizedCss: true,
     // resolvedCustomProperties: true, TODO: add test case
     // resolvedCustomMedia: true, TODO: add test case (probably only possible when we have added correct resolution for)
     // resolvedCustomSelectors: true, TODO: add test case

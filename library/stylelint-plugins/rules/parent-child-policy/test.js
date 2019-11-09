@@ -70,6 +70,40 @@ module.exports = {
         warnings: [messages['nested - absolute has relative parent']]
       },
       {
+        title: '└─ take @media and @supports into account',
+        source: `
+          .bad {
+            @supports x {
+              position: relative;
+            }
+
+            & > .test {
+              @media x {
+                position: absolute;
+              }
+            }
+          }
+        `,
+        warnings: [messages['nested - absolute has relative parent']]
+      },
+      {
+        title: '└─ take @media and @supports into account 2',
+        source: `
+          .bad {
+            @media x {
+              position: relative;
+            }
+
+            & > .test {
+              @supports x {
+                position: absolute;
+              }
+            }
+          }
+        `,
+        warnings: [messages['nested - absolute has relative parent']]
+      },
+      {
         title: 'report missing flex',
         source: `
           .bad {
@@ -118,6 +152,23 @@ module.exports = {
           .bad {
             & > .test {
               @media x {
+                grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+                grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
+              }
+            }
+          }
+        `,
+        warnings: createMessages('nested - require display grid in parent', [
+          'grid', 'grid-area', 'grid-column', 'grid-row',
+          'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
+        ])
+      },
+      {
+        title: `└─ take @supports into account`,
+        source: `
+          .bad {
+            & > .test {
+              @supports x {
                 grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
                 grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
               }

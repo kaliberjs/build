@@ -51,7 +51,7 @@ module.exports = {
   ruleName: 'layout-related-properties',
   ruleInteraction: null,
   cssRequirements: {
-    normalizedMediaQueries: true,
+    normalizedCss: true,
     resolvedCustomProperties: true,
     // resolvedCustomMedia: true, TODO: add test case (probably only possible when we have added correct resolution for)
     // resolvedCustomSelectors: true, TODO: add test case

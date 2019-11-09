@@ -5,7 +5,7 @@ const createPostcssCustomMediaResolver = require('postcss-custom-media')
 const createPostcssCustomSelectorsResolver = require('postcss-custom-selectors')
 const createPostcssCalcResolver = require('postcss-calc')
 const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
-const { splitByMediaQueries } = require('./machinery/ast')
+const { getNormalizedRoots } = require('./machinery/ast')
 
 const postcssModulesValuesResolver = createPostcssModulesValuesResolver()
 const postcssCalcResolver = createPostcssCalcResolver()
@@ -101,7 +101,7 @@ function convertToConfiguration(ruleInteraction) {
 
 function createPlugin({
   ruleName, plugin,
-  normalizedMediaQueries = false,
+  normalizedCss = false,
   resolvedCustomProperties = false,
   resolvedCustomMedia = false,
   resolvedCustomSelectors = false,
@@ -144,34 +144,13 @@ function createPlugin({
       callPlugin(modifiedRoot)
 
       /*
-        We create new root nodes for each applicable media query.
-
-        This is not a complete solution. Multiple media queries apply, and we now only check for
-        'same param queries'. This means that we might falsly report or miss some errors. We can
-        only make a full solution if we have a string params policy that allows us to sort and apply
-        the correct queries. An example (assuming that when y applies, x applies as well):
-
-          .test {
-            @media x {
-              position: relative;
-            }
-            @media y {
-              z-index: 0;
-
-              & > * {
-                position: absolute;
-                z-index: 1;
-              }
-            }
-          }
-
         This implementation splits it for each plugin. This might be a performance problem. The easy
         solution would be to create a `kaliber/style-lint` plugin/rule. That rule would be the only
         rule that is configured in .stylelintrc. It would split the root once and then run the
         different rules manually (stylelint.rules['kaliber/xyz'](...)(splitRoot, result)).
       */
-      if (normalizedMediaQueries)
-        Object.entries(splitByMediaQueries(modifiedRoot)).forEach(([mediaQuery, modifiedRoot]) => {
+      if (normalizedCss)
+        Object.entries(getNormalizedRoots(modifiedRoot)).forEach(([mediaQuery, modifiedRoot]) => {
           callPlugin(modifiedRoot)
         })
 

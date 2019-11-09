@@ -64,6 +64,13 @@ module.exports = {
         ]
       },
       {
+        title: '└─ take @supports into account',
+        source: '.bad { & > .test1 { @supports x { & > .test2 { } } } }',
+        warnings: [
+          messages['nested - no double nesting'],
+        ]
+      },
+      {
         source: '.bad > .test { }',
         warnings: [messages['root - no child selectors']]
       },
@@ -76,6 +83,13 @@ module.exports = {
         ]
       },
       {
+        title: '└─ take @supports into account',
+        source: '@supports x { .bad > .test { } }',
+        warnings: [
+          messages['root - no child selectors'],
+        ]
+      },
+      {
         source: '.bad { & > .one > .two { } }',
         warnings: [messages['nested - no double child selectors']]
       },
@@ -85,6 +99,13 @@ module.exports = {
         warnings: [
           messages['nested - no double child selectors'],
           messages['media - no nested child'],
+        ]
+      },
+      {
+        title: '└─ take @supports into account',
+        source: '.bad { @supports x { & > .one > .two { } } }',
+        warnings: [
+          messages['nested - no double child selectors'],
         ]
       },
       {
@@ -104,6 +125,13 @@ module.exports = {
         ]
       },
       {
+        title: '└─ take @supports into account',
+        source: '@supports x { div { } }',
+        warnings: [
+          messages['no tag selectors'],
+        ]
+      },
+      {
         source: '.bad { & > div { } }',
         warnings: [messages['no tag selectors']]
       },
@@ -116,6 +144,13 @@ module.exports = {
         ]
       },
       {
+        title: '└─ take @supports into account',
+        source: '.bad { @supports x { & > div { } } }',
+        warnings: [
+          messages['no tag selectors'],
+        ]
+      },
+      {
         source: '.bad { & > div { } }',
         warnings: [messages['no tag selectors']]
       },
@@ -124,11 +159,10 @@ module.exports = {
         warnings: [messages['only direct child selectors'](' ')]
       },
       {
-        title: '└─ take @media into account',
-        source: '@media x { .bad .test { } }',
+        title: '└─ take @supports into account',
+        source: '@supports x { .bad .test { } }',
         warnings: [
           messages['only direct child selectors'](' '),
-          messages['media - no nested child'],
         ]
       },
       {
@@ -148,6 +182,13 @@ module.exports = {
         warnings: [
           messages['only direct child selectors'](' '),
           messages['media - no nested child'],
+        ]
+      },
+      {
+        title: '└─ take @supports into account',
+        source: '.bad { @supports x { & .one { } } }',
+        warnings: [
+          messages['only direct child selectors'](' '),
         ]
       },
       {
