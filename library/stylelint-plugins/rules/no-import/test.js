@@ -1,22 +1,21 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('no-import', {
   'no-import': {
     valid: [
-      { source: `.good { }` },
+      { code: `.good { }` },
       {
         title: 'allow @import in *.entry.css',
-        source: {
-          filename: 'abc.entry.css',
-          source: `@import 'x';`
-        },
+        filename: 'abc.entry.css',
+        code: `@import 'x';`
       },
     ],
     invalid: [
       {
-        source: `@import 'x';`,
+        code: `@import 'x';`,
         warnings: [messages['no import']]
       },
     ]
   }
-}
+})

@@ -1,13 +1,14 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
 function createMessages(key, values) { return values.map(messages[key]) }
 
-module.exports = {
+test('layout-related-properties', {
   'layout-related-properties': {
     valid: [
       {
         title: `don't report errors when layout related props are used in child`,
-        source: `
+        code: `
           .good {
             & > .test {
               width: 100%; height: 100%;
@@ -24,7 +25,7 @@ module.exports = {
       },
       {
         title: 'allow `calc`',
-        source: `
+        code: `
           :root {
             --container-md: 10px;
           }
@@ -35,18 +36,18 @@ module.exports = {
             }
           }`,
       },
-      { source: '.good { width: 10px !important; height: 10px !important; }' },
-      { source: '.good { min-width: 10px !important; min-height: 10px !important; }' },
-      { source: '.good { max-width: 10px !important; max-height: 10px !important; }' },
-      { source: '.good { width: 10em !important; height: 10em !important; }' },
-      { source: '.good { width: 10rem !important; height: 10rem !important; }' },
-      { source: '.good { position: relative; }' },
-      { source: '.good { overflow: 0; }' },
-      { source: '.good { pointer-events: none; }' },
-      { source: '.good { display: none; }' },
+      { code: '.good { width: 10px !important; height: 10px !important; }' },
+      { code: '.good { min-width: 10px !important; min-height: 10px !important; }' },
+      { code: '.good { max-width: 10px !important; max-height: 10px !important; }' },
+      { code: '.good { width: 10em !important; height: 10em !important; }' },
+      { code: '.good { width: 10rem !important; height: 10rem !important; }' },
+      { code: '.good { position: relative; }' },
+      { code: '.good { overflow: 0; }' },
+      { code: '.good { pointer-events: none; }' },
+      { code: '.good { display: none; }' },
       {
         title: 'take @value into account',
-        source: `
+        code: `
           @value x: 10px;
           .good {
             width: x !important;
@@ -55,7 +56,7 @@ module.exports = {
       },
       {
         title: 'take custom properties into account',
-        source: `
+        code: `
           :root {
             --x: 10px;
           }
@@ -65,24 +66,24 @@ module.exports = {
           }
         `,
       },
-      { source: '.good { height: 0; padding-bottom: 65.25%; }' },
-      { source: '.good { height: 0; padding-top: 65.25%; }' },
-      { source: '.good { height: 0; padding-top: calc((9 / 16) * 100%); }' },
-      { source: '.good { z-index: 0; position: relative; }' },
-      { source: '.good { position: relative; & > .test { position: absolute; } }' },
-      { source: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }' },
-      { source: '.good { &::before { position: absolute; } }' },
-      { source: '.good { & > .test { width: 100%; } }' },
-      { source: '.good { & > .test { position: relative; } }' },
-      { source: '.good { & > .test { position: fixed; } }' },
-      { source: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }' },
-      { source: '.good { padding: 100px; }' },
-      { source: `.good { &::before { content: ''; color: back; } }` },
-      { source: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
-      { source: `.good { & > * { display: none; } }` },
+      { code: '.good { height: 0; padding-bottom: 65.25%; }' },
+      { code: '.good { height: 0; padding-top: 65.25%; }' },
+      { code: '.good { height: 0; padding-top: calc((9 / 16) * 100%); }' },
+      { code: '.good { z-index: 0; position: relative; }' },
+      { code: '.good { position: relative; & > .test { position: absolute; } }' },
+      { code: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }' },
+      { code: '.good { &::before { position: absolute; } }' },
+      { code: '.good { & > .test { width: 100%; } }' },
+      { code: '.good { & > .test { position: relative; } }' },
+      { code: '.good { & > .test { position: fixed; } }' },
+      { code: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }' },
+      { code: '.good { padding: 100px; }' },
+      { code: `.good { &::before { content: ''; color: back; } }` },
+      { code: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
+      { code: `.good { & > * { display: none; } }` },
       {
         title: 'take into account @supports',
-        source: `
+        code: `
           .good {
             & > .test {
               @supports x {
@@ -96,7 +97,7 @@ module.exports = {
     invalid: [
       {
         title: 'report error when using layout related props in root',
-        source: `
+        code: `
           .bad {
             width: 100%; height: 100%;
             position: absolute;
@@ -122,12 +123,12 @@ module.exports = {
         ])
       },
       {
-        source: `.bad { position: fixed; }`,
+        code: `.bad { position: fixed; }`,
         warnings: [messages['root - no layout related props']('position: fixed')]
       },
       {
         title: '└─ take @media into account',
-        source: `
+        code: `
           .bad {
             @media x {
               width: 100%; height: 100%;
@@ -154,44 +155,44 @@ module.exports = {
       },
       {
         title: 'report error when using intrinsic size without !important',
-        source: '.bad { width: 10px; height: 10px; }',
+        code: '.bad { width: 10px; height: 10px; }',
         warnings: createMessages('root - no layout related props', ['width', 'height'])
       },
       {
         title: 'report error when using non intrinsic unit without !important',
-        source: '.bad { width: 10% !important; height: 10% !important; }',
+        code: '.bad { width: 10% !important; height: 10% !important; }',
         warnings: createMessages('root - no layout related props', ['width', 'height'])
       },
       {
-        source: '.good { height: 0; padding-bottom: 10px; }',
+        code: '.good { height: 0; padding-bottom: 10px; }',
         warnings: [messages['root - no layout related props']('height')]
       },
       {
-        source: '.bad { & > .test { padding: 100px; color: 0; } }',
+        code: '.bad { & > .test { padding: 100px; color: 0; } }',
         warnings: createMessages('nested - only layout related props in nested', [
           'padding', 'color'
         ])
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { & > .test { @media x { padding: 100px; } } }',
+        code: '.bad { & > .test { @media x { padding: 100px; } } }',
         warnings: createMessages('nested - only layout related props in nested', ['padding'])
       },
       {
-        source: '.bad { & > .test { display: block; } }',
+        code: '.bad { & > .test { display: block; } }',
         warnings: [messages['nested - only layout related props in nested']('display')]
       },
       {
-        source: '.bad { &::after, & > .test { display: block; } }',
+        code: '.bad { &::after, & > .test { display: block; } }',
         warnings: [messages['nested - only layout related props in nested']('display')]
       },
       {
-        source: '.bad { &:not(.is-open) > .test { padding: 0; } }',
+        code: '.bad { &:not(.is-open) > .test { padding: 0; } }',
         warnings: [messages['nested - only layout related props in nested']('padding')]
       },
       {
         title: 'take into account @supports',
-        source: `
+        code: `
           .bad {
             @supports x {
               height: 0;
@@ -210,4 +211,4 @@ module.exports = {
       },
     ]
   }
-}
+})

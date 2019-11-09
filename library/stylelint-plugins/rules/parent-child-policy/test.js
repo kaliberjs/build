@@ -1,15 +1,16 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
 function createMessages(key, values) { return values.map(messages[key]) }
 
-module.exports = {
+test('parent-child-policy', {
   'parent-child-policy': {
     valid: [
-      { source: '.good { position: relative; z-index: 0; & > .test { z-index: 1; } }' },
-      { source: '.good { position: relative; & > .test { position: absolute; } }' },
+      { code: '.good { position: relative; z-index: 0; & > .test { z-index: 1; } }' },
+      { code: '.good { position: relative; & > .test { position: absolute; } }' },
       {
         title: `don't report when display flex is present`,
-        source: `
+        code: `
           .good {
             display: flex;
 
@@ -21,7 +22,7 @@ module.exports = {
       },
       {
         title: `don't report when display grid is present`,
-        source: `
+        code: `
           .good {
             display: grid;
 
@@ -33,14 +34,14 @@ module.exports = {
         `,
       },
       {
-        source: '.good { pointer-events: auto; }',
+        code: '.good { pointer-events: auto; }',
       },
       {
-        source: '.good { pointer-events: none; & > * { pointer-events: auto; } }',
+        code: '.good { pointer-events: none; & > * { pointer-events: auto; } }',
       },
       {
         title: 'detect in non-direct children',
-        source: `
+        code: `
         .Abc {
           position: relative;
           &.isX {
@@ -60,36 +61,36 @@ module.exports = {
     invalid: [
       {
         title: 'report missing stacking context',
-        source: '.bad { & > .test { z-index: 0; } }',
+        code: '.bad { & > .test { z-index: 0; } }',
         warnings: [messages['nested - missing stacking context in parent']]
       },
       {
         title: 'report missing stacking context - only `position: relative`',
-        source: '.bad { position: relative; & > .test { z-index: 0; } }',
+        code: '.bad { position: relative; & > .test { z-index: 0; } }',
         warnings: [messages['nested - missing stacking context in parent']]
       },
       {
         title: 'report missing stacking context - only `z-index: 0`',
-        source: '.bad { z-index: 0; & > .test { z-index: 0; } }',
+        code: '.bad { z-index: 0; & > .test { z-index: 0; } }',
         warnings: [messages['nested - missing stacking context in parent']]
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { & > .test { @media x { z-index: 0; } } }',
+        code: '.bad { & > .test { @media x { z-index: 0; } } }',
         warnings: [messages['nested - missing stacking context in parent']]
       },
       {
-        source: '.bad { & > .test { position: absolute; } }',
+        code: '.bad { & > .test { position: absolute; } }',
         warnings: [messages['nested - absolute has relative parent']]
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { & > .test { @media x { position: absolute; } } }',
+        code: '.bad { & > .test { @media x { position: absolute; } } }',
         warnings: [messages['nested - absolute has relative parent']]
       },
       {
         title: '└─ take @media and @supports into account',
-        source: `
+        code: `
           .bad {
             @supports x {
               position: relative;
@@ -106,7 +107,7 @@ module.exports = {
       },
       {
         title: '└─ take @media and @supports into account 2',
-        source: `
+        code: `
           .bad {
             @media x {
               position: relative;
@@ -123,7 +124,7 @@ module.exports = {
       },
       {
         title: 'report missing flex',
-        source: `
+        code: `
           .bad {
             & > .test {
               flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
@@ -136,7 +137,7 @@ module.exports = {
       },
       {
         title: '└─ take @media into account',
-        source: `
+        code: `
           .bad {
             & > .test {
               @media x {
@@ -151,7 +152,7 @@ module.exports = {
       },
       {
         title: 'report missing grid',
-        source: `
+        code: `
           .bad {
             & > .test {
               grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
@@ -166,7 +167,7 @@ module.exports = {
       },
       {
         title: `└─ take @media into account`,
-        source: `
+        code: `
           .bad {
             & > .test {
               @media x {
@@ -183,7 +184,7 @@ module.exports = {
       },
       {
         title: `└─ take @supports into account`,
-        source: `
+        code: `
           .bad {
             & > .test {
               @supports x {
@@ -199,9 +200,9 @@ module.exports = {
         ])
       },
       {
-        source: '.bad { & > * { pointer-events: auto; } }',
+        code: '.bad { & > * { pointer-events: auto; } }',
         warnings: [messages['invalid pointer events']]
       },
     ]
   }
-}
+})

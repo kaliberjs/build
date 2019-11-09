@@ -1,14 +1,15 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('naming-policy', {
   'naming-policy': {
     valid: [
-      { source: '.componentGood { & > .test { } }' },
-      { source: '.good { & > .test { } }' },
-      { source: `@value _abc: 0;` },
+      { code: '.componentGood { & > .test { } }' },
+      { code: '.good { & > .test { } }' },
+      { code: `@value _abc: 0;` },
       {
         title: `don't crash on syntax`,
-        source: `
+        code: `
           @value _height: 30px;
 
           .inner {
@@ -16,21 +17,21 @@ module.exports = {
           }
         `,
       },
-      { source: 'a { }' },
-      { source: 'a { display: block; }' },
-      { source: ':root { --custom-PropertyName: red; }' },
-      { source: ':export { customPropertyName: red; }' },
+      { code: 'a { }' },
+      { code: 'a { display: block; }' },
+      { code: ':root { --custom-PropertyName: red; }' },
+      { code: ':export { customPropertyName: red; }' },
       {
-        source: 'a { Display: block; }',
-        expect: 'a { display: block; }',
+        code: 'a { Display: block; }',
+        output: 'a { display: block; }',
       },
       {
-        source: ':root { customPropertyName: red; }',
-        expect: ':root { custompropertyname: red; }',
+        code: ':root { customPropertyName: red; }',
+        output: ':root { custompropertyname: red; }',
       },
       {
         title: 'no collision',
-        source: `
+        code: `
           .test1 { }
           :export {
             test2: 0;
@@ -39,49 +40,49 @@ module.exports = {
       },
       {
         title: 'no collision - case difference',
-        source: `
+        code: `
           .testit { }
           :export {
             testIt: 0;
           }
         `,
       },
-      { source: `._rootGood { pointer-events: none; }` },
-      { source: `.good { & ._root {} }` },
+      { code: `._rootGood { pointer-events: none; }` },
+      { code: `.good { & ._root {} }` },
     ],
     invalid: [
       {
-        source: '.bad { & > .componentTest { } }',
+        code: '.bad { & > .componentTest { } }',
         warnings: [messages['nested - no component class name in nested']('componentTest')]
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { @media x { & > .componentTest { } } }',
+        code: '.bad { @media x { & > .componentTest { } } }',
         warnings: [messages['nested - no component class name in nested']('componentTest')]
       },
       {
         title: '└─ take custom selectors into account',
-        source: `
+        code: `
           @custom-selector :--custom .componentTest;
           .bad { @media x { & > :--custom { } } }
         `,
         warnings: [messages['nested - no component class name in nested']('componentTest')]
       },
       {
-        source: `@value abc: 0;`,
+        code: `@value abc: 0;`,
         warnings: [messages['value should start with underscore']]
       },
       {
-        source: 'a { Display: block; }',
+        code: 'a { Display: block; }',
         warnings: [messages['property lower case']('Display', 'display')],
       },
       {
-        source: ':root { customPropertyName: red; }',
+        code: ':root { customPropertyName: red; }',
         warnings: [messages['property lower case']('customPropertyName', 'custompropertyname')],
       },
       {
         title: 'obvious collision',
-        source: `
+        code: `
           .test { }
           :export {
             test: 0;
@@ -91,7 +92,7 @@ module.exports = {
       },
       {
         title: 'nested collisions',
-        source: `
+        code: `
           .test1 {
             & > .test2 { }
             &.test3 > .test4 { }
@@ -105,15 +106,15 @@ module.exports = {
         warnings: Array(3).fill(messages['export collision'])
       },
       {
-        source: `.bad { & > ._root { color: 0; } }`,
+        code: `.bad { & > ._root { color: 0; } }`,
         warnings: [messages['no _root child selectors']]
       },
       {
-        source: `.bad { $ > .test, & > ._root { color: 0; } }`,
+        code: `.bad { $ > .test, & > ._root { color: 0; } }`,
         warnings: [messages['no _root child selectors']]
       },
       {
-        source: `.bad { & > .component_root { color: 0; } }`,
+        code: `.bad { & > .component_root { color: 0; } }`,
         warnings: [
           messages['nested - no component class name in nested']('component_root'),
           messages['no _root child selectors'],
@@ -125,7 +126,7 @@ module.exports = {
     valid: [
       {
         title: `don't report errors when layout related props are used in _root or component_root`,
-        source: `
+        code: `
           ._rootTest {
             width: 100%; height: 100%;
             position: absolute;
@@ -152,4 +153,4 @@ module.exports = {
     ],
     invalid: []
   }
-}
+})

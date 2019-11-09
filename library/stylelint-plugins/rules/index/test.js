@@ -1,34 +1,40 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('index', {
   'index': {
     valid: [
       {
         title: 'valid - allow tag in index.css',
-        source: { filename: 'index.css', source: `div { }` },
+        filename: 'index.css',
+        code: `div { }`,
       },
       {
         title: 'valid - allow global modifier class on body in index.css',
-        source: { filename: 'index.css', source: `:global(body.prevent-scroll) { overflow: hidden; }` },
+        filename: 'index.css',
+        code: `:global(body.prevent-scroll) { overflow: hidden; }`,
       },
       {
         title: 'valid - allow global class in index.css',
-        source: { filename: 'index.css', source: `:global(.external-library) { color: 0; }` },
+        filename: 'index.css',
+        code: `:global(.external-library) { color: 0; }`,
       },
       {
         title: 'valid - class selector not in index.css',
-        source: `.good { }`,
+        code: `.good { }`,
       },
     ],
     invalid: [
       {
         title: 'invalid - no class in index.css',
-        source: { filename: 'index.css', source: `.bad { }` },
+        filename: 'index.css',
+        code: `.bad { }`,
         warnings: [messages['no class selectors']('bad')]
       },
       {
         title: 'invalid - no class in index.css',
-        source: { filename: 'index.css', source: `div, .bad { }` },
+        filename: 'index.css',
+        code: `div, .bad { }`,
         warnings: [messages['no class selectors']('bad')]
       },
     ]
@@ -37,7 +43,8 @@ module.exports = {
     valid: [
       {
         title: 'allow tag selectors in index.css',
-        source: { filename: 'index.css', source: 'div { }' },
+        filename: 'index.css',
+        code: 'div { }',
       },
     ],
     invalid: []
@@ -46,21 +53,17 @@ module.exports = {
     valid: [
       {
         title: 'allow font @import in index.css',
-        source: {
-          filename: 'index.css',
-          source: `@import url('https://fonts.googleapis.com/css');`
-        },
+        filename: 'index.css',
+        code: `@import url('https://fonts.googleapis.com/css');`
       },
     ],
     invalid: [
       {
         title: 'prevent non-font @import in index.css',
-        source: {
-          filename: 'index.css',
-          source: `@import 'x';`
-        },
+        filename: 'index.css',
+        code: `@import 'x';`,
         warnings: [messages['only import font']]
       },
     ]
   },
-}
+})

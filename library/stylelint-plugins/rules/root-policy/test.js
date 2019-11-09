@@ -1,12 +1,13 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('root-policy', {
   'root-policy': {
     valid: [
-      { source: '.good { position: relative; z-index: 0; }', warnings: 0 },
+      { code: '.good { position: relative; z-index: 0; }', warnings: 0 },
       {
         title: `├─ take @media into account [1]`,
-        source: `
+        code: `
           .good {
             position: relative;
             @media x {
@@ -17,7 +18,7 @@ module.exports = {
       },
       {
         title: `└─ take @media into account [2]`,
-        source: `
+        code: `
           .good {
             @media x {
               z-index: 0;
@@ -28,7 +29,7 @@ module.exports = {
       },
       {
         title: `└─ take class chaining into account [1]`,
-        source: `
+        code: `
           .good {
             &.test {
               z-index: 0;
@@ -39,7 +40,7 @@ module.exports = {
       },
       {
         title: `└─ take class chaining into account [2]`,
-        source: `
+        code: `
           .good {
             position: relative;
             &.test {
@@ -52,24 +53,24 @@ module.exports = {
     invalid: [
       {
         title: `don't allow \`z-index\` in root without \`position: relative\``,
-        source: '.bad { z-index: 0; }',
+        code: '.bad { z-index: 0; }',
         warnings: [messages['root - z-index without position relative']]
       },
       {
         title: `├─ take @media into account [1]`,
-        source: `.bad { @media x { z-index: 0; } }`,
+        code: `.bad { @media x { z-index: 0; } }`,
         warnings: [messages['root - z-index without position relative']]
       },
       {
         title: `└─ take @media into account [2]`,
-        source: `.bad { z-index: 0; @media x { position: relative; } }`,
+        code: `.bad { z-index: 0; @media x { position: relative; } }`,
         warnings: [messages['root - z-index without position relative']]
       },
       {
         title: `only allow a \`z-index: 0\` in root`,
-        source: '.bad { position: relative; z-index: 1; }',
+        code: '.bad { position: relative; z-index: 1; }',
         warnings: [messages['root - z-index not 0']]
       },
     ]
   }
-}
+})

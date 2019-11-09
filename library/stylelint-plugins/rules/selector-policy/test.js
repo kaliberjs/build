@@ -1,17 +1,18 @@
 const { messages } = require('./')
+const { test } = require('../../machinery/test')
 
-module.exports = {
+test('selector-policy', {
   'selector-policy': {
     valid: [
-      { source: '.good { }' },
-      { source: '.good { &.test { } }' },
-      { source: '.good { &.test1 { & > .test2 { } } }' },
-      { source: '.good { & > .test { } }' },
-      { source: '.good { & > *:not(:first-child) { } }' },
-      { source: '.good { & > .test { &:not(:last-child) { } } }' },
+      { code: '.good { }' },
+      { code: '.good { &.test { } }' },
+      { code: '.good { &.test1 { & > .test2 { } } }' },
+      { code: '.good { & > .test { } }' },
+      { code: '.good { & > *:not(:first-child) { } }' },
+      { code: '.good { & > .test { &:not(:last-child) { } } }' },
       {
         title: 'correctly nested',
-        source: `
+        code: `
           .good { & > .one { } }
 
           .one { & > .two { } }
@@ -19,19 +20,19 @@ module.exports = {
       },
       {
         title: 'correctly nested pseudo element',
-        source: `
+        code: `
           .good { & > .one { } }
 
           .one { &::after { } }
         `,
       },
-      { source: '@keyframes test { from { opacity: 0; } }' },
-      { source: `[data-context-scrolldir='down'] .good { color: 0; }` },
-      { source: `[data-context-scrolldir='down'] { & .good { color: 0; } }` },
-      { source: `[data-context-menu-state='is-open'], [data-context-menu-state='is-green'] { & .good { color: 0; } }` },
+      { code: '@keyframes test { from { opacity: 0; } }' },
+      { code: `[data-context-scrolldir='down'] .good { color: 0; }` },
+      { code: `[data-context-scrolldir='down'] { & .good { color: 0; } }` },
+      { code: `[data-context-menu-state='is-open'], [data-context-menu-state='is-green'] { & .good { color: 0; } }` },
       {
         title: `don't report media in nested child`,
-        source: `
+        code: `
           .good {
             & > {
               @media x {
@@ -43,7 +44,7 @@ module.exports = {
       },
       {
         title: `don't report media in root`,
-        source: `
+        code: `
           .good {
             @media x {
               width: 10px;
@@ -54,12 +55,12 @@ module.exports = {
     ],
     invalid: [
       {
-        source: '.bad { & > .test1 { & > .test2 { } } }',
+        code: '.bad { & > .test1 { & > .test2 { } } }',
         warnings: [messages['nested - no double nesting']]
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { & > .test1 { @media x { & > .test2 { } } } }',
+        code: '.bad { & > .test1 { @media x { & > .test2 { } } } }',
         warnings: [
           messages['nested - no double nesting'],
           messages['media - no nested child'],
@@ -67,18 +68,18 @@ module.exports = {
       },
       {
         title: '└─ take @supports into account',
-        source: '.bad { & > .test1 { @supports x { & > .test2 { } } } }',
+        code: '.bad { & > .test1 { @supports x { & > .test2 { } } } }',
         warnings: [
           messages['nested - no double nesting'],
         ]
       },
       {
-        source: '.bad > .test { }',
+        code: '.bad > .test { }',
         warnings: [messages['root - no child selectors']]
       },
       {
         title: '└─ take @media into account',
-        source: '@media x { .bad > .test { } }',
+        code: '@media x { .bad > .test { } }',
         warnings: [
           messages['root - no child selectors'],
           messages['media - no nested child'],
@@ -86,18 +87,18 @@ module.exports = {
       },
       {
         title: '└─ take @supports into account',
-        source: '@supports x { .bad > .test { } }',
+        code: '@supports x { .bad > .test { } }',
         warnings: [
           messages['root - no child selectors'],
         ]
       },
       {
-        source: '.bad { & > .one > .two { } }',
+        code: '.bad { & > .one > .two { } }',
         warnings: [messages['nested - no double child selectors']]
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { @media x { & > .one > .two { } } }',
+        code: '.bad { @media x { & > .one > .two { } } }',
         warnings: [
           messages['nested - no double child selectors'],
           messages['media - no nested child'],
@@ -105,22 +106,22 @@ module.exports = {
       },
       {
         title: '└─ take @supports into account',
-        source: '.bad { @supports x { & > .one > .two { } } }',
+        code: '.bad { @supports x { & > .one > .two { } } }',
         warnings: [
           messages['nested - no double child selectors'],
         ]
       },
       {
-        source: '.bad { & > .test::after { } }',
+        code: '.bad { & > .test::after { } }',
         warnings: [messages['nested - no double child selectors']]
       },
       {
-        source: 'div { }',
+        code: 'div { }',
         warnings: [messages['no tag selectors']]
       },
       {
         title: '└─ take @media into account',
-        source: '@media x { div { } }',
+        code: '@media x { div { } }',
         warnings: [
           messages['no tag selectors'],
           messages['media - no nested child'],
@@ -128,18 +129,18 @@ module.exports = {
       },
       {
         title: '└─ take @supports into account',
-        source: '@supports x { div { } }',
+        code: '@supports x { div { } }',
         warnings: [
           messages['no tag selectors'],
         ]
       },
       {
-        source: '.bad { & > div { } }',
+        code: '.bad { & > div { } }',
         warnings: [messages['no tag selectors']]
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { @media x { & > div { } } }',
+        code: '.bad { @media x { & > div { } } }',
         warnings: [
           messages['no tag selectors'],
           messages['media - no nested child'],
@@ -147,32 +148,32 @@ module.exports = {
       },
       {
         title: '└─ take @supports into account',
-        source: '.bad { @supports x { & > div { } } }',
+        code: '.bad { @supports x { & > div { } } }',
         warnings: [
           messages['no tag selectors'],
         ]
       },
       {
-        source: '.bad { & > div { } }',
+        code: '.bad { & > div { } }',
         warnings: [messages['no tag selectors']]
       },
       {
-        source: '.bad .test { }',
+        code: '.bad .test { }',
         warnings: [messages['only direct child selectors'](' ')]
       },
       {
         title: '└─ take @supports into account',
-        source: '@supports x { .bad .test { } }',
+        code: '@supports x { .bad .test { } }',
         warnings: [
           messages['only direct child selectors'](' '),
         ]
       },
       {
-        source: '.bad { & .test { } }',
+        code: '.bad { & .test { } }',
         warnings: [messages['only direct child selectors'](' ')]
       },
       {
-        source: '.bad { & > .test .one { } }',
+        code: '.bad { & > .test .one { } }',
         warnings: [
           messages['only direct child selectors'](' '),
           messages['nested - no double child selectors'],
@@ -180,7 +181,7 @@ module.exports = {
       },
       {
         title: '└─ take @media into account',
-        source: '.bad { @media x { & .one { } } }',
+        code: '.bad { @media x { & .one { } } }',
         warnings: [
           messages['only direct child selectors'](' '),
           messages['media - no nested child'],
@@ -188,30 +189,30 @@ module.exports = {
       },
       {
         title: '└─ take @supports into account',
-        source: '.bad { @supports x { & .one { } } }',
+        code: '.bad { @supports x { & .one { } } }',
         warnings: [
           messages['only direct child selectors'](' '),
         ]
       },
       {
-        source: '.bad + .test { }',
+        code: '.bad + .test { }',
         warnings: [messages['only direct child selectors']('+')]
       },
       {
-        source: '.bad { & + * { } }',
+        code: '.bad { & + * { } }',
         warnings: [messages['only direct child selectors']('+')]
       },
       {
-        source: `[data-context-scrolldir='down'] + .bad { color: 0; }`,
+        code: `[data-context-scrolldir='down'] + .bad { color: 0; }`,
         warnings: [messages['only direct child selectors']('+')]
       },
       {
-        source: `[data-context-scrolldir='down'] .good, .test .bad { color: 0; }`,
+        code: `[data-context-scrolldir='down'] .good, .test .bad { color: 0; }`,
         warnings: [messages['only direct child selectors'](' ')]
       },
       {
         title: 'no nested data-context',
-        source: `
+        code: `
           [data-context-scrolldir='down'] {
             &.test {
               & .bad { color: 0; }
@@ -222,7 +223,7 @@ module.exports = {
       },
       {
         title: `report nested child in media`,
-        source: `
+        code: `
           .bad {
             @media x {
               & > {
@@ -235,7 +236,7 @@ module.exports = {
       },
       {
         title: `report nested child in media (root)`,
-        source: `
+        code: `
           @media x {
             .bad {
               width: 10px;
@@ -246,4 +247,4 @@ module.exports = {
       },
     ]
   }
-}
+})

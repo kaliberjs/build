@@ -6,7 +6,7 @@
     "lint": "npm-run-all --parallel lint.javascript lint.styles",
     "lint.javascript": "eslint -c .eslintrc .",
     "lint.styles": "stylelint --config .stylelintrc .",
-    "test.stylelint": "stylelint-tape --plugin ./stylelint-plugins/kaliber.js"
+    "test.stylelint": "mocha '**/test.js'"
   },
   "bin": {
     "kaliber-build": "bin/build.js",
@@ -107,6 +107,6 @@
     "url": "https://github.com/kaliberjs/build/issues"
   },
   "devDependencies": {
-    "stylelint-tape": "^2.0.0"
+    "mocha": "^6.2.2"
   }
 }
