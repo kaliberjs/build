@@ -129,7 +129,7 @@ function requireDisplayGridInParent({ root, report }) {
 }
 
 function validPointerEvents({ root, report }) {
-  withNestedRules(root, rule => {
+  withNestedRules(root, (rule, parent) => {
     const result = checkChildParentRelation(rule, childParentRelations.validPointerEvents)
     result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
       report(triggerDecl, messages['invalid pointer events'])

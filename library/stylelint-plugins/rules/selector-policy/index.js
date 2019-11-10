@@ -65,7 +65,9 @@ function onlyDirectChildSelectors({ root, report, allowNonDirectChildSelectors }
       if (!invalidCombinator) return
       if (invalidCombinator.value === ' ') {
         if (isDataContextSelector(selector.first)) return
-        const [[rootRule], parent] = [getRootRules(rule), getParentRule(rule)]
+        const parent = getParentRule(rule)
+        if (parent && isSvgSelector(parent)) return
+        const [rootRule] = getRootRules(rule)
         const rootSelectors = parseSelector(rootRule)
 
         if (
@@ -82,6 +84,7 @@ function onlyDirectChildSelectors({ root, report, allowNonDirectChildSelectors }
 function noDoubleNesting({ root, report }) {
   withNestedRules(root, (rule, parent) => {
     if (isRoot(parent) || (!hasChildSelector(rule) && isRoot(getParentRule(parent)))) return
+    if (isSvgSelector(parent)) return
     report(rule, messages['nested - no double nesting'])
   })
 }
@@ -113,10 +116,16 @@ function noTagSelectors({ root, report, allowTagSelectors }) {
   root.walkRules(rule => {
     const { parent } = rule
     if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
-    const root = parseSelector(rule)
-    const [tag] = root.first.filter(x => x.type === 'tag')
-    if (!tag) return
-    report(rule, messages['no tag selectors'], tag.sourceIndex)
+    const selectors = parseSelector(rule)
+    selectors.each(selector => {
+      const [tag] = selector.filter(x => x.type === 'tag')
+      if (!tag) return
+      const parentRule = getParentRule(rule)
+      if (isSvgSelector(rule)) return
+      if (parentRule && isSvgSelector(parentRule)) return
+
+      report(rule, messages['no tag selectors'], tag.sourceIndex)
+    })
   })
 }
 
@@ -130,4 +139,12 @@ function noRulesInsideMedia({ root, report }) {
 
 function isDataContextSelector(selector) {
   return selector && selector.type === 'attribute' && selector.attribute.startsWith('data-context-')
+}
+
+function isSvgSelector(rule) {
+  const selectors = parseSelector(rule)
+  return selectors.every(selector => {
+    const [svg] = selector.filter(x => x.type === 'tag' && x.value === 'svg')
+    return !!svg
+  })
 }

@@ -52,10 +52,79 @@ test('selector-policy', {
           }
         `,
       },
+      {
+        title: 'allow svg element selectors',
+        code: `
+          .good {
+            & > svg {
+              & path {
+                with: 10;
+              }
+
+              & whatever {
+                width: 10;
+              }
+            }
+          }
+        `
+      }
     ],
     invalid: [
       {
+        code: `.bad { & svg { & path { } } }`,
+        warnings: [messages['only direct child selectors'](' ')]
+      },
+      {
+        code: `.bad { & > .test > svg { & path { } } }`,
+        warnings: [messages['nested - no double child selectors']]
+      },
+      {
+        title: 'only allow direct svg element selector',
+        code: `
+          .bad {
+            & > svg {
+              & path {
+                & > .test {
+                  with: 10;
+                }
+              }
+            }
+          }
+        `,
+        warnings: [messages['nested - no double nesting']]
+      },
+      {
+        title: 'prevent svg element selector abuse',
+        code: `
+          .bad {
+            & > .test,
+            & > svg {
+              & > .test {
+              }
+            }
+          }
+        `,
+        warnings: 3
+      },
+      {
+        title: 'prevent svg element selector abuse',
+        code: `
+          .bad {
+            & > svg,
+            & > .test {
+              & > .test {
+              }
+            }
+          }
+        `,
+        warnings: 3
+      },
+      {
         code: '.bad { & > .test1 { & > .test2 { } } }',
+        warnings: [messages['nested - no double nesting']]
+      },
+      {
+        code: '.bad { & > .test1 { &.test, & > .test2 { } } }',
         warnings: [messages['nested - no double nesting']]
       },
       {
@@ -117,6 +186,10 @@ test('selector-policy', {
       },
       {
         code: 'div { }',
+        warnings: [messages['no tag selectors']]
+      },
+      {
+        code: '.test, div { }',
         warnings: [messages['no tag selectors']]
       },
       {

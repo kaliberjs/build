@@ -14,6 +14,7 @@ This rule helps you to do that. In many cases a naive way of writing has caused 
 - [No tag selectors](#no-tag-selectors)
 - [No selectors in media queries](#no-selectors-in-media-queries)
 - [Context](#context)
+- [SVG](#svg)
 
 ## Direct child selectors
 
@@ -255,6 +256,32 @@ Examples of *incorrect* code for this rule:
   color: red;
 }
 ```
+
+## SVG
+
+The direct child policy and no tags policy do not apply to most svg elements.
+
+### Examples
+
+Examples of *correct* code for this rule:
+
+```css
+.abc {
+  & > svg {
+    & path {
+      width: 10px;
+    }
+  }
+}
+```
+
+Examples of *incorrect* code for this rule:
+
+```css {
+  & path {
+    width: 10px;
+  }
+}
 
 ## Common refactorings
 

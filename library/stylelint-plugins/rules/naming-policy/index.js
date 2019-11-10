@@ -98,7 +98,7 @@ function preventExportCollisions({ originalRoot, report }) {
 }
 
 function noRootInChildSelector({ modifiedRoot, report }) {
-  withNestedRules(modifiedRoot, rule => {
+  withNestedRules(modifiedRoot, (rule, parent) => {
     const selectors = parseSelector(rule)
     selectors.each(selector => {
       const [first, second] = selector.filter(x =>
