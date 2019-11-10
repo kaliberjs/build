@@ -48,8 +48,14 @@ function hasChildSelector(rule) {
 }
 
 function getChildSelectors(rule) {
-  const root = selectorParser.astSync(rule)
-  return root.first.filter(x => x.type === 'combinator' || isPseudoElement(x))
+  const selectors = selectorParser.astSync(rule)
+  const childSelectors = []
+  selectors.each(selector => {
+    selector.each(x => {
+      if (x.type === 'combinator' || isPseudoElement(x)) childSelectors.push(x)
+    })
+  })
+  return childSelectors
 }
 
 function isPseudoElement({ type, value }) {
