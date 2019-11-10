@@ -102,12 +102,14 @@ function noChildSelectorsAtRoot({ root, report }) {
 function noDoubleChildSelectorsInNested({ root, report, allowDoubleChildSelectors }) {
   if (allowDoubleChildSelectors && allowDoubleChildSelectors(root)) return
   withNestedRules(root, (rule, parent) => {
-    const [, double] = getChildSelectors(rule)
-    if (double) {
-      const i = double.sourceIndex
-      const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
-      report(rule, messages['nested - no double child selectors'], correctSourceIndex)
-    }
+    const selectors = getChildSelectors(rule)
+    selectors.forEach(([, double]) => {
+      if (double) {
+        const i = double.sourceIndex
+        const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
+        report(rule, messages['nested - no double child selectors'], correctSourceIndex)
+      }
+    })
   })
 }
 

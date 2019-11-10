@@ -44,18 +44,14 @@ function getRootRules(node) {
 }
 
 function hasChildSelector(rule) {
-  return !!getChildSelectors(rule).length
+  return !!getChildSelectors(rule).some(x => x.length)
 }
 
 function getChildSelectors(rule) {
   const selectors = selectorParser.astSync(rule)
-  const childSelectors = []
-  selectors.each(selector => {
-    selector.each(x => {
-      if (x.type === 'combinator' || isPseudoElement(x)) childSelectors.push(x)
-    })
-  })
-  return childSelectors
+  return selectors.nodes.map(selector =>
+    selector.nodes.filter(x => x.type === 'combinator' || isPseudoElement(x))
+  )
 }
 
 function isPseudoElement({ type, value }) {

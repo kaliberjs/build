@@ -67,6 +67,9 @@ test('selector-policy', {
             }
           }
         `
+      },
+      {
+        code: `.test { &:focus::after, &:hover::after { transform: scaleX(1); } }`
       }
     ],
     invalid: [
@@ -104,7 +107,7 @@ test('selector-policy', {
             }
           }
         `,
-        warnings: 3
+        warnings: 2
       },
       {
         title: 'prevent svg element selector abuse',
@@ -117,7 +120,7 @@ test('selector-policy', {
             }
           }
         `,
-        warnings: 3
+        warnings: 2
       },
       {
         code: '.bad { & > .test1 { & > .test2 { } } }',
