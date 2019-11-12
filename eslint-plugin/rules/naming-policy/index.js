@@ -27,6 +27,9 @@ const messages = {
   'no styles properties with _': found =>
     `Unexpected underscore in '${found}', properties of styles can not start with an underscore - ` +
     `if you exported using @value switch to ':export { ... }'`,
+
+  'ref should end with Ref': (found, exptected) =>
+    `Unexpected ref name '${found}', expected '${exptected}'`,
 }
 
 module.exports = {
@@ -61,6 +64,9 @@ module.exports = {
       },
       [`MemberExpression[object.name = 'styles']`](node) {
         reportUnderscoreProperties(node)
+      },
+      [`VariableDeclarator > .init Identifier[name=/^use.*Ref$/]`](node) {
+        reportInvalidRefName(node)
       },
     }
 
@@ -155,6 +161,18 @@ module.exports = {
         node: node.id,
       })
     }
+
+    function reportInvalidRefName(node) {
+      const parent = getParentOfType(node, 'VariableDeclarator')
+      if (!parent) return
+
+      const { id } = parent
+      if (id.name.endsWith('Ref')) return
+      context.report({
+        message: messages['ref should end with Ref'](id.name, `${id.name}Ref`),
+        node: id,
+      })
+    }
   }
 }
 
@@ -166,4 +184,9 @@ function getValidRootElementClassNames(context) {
     isPage(context) ? [`page${name}`] :
     [`component${name}`, `component_root${name}`]
   )
+}
+
+function getParentOfType(node, type) {
+  if (!node || node.type === type) return node
+  return getParentOfType(node.parent, type)
 }

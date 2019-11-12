@@ -5,4 +5,5 @@ test('naming-policy', merge(
   require('./policy-component-name'),
   require('./policy-css-file-and-variable-name'),
   require('./policy-css-variable-properties'),
+  require('./policy-ref-name')
 ))

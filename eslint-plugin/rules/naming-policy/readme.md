@@ -6,6 +6,7 @@ To improve readability and consistency we enforce a naming policy. On top of tha
 - [CSS file and variable name](#css-file-and-variable-name)
 - [CSS variable properties](#css-variable-properties)
 - [Root element class name](#root-element-class-name)
+- [Refs](#refs)
 
 ## Component name
 
@@ -213,5 +214,47 @@ function Test() {
       <div className={styles.componentX} />
     </div>
   )
+}
+```
+
+## Refs
+
+Refs have a specific use and it's very handy if you know a variable is a ref; you are required to use the `current` property if you want to get at the value. This policy enforces you to suffix your ref with `Ref`, clearly indicating the variable contains a ref.
+
+### Examples
+
+Examples of *correct* code for this rule:
+
+```jsx
+function Test() {
+  const containerRef = React.useRef()
+
+  ...
+}
+```
+
+```jsx
+function Test() {
+  const isMountedRef = useIsMountedRef()
+
+  ...
+}
+```
+
+Examples of *incorrect* code for this rule:
+
+```jsx
+function Test() {
+  const container = React.useRef()
+
+  ...
+}
+```
+
+```jsx
+function Test() {
+  const isMounted = useIsMountedRef()
+
+  ...
 }
 ```
