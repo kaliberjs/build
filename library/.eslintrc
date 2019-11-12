@@ -35,7 +35,8 @@
 
   "globals": {
     "Component": true,
-    "React": true
+    "React": true,
+    "cx": true
   },
 
   "rules": {
