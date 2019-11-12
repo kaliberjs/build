@@ -204,5 +204,13 @@ test('parent-child-policy', {
         warnings: [messages['invalid pointer events']]
       },
     ]
-  }
+  },
+  'layout-related-properties': {
+    valid: [
+      { code: '.good { display: none; }' },
+      { code: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
+    ],
+    invalid: [
+    ],
+  },
 })

@@ -10,14 +10,13 @@ const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
 const intrinsicProps = ['width', 'height', 'max-width', 'min-width', 'max-height', 'min-height']
 
 const allowedInRootAndChild = [
-  'z-index',  // handled by root policy
   ['position', 'relative'], // is safe to use
   'overflow', // is safe to use
-  'pointer-events', // handled by parent child policy
   ['display', 'none'], // is safe to use
 ]
 
 const layoutRelatedProps = [ // only allowed in child
+  'z-index',
   'width', 'height',
   ['position', 'absolute'], ['position', 'fixed'],
   'top', 'right', 'bottom', 'left',
@@ -59,23 +58,30 @@ module.exports = {
     resolvedCalc: true,
   },
   messages,
-  create({ allowDeclInRoot, allowNonLayoutRelatedProperties, allowLayoutRelatedPropertiesInRule }) {
+  create({
+    //rootAllowCss,
+    rootAllowRule,
+    rootAllowDecl,
+    childAllowCss,
+    // childAllowRule,
+    childAllowDecl,
+  }) {
     return ({ modifiedRoot, report }) => {
-      noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowLayoutRelatedPropertiesInRule, allowDeclInRoot })
-      onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties })
+      noLayoutRelatedPropsInRoot({ modifiedRoot, report, rootAllowRule, rootAllowDecl })
+      onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, childAllowDecl })
     }
   }
 }
 
-function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowLayoutRelatedPropertiesInRule, allowDeclInRoot }) {
+function noLayoutRelatedPropsInRoot({ modifiedRoot, report, rootAllowRule, rootAllowDecl }) {
   withRootRules(modifiedRoot, rule => {
-    if (allowLayoutRelatedPropertiesInRule && allowLayoutRelatedPropertiesInRule(rule)) return
+    if (rootAllowRule && rootAllowRule(rule)) return
 
     const decls = findDecls(rule, layoutRelatedProps)
     decls.forEach(decl => {
       if (declMatches(decl, intrinsicProps) && isIntrinsicValue(decl)) return
       if (isRatioHack(decl, rule)) return
-      if (allowDeclInRoot && allowDeclInRoot(decl)) return
+      if (rootAllowDecl && rootAllowDecl(decl)) return
       if (declMatches(decl, allowedInRootAndChild)) return
       const { prop } = decl
       const hasValue = layoutRelatedPropsWithValues[prop]
@@ -84,8 +90,8 @@ function noLayoutRelatedPropsInRoot({ modifiedRoot, report, allowLayoutRelatedPr
   })
 }
 
-function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRelatedProperties }) {
-  if (allowNonLayoutRelatedProperties && allowNonLayoutRelatedProperties(modifiedRoot)) return
+function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, childAllowDecl }) {
+  if (childAllowCss && childAllowCss(modifiedRoot)) return
   withNestedRules(modifiedRoot, (rule, parent) => {
     const selectors = parseSelector(rule)
     selectors.each(selector => {
@@ -93,6 +99,7 @@ function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, allowNonLayoutRe
       if (pseudos.length) return
       const decls = findDecls(rule, layoutRelatedProps, { onlyInvalidTargets: true })
       decls.forEach(decl => {
+        if (childAllowDecl && childAllowDecl(decl)) return
         report(decl, messages['nested - only layout related props in nested'](decl.prop))
       })
     })

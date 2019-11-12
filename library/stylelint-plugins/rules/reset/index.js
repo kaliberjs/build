@@ -16,7 +16,7 @@ module.exports = {
   ruleName: 'reset',
   ruleInteraction: {
     'layout-related-properties': {
-      allowDeclInRoot: decl => isReset(decl.root()) && declMatches(decl, allowedInReset),
+      rootAllowDecl: decl => isReset(decl.root()) && declMatches(decl, allowedInReset),
     },
     'selector-policy': {
       allowTagSelectors: isReset

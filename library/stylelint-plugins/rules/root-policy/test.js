@@ -72,5 +72,14 @@ test('root-policy', {
         warnings: [messages['root - z-index not 0']]
       },
     ]
-  }
+  },
+  'layout-related-properties': {
+    valid: [
+      { code: '.good { z-index: 0; position: relative; }' },
+      { code: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }' },
+      { code: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }' },
+    ],
+    invalid: [
+    ]
+  },
 })

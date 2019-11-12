@@ -43,8 +43,6 @@ test('layout-related-properties', {
       { code: '.good { width: 10rem !important; height: 10rem !important; }' },
       { code: '.good { position: relative; }' },
       { code: '.good { overflow: 0; }' },
-      { code: '.good { pointer-events: none; }' },
-      { code: '.good { display: none; }' },
       {
         title: 'take @value into account',
         code: `
@@ -69,17 +67,13 @@ test('layout-related-properties', {
       { code: '.good { height: 0; padding-bottom: 65.25%; }' },
       { code: '.good { height: 0; padding-top: 65.25%; }' },
       { code: '.good { height: 0; padding-top: calc((9 / 16) * 100%); }' },
-      { code: '.good { z-index: 0; position: relative; }' },
       { code: '.good { position: relative; & > .test { position: absolute; } }' },
-      { code: '.good { position: relative; z-index: 0; & > .test { position: absolute; z-index: 1; } }' },
       { code: '.good { &::before { position: absolute; } }' },
       { code: '.good { & > .test { width: 100%; } }' },
       { code: '.good { & > .test { position: relative; } }' },
       { code: '.good { & > .test { position: fixed; } }' },
-      { code: '.good { z-index: 0; position: relative; & > .test { z-index: 1; } }' },
       { code: '.good { padding: 100px; }' },
       { code: `.good { &::before { content: ''; color: back; } }` },
-      { code: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
       { code: `.good { & > * { display: none; } }` },
       {
         title: 'take into account @supports',

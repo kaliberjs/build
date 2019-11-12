@@ -28,7 +28,7 @@ module.exports = {
   ruleName: 'naming-policy',
   ruleInteraction: {
     'layout-related-properties': {
-      allowLayoutRelatedPropertiesInRule: isRoot,
+      rootAllowRule: isRoot,
     },
   },
   cssRequirements: {

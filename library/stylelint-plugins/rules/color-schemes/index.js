@@ -16,7 +16,7 @@ module.exports = {
   ruleName: 'color-schemes',
   ruleInteraction: {
     'layout-related-properties': {
-      allowNonLayoutRelatedProperties: isColorScheme,
+      childAllowCss: isColorScheme,
     },
     'selector-policy': {
       allowDoubleChildSelectors: isColorScheme,

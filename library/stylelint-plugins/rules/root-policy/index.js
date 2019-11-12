@@ -28,7 +28,11 @@ const rootCombos = {
 
 module.exports = {
   ruleName: 'root-policy',
-  ruleInteraction: null,
+  ruleInteraction: {
+    'layout-related-properties': {
+      rootAllowDecl: decl => decl.prop === 'z-index',
+    },
+  },
   cssRequirements: {
     normalizedCss: true,
     // resolvedCustomProperties: true, TODO: add test case

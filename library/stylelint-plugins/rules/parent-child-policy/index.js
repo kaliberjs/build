@@ -68,7 +68,11 @@ const childParentRelations = {
 
 module.exports = {
   ruleName: 'parent-child-policy',
-  ruleInteraction: null,
+  ruleInteraction: {
+    'layout-related-properties': {
+      childAllowDecl: decl => declMatches(decl, ['pointer-events'])
+    },
+  },
   cssRequirements: {
     normalizedCss: true,
     // resolvedCustomProperties: true, TODO: add test case
