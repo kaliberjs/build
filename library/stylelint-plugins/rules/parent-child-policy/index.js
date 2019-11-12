@@ -1,6 +1,8 @@
 const {
+  findDecls,
+  parseSelector,
   withNestedRules,
-  isRoot,
+  isRoot, declMatches,
   getRootRules,
 } = require('../../machinery/ast')
 const { checkRuleRelation } = require('../../machinery/relations')
@@ -26,7 +28,15 @@ const messages = {
   'invalid pointer events':
     `Incorrect pointer events combination\n` +
     `you can only set pointer events in a child if the parent disables pointer events - ` +
-    `add pointer-events: none to parent`
+    `add pointer-events: none to parent`,
+  'missing position relative':
+    'Missing `position: relative;` in parent\n' +
+    '`position: static` is only allowed when the containing root rule is set to `position: relative` - ' +
+    'add `position-relative` to the containing root rule',
+  'missing relativeToParent className':
+    'Missing `.relativeToParent` className\n' +
+    '`position: static` can only be used when selecting on `.relativeToParent` - ' +
+    'add the `.relativeToParent` className',
 }
 
 // TODO: move errors into the different relations (would allows us to simplify the actual checks)
@@ -64,13 +74,21 @@ const childParentRelations = {
       ['pointer-events', 'none']
     ]
   },
+  relativeToParent: {
+    nestedHasOneOf: [
+      ['position', 'static'],
+    ],
+    requireInRoot: [
+      ['position', 'relative']
+    ],
+  },
 }
 
 module.exports = {
   ruleName: 'parent-child-policy',
   ruleInteraction: {
     'layout-related-properties': {
-      childAllowDecl: decl => declMatches(decl, ['pointer-events'])
+      childAllowDecl: decl => declMatches(decl, ['pointer-events', ['position', 'static']])
     },
   },
   cssRequirements: {
@@ -88,6 +106,7 @@ module.exports = {
       requireDisplayFlexInParent({ root: modifiedRoot, report })
       requireDisplayGridInParent({ root: modifiedRoot, report })
       validPointerEvents({ root: modifiedRoot, report })
+      relativeToParent({ root: modifiedRoot, report })
     }
   }
 }
@@ -137,6 +156,24 @@ function validPointerEvents({ root, report }) {
     const result = checkChildParentRelation(rule, childParentRelations.validPointerEvents)
     result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
       report(triggerDecl, messages['invalid pointer events'])
+    })
+  })
+}
+
+function relativeToParent({ root, report }) {
+  withNestedRules(root, (rule, parent) => {
+    const result = checkChildParentRelation(rule, childParentRelations.relativeToParent)
+    result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
+      report(triggerDecl, messages['missing position relative'])
+    })
+    const triggerDecls = findDecls(rule, childParentRelations.relativeToParent.nestedHasOneOf)
+    triggerDecls.forEach(decl => {
+      const selectors = parseSelector(rule)
+      const hasValidSelectors = selectors.every(selector =>
+        selector.some(x => x.type === 'class' && x.value === 'relativeToParent')
+      )
+      if (hasValidSelectors) return
+      report(decl, messages['missing relativeToParent className'])
     })
   })
 }
