@@ -19,7 +19,7 @@ module.exports = {
       rootAllowDecl: decl => isReset(decl.root()) && declMatches(decl, allowedInReset),
     },
     'selector-policy': {
-      allowTagSelectors: isReset
+      tagSelectorsAllowCss: isReset
     },
   },
   cssRequirements: {

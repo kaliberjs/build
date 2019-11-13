@@ -19,8 +19,8 @@ module.exports = {
       childAllowCss: isColorScheme,
     },
     'selector-policy': {
-      allowDoubleChildSelectors: isColorScheme,
-      allowNonDirectChildSelectors: isColorScheme,
+      doubleSelectorsAllowCss: isColorScheme,
+      nonDirectChildSelectorsAllowCss: isColorScheme,
     },
   },
   cssRequirements: null,

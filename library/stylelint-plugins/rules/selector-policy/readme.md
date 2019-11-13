@@ -244,6 +244,13 @@ For this to work we require the data attribute to start with the name `data-cont
 Examples of *correct* code for this rule:
 
 ```css
+[data-context-scrolldir='down'] {
+  & .good {
+    color: red;
+  }
+}
+```
+```css
 [data-context-scrolldir='down'] .good {
   color: red;
 }

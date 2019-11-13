@@ -14,7 +14,7 @@ module.exports = {
   ruleName: 'index',
   ruleInteraction: {
     'selector-policy': {
-      allowTagSelectors: isIndex,
+      tagSelectorsAllowCss: isIndex,
     },
     'no-import': {
       allowSpecificImport: rule => isIndex(rule.root()) && (

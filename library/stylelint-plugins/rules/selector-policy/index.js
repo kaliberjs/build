@@ -41,20 +41,24 @@ module.exports = {
     // resolvedCustomSelectors: true, TODO: add test case
   },
   messages,
-  create({ allowNonDirectChildSelectors, allowDoubleChildSelectors, allowTagSelectors }) {
+  create({
+    nonDirectChildSelectorsAllowCss,
+    doubleSelectorsAllowCss,
+    tagSelectorsAllowCss,
+  }) {
     return ({ originalRoot, modifiedRoot, report, context }) => {
-      onlyDirectChildSelectors({ root: originalRoot, report, allowNonDirectChildSelectors })
+      onlyDirectChildSelectors({ root: originalRoot, report, nonDirectChildSelectorsAllowCss })
       noDoubleNesting({ root: originalRoot, report })
       noChildSelectorsAtRoot({ root: originalRoot, report })
-      noDoubleChildSelectorsInNested({ root: originalRoot, report, allowDoubleChildSelectors })
-      noTagSelectors({ root: originalRoot, report, allowTagSelectors })
+      noDoubleChildSelectorsInNested({ root: originalRoot, report, doubleSelectorsAllowCss })
+      noTagSelectors({ root: originalRoot, report, tagSelectorsAllowCss })
       noRulesInsideMedia({ root: originalRoot, report })
     }
   }
 }
 
-function onlyDirectChildSelectors({ root, report, allowNonDirectChildSelectors }) {
-  if (allowNonDirectChildSelectors && allowNonDirectChildSelectors(root)) return
+function onlyDirectChildSelectors({ root, report, nonDirectChildSelectorsAllowCss }) {
+  if (nonDirectChildSelectorsAllowCss && nonDirectChildSelectorsAllowCss(root)) return
   root.walkRules(rule => {
     const selectors = parseSelector(rule)
     selectors.each(selector => {
@@ -99,22 +103,22 @@ function noChildSelectorsAtRoot({ root, report }) {
   })
 }
 
-function noDoubleChildSelectorsInNested({ root, report, allowDoubleChildSelectors }) {
-  if (allowDoubleChildSelectors && allowDoubleChildSelectors(root)) return
+function noDoubleChildSelectorsInNested({ root, report, doubleSelectorsAllowCss }) {
+  if (doubleSelectorsAllowCss && doubleSelectorsAllowCss(root)) return
   withNestedRules(root, (rule, parent) => {
     const selectors = getChildSelectors(rule)
     selectors.forEach(([, double]) => {
-      if (double) {
-        const i = double.sourceIndex
-        const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
-        report(rule, messages['nested - no double child selectors'], correctSourceIndex)
-      }
+      if (!double) return
+
+      const i = double.sourceIndex
+      const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet
+      report(rule, messages['nested - no double child selectors'], correctSourceIndex)
     })
   })
 }
 
-function noTagSelectors({ root, report, allowTagSelectors }) {
-  if (allowTagSelectors && allowTagSelectors(root)) return
+function noTagSelectors({ root, report, tagSelectorsAllowCss }) {
+  if (tagSelectorsAllowCss && tagSelectorsAllowCss(root)) return
   root.walkRules(rule => {
     const { parent } = rule
     if (parent && parent.type === 'atrule' && parent.name === 'keyframes') return
