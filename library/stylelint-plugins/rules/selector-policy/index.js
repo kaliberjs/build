@@ -44,13 +44,14 @@ module.exports = {
   create({
     nonDirectChildSelectorsAllowCss,
     doubleSelectorsAllowCss,
+    doubleSelectorsAllowRule,
     tagSelectorsAllowCss,
   }) {
     return ({ originalRoot, modifiedRoot, report, context }) => {
       onlyDirectChildSelectors({ root: originalRoot, report, nonDirectChildSelectorsAllowCss })
       noDoubleNesting({ root: originalRoot, report })
       noChildSelectorsAtRoot({ root: originalRoot, report })
-      noDoubleChildSelectorsInNested({ root: originalRoot, report, doubleSelectorsAllowCss })
+      noDoubleChildSelectorsInNested({ root: originalRoot, report, doubleSelectorsAllowCss, doubleSelectorsAllowRule })
       noTagSelectors({ root: originalRoot, report, tagSelectorsAllowCss })
       noRulesInsideMedia({ root: originalRoot, report })
     }
@@ -103,12 +104,13 @@ function noChildSelectorsAtRoot({ root, report }) {
   })
 }
 
-function noDoubleChildSelectorsInNested({ root, report, doubleSelectorsAllowCss }) {
+function noDoubleChildSelectorsInNested({ root, report, doubleSelectorsAllowCss, doubleSelectorsAllowRule }) {
   if (doubleSelectorsAllowCss && doubleSelectorsAllowCss(root)) return
   withNestedRules(root, (rule, parent) => {
     const selectors = getChildSelectors(rule)
     selectors.forEach(([, double]) => {
       if (!double) return
+      if (doubleSelectorsAllowRule && doubleSelectorsAllowRule(rule)) return
 
       const i = double.sourceIndex
       const correctSourceIndex = double.type === 'pseudo' ? i + 1 : i // it might be fixed in version 3, but postcss-preset-env isn't there yet

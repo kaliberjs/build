@@ -63,12 +63,12 @@ module.exports = {
     rootAllowRule,
     rootAllowDecl,
     childAllowCss,
-    // childAllowRule,
+    childAllowRule,
     childAllowDecl,
   }) {
     return ({ modifiedRoot, report }) => {
       noLayoutRelatedPropsInRoot({ modifiedRoot, report, rootAllowRule, rootAllowDecl })
-      onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, childAllowDecl })
+      onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, childAllowRule, childAllowDecl })
     }
   }
 }
@@ -90,9 +90,10 @@ function noLayoutRelatedPropsInRoot({ modifiedRoot, report, rootAllowRule, rootA
   })
 }
 
-function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, childAllowDecl }) {
+function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, childAllowRule, childAllowDecl }) {
   if (childAllowCss && childAllowCss(modifiedRoot)) return
   withNestedRules(modifiedRoot, (rule, parent) => {
+    if (childAllowRule && childAllowRule(rule)) return
     const selectors = parseSelector(rule)
     selectors.each(selector => {
       const pseudos = selector.filter(isPseudoElement)

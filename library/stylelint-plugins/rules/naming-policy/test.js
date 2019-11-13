@@ -1,4 +1,6 @@
 const { messages } = require('./')
+const { messages: layoutRelatedPropertiesMessages } = require('../layout-related-properties/')
+const { messages: selectorPolicyMessages } = require('../selector-policy/')
 const { test } = require('../../machinery/test')
 
 test('naming-policy', {
@@ -150,7 +152,28 @@ test('naming-policy', {
           }
         `,
       },
+      { code: `.good { &.isX { & > .goodX { color: 0; } } }` },
+      { code: `.good { &[x] { & > .goodX { color: 0; } } }` },
     ],
-    invalid: []
+    invalid: [
+      {
+        code: `.component { &.isX { & > .componentX { color: 0; } } }`,
+        warnings: [layoutRelatedPropertiesMessages['nested - only layout related props in nested']('color')]
+      },
+    ]
+  },
+  'selector-policy': {
+    valid: [
+      { code: `.good { &.isX { & > * > * > .goodX { color: 0; } } }` },
+      { code: `.good { &[x] { & > * > .goodX { color: 0; } } }` },
+      { code: `.good { &:hover { & > * > .goodX { color: 0; } } }` },
+      { code: `.good { &.is-x { & > * > .goodX { color: 0; } } }` },
+    ],
+    invalid: [
+      {
+        code: `.component { &.isX { & > * > .componentX { color: 0; } } }`,
+        warnings: [selectorPolicyMessages['nested - no double child selectors']]
+      },
+    ]
   }
 })

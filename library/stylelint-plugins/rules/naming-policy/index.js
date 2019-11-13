@@ -1,7 +1,14 @@
 const {
   parseSelector,
   withNestedRules,
+  getRootRules,
 } = require('../../machinery/ast')
+
+const pseudoStates = [
+  ':hover', ':active', ':focus',
+  ':enabled', ':disabled', ':checked',
+  ':empty', ':valid', ':invalid', ':in-range', ':out-of-range',
+]
 
 const messages = {
   'nested - no component class name in nested': className =>
@@ -28,7 +35,17 @@ module.exports = {
   ruleName: 'naming-policy',
   ruleInteraction: {
     'layout-related-properties': {
-      rootAllowRule: isRoot,
+      rootAllowRule: is_root,
+      childAllowRule: rule =>
+        hasStateSelectorInParent(rule) &&
+        rootNameIsNotComponent(rule) &&
+        selectorNameHasRootNameAsPrefix(rule)
+      },
+      'selector-policy': {
+        doubleSelectorsAllowRule: rule =>
+          hasStateSelectorInParent(rule) &&
+          rootNameIsNotComponent(rule) &&
+          selectorNameHasRootNameAsPrefix(rule)
     },
   },
   cssRequirements: {
@@ -118,6 +135,67 @@ function noRootInChildSelector({ modifiedRoot, report }) {
   })
 }
 
-function isRoot(rule) {
+function is_root(rule) {
   return rule.selector.startsWith('._root') || rule.selector.startsWith('.component_root')
+}
+
+function hasStateSelectorInParent(rule) {
+  const rootRules = getRootRules(rule)
+  return rootRules.reverse().some(hasStateSelector)
+}
+
+function rootNameIsNotComponent(rule) {
+  const rootName = getRootName(rule)
+  return rootName && !rootName.startsWith('component')
+}
+
+function selectorNameHasRootNameAsPrefix(rule) {
+  const rootName = getRootName(rule)
+  if (!rootName) return
+  return parseSelector(rule).every(selector => {
+    const { type, value } = selector.last
+    return type === 'class' && value.startsWith(rootName)
+  })
+}
+
+function getRootName(rule) {
+  const [rootRule] = getRootRules(rule)
+  const rootName = parseSelector(rootRule).reduce(
+    (result, selector) => {
+      const { type, value } = selector.first
+      const className = type === 'class' && value
+      return result === null
+        ? value
+        : className === result && result
+    },
+    null
+  )
+  return rootName
+}
+
+function hasStateSelector(rule) {
+  const selectors = parseSelector(rule)
+  return selectors.every(isStateSelector)
+}
+
+function isStateSelector(selector) {
+  const [first, second] = selector.nodes
+  return first.type === 'nesting' && second && (
+    isClassState(second) ||
+    isPseudoClassState(second) ||
+    isAttributeState(second)
+  )
+}
+
+function isClassState({ type, value }) {
+  return type === 'class' && /(^is-[a-z]|is[A-Z])/.test(value)
+}
+
+function isPseudoClassState(node) {
+  const { type, value } = node
+  return type === 'pseudo' && pseudoStates.includes(value)
+}
+
+function isAttributeState({ type }) {
+  return type === 'attribute'
 }

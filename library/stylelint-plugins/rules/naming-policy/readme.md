@@ -7,6 +7,7 @@ In @kaliber/build we value convention over configuration. This rule helps to enf
 - [Property lower case](#property-lower-case)
 - [Prevent export collisions](#prevent-export-collisions)
 - [_root](#_root)
+- [State](#state)
 
 ## Nested component name
 
@@ -191,6 +192,62 @@ Examples of *incorrect* code for this rule:
   }
 }
 ```
+
+## State
+
+This policy is mostly for non-react applications. However, when starting a new project most developers first create relative big components with more HTML. Later in the project components are created and the balance HTML / custom components shifts towards more custom components.
+
+In these situations (starting a project and non-react projects) visual appearance based on state in CSS is a must. We allow it, but only with certain restrictions. First an example:
+
+```css
+.Abc {
+  &.isOpen {
+    & > * > .AbcItem {
+         ^^^
+      color: red;
+      ^^^^^
+    }
+  }
+}
+```
+
+We have highlighted two exceptions to the other policies:
+
+- `>` - Here we are using another level of nesting. We are actually reaching further than we normally would.
+- `color` - Here we are using a non-layout related property. We normally try to prevent that because we do not want to accidentally create unexpected situations.
+
+Let's take another look at the example:
+
+```css
+.Abc {
+^^^^
+  &.isOpen {
+   ^^^^^^^
+    & > * > .AbcItem {
+            ^^^^^^^^
+      color: red;
+    }
+  }
+}
+```
+
+We have highlighted the important parts that enable us to use this pattern without causing any linting errors:
+
+- `.Abc` - This is the class name of the root selector.
+- `.isOpen` - This indicates we are working on state, we accept the following as state selectors:
+  - Classes that start with `is`: `.is-x`, `.isX`
+  - Certain pseudo classes: `:hover`, `:active`, ...
+  - Attribute selectors: `[data-x='true']`, `[aria-hidden='false']`
+- `.AbcItem` - This is the selector that indicates this is part of `.Abc`, note that it should have the root name as a prefix.
+
+Questions:
+- Why do you require the prefix on the selector?
+  - We want to make sure that both in the HTML and in the CSS it is clear that these things belong together. When you want to extract components things might break.
+- Why only direct child (`>`) combinators, and not the ` ` combinator?
+  - We want to prevent overreaching and creating problems when nesting components.
+
+When you are working in React you probably won't need this strategy. In any case try to make sure you only apply styles that are state related.
+
 
 ## Common refactorings
 
