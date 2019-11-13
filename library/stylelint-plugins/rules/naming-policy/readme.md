@@ -248,6 +248,85 @@ Questions:
 
 When you are working in React you probably won't need this strategy. In any case try to make sure you only apply styles that are state related.
 
+### Examples
+
+Examples of *correct* code for this rule:
+
+```css
+.good {
+  &.isX {
+    & > .goodX {
+      ...
+    }
+  }
+}
+```
+```css
+.good {
+  &[x] {
+    & > .goodX {
+      ...
+    }
+  }
+}
+```
+```css
+.good {
+  &.isX {
+    & > * > * > .goodX {
+      ...
+    }
+  }
+}
+```
+```css
+.good {
+  &[x] {
+    & > * > .goodX {
+      ...
+    }
+  }
+}
+```
+```css
+.good {
+  &:hover {
+    & > * > .goodX {
+      ...
+    }
+  }
+}
+```
+```css
+.good {
+  &.is-x {
+    & > * > .goodX {
+      ...
+    }
+  }
+}
+```
+
+Examples of *incorrect* code for this rule:
+
+```css
+.component {
+  &.isX {
+    & > .componentX {
+      color: 0;
+    }
+  }
+}
+```
+```
+.component {
+  &.isX {
+    & > * > .componentX {
+      ...
+    }
+  }
+}
+```
 
 ## Common refactorings
 
