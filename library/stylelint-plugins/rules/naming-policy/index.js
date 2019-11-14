@@ -5,7 +5,7 @@ const {
 } = require('../../machinery/ast')
 
 const pseudoStates = [
-  ':hover', ':active', ':focus',
+  ':hover', ':active', ':focus', ':focus-within',
   ':enabled', ':disabled', ':checked',
   ':empty', ':valid', ':invalid', ':in-range', ':out-of-range',
 ]
