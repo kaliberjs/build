@@ -36,7 +36,7 @@ function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, 
 
         // no support for css-modules feature 'composes'
         !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
-        require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash:base64:5]' : '[folder]-[name]-[local]__[hash:base64:5]') }),
+        require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash]' : '[folder]-[name]-[local]__[hash]') }),
         require('postcss-calc')(),
         require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
