@@ -47,6 +47,8 @@ const compileWithBabel = kaliberBuildClientModules.concat(userDefinedcompileWith
 const babelLoader = {
   loader: 'babel-loader',
   options: {
+    cacheDirectory: './.babelcache/',
+    cacheCompression: false,
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
     plugins: [
