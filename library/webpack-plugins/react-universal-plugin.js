@@ -62,7 +62,7 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
               // on the raw module
               let { buildInfo = {}, buildMeta = {} } = result
               Object.defineProperty(result, 'buildInfo', {
-                get() { return { ...parentCompilationModule.buildInfo, ...buildInfo } },
+                get() { return { ...parentCompilationModule.buildInfo, ...buildInfo, assets: {}, assetsInfo: [] } },
                 set(x) { buildInfo = x }
               })
               Object.defineProperty(result, 'buildMeta', {
