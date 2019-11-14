@@ -17,7 +17,7 @@ function test(ruleName, tests) {
       describe('invalid', () => {
         invalid.forEach(test => {
           it(test.title || test.code, async () => {
-            await runTest(ruleNameToTest, test)
+            await runTest(ruleNameToTest, { ...test, warnings: test.warnings || ['- no warnings specified -'] })
           })
         })
       })
