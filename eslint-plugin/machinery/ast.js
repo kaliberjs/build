@@ -60,12 +60,12 @@ function hasParentsJSXElementsWithClassName(jsxElement) {
 }
 
 function isInJSXBranch(jsxElement) {
-  return getParentJSXElements(jsxElement).some(hasBranchingChildren)
+  return isInJSXFragment(jsxElement) || getParentJSXElements(jsxElement).some(hasBranchingChildren)
 
   function hasBranchingChildren(jsxElement) {
     const branchCandidate = ['JSXElement', 'JSXExpressionContainer']
     const [first, ...rest] = jsxElement.children.filter(x => branchCandidate.includes(x.type))
-    return rest.length > 0 || first.type === 'JSXExpressionContainer'
+    return rest.length > 0 || !first || first.type === 'JSXExpressionContainer'
   }
 }
 
@@ -80,4 +80,9 @@ function getParentJSXElement({ parent }) {
   return parent.type === 'JSXElement'
     ? parent
     : getParentJSXElement(parent)
+}
+
+function isInJSXFragment({ parent }) {
+  if (!parent) return false
+  return parent.type === 'JSXFragment' || isInJSXFragment(parent)
 }
