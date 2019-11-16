@@ -24,7 +24,7 @@
   },
 
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": 2020,
     "sourceType": "module",
     "ecmaFeatures": {
       "jsx": true,
@@ -43,7 +43,11 @@
     // http://eslint.org/docs/rules/
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
-    // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
+    "indent": ["warn", 2, {
+      "SwitchCase": 1,
+      "flatTernaryExpressions": true
+      //"ignoredNodes": ["ConditionalExpression"]
+    }],
 
     "accessor-pairs": "warn",
     "array-callback-return": "warn",
@@ -108,7 +112,7 @@
     "semi": ["warn", "never"],
     "semi-spacing": ["warn", { "before": false, "after": true }],
     "space-before-blocks": "warn",
-    "space-before-function-paren": ["warn", { "anonymous": "ignore", "named": "ignore", "asyncArrow": "always" }],
+    "space-before-function-paren": ["warn", { "anonymous": "never", "named": "never", "asyncArrow": "always" }],
     "space-infix-ops": "warn",
     "space-unary-ops": ["warn", { "words": true, "nonwords": false }],
     "template-tag-spacing": "warn",
