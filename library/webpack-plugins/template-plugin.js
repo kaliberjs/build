@@ -17,8 +17,8 @@
 */
 
 const { RawSource } = require('webpack-sources')
-const { basename } = require('path')
-const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
+const path = require('path')
+const { evalInFork } = require('../lib/node-utils')
 
 const p = 'template-plugin'
 const isFunctionKey = `${p} - export is function`
@@ -82,7 +82,7 @@ module.exports = function templatePlugin(renderers) {
 
             const { buildInfo } = parser.state.module
             buildInfo[isFunctionKey] = true
-      })
+          })
         }
       })
 
@@ -135,7 +135,7 @@ module.exports = function templatePlugin(renderers) {
             const outputName = name.replace(templatePattern, '')
 
             const source = asset.source()
-            const createMap = () => asset.map()
+            const createMap = () => asset.map() // we should get the raw source map information instead of calling .map() and perform the source map logic ourselves in case of an error
             renders.push(
               new Promise(resolve => resolve()) // inside a promise to catch errors
                 .then(async () => {
@@ -164,8 +164,8 @@ module.exports = function templatePlugin(renderers) {
   }
 }
 
-function createStaticTemplate(renderer, template, createMap) {
-  return new RawSource(withSourceMappedError(createMap, () => renderer(template)))
+async function createStaticTemplate(source, createMap) {
+  return new RawSource(await evalInFork(source, createMap))
 }
 
 function createDynamicTemplate(name, ext, createMap) {
