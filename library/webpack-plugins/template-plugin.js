@@ -21,6 +21,7 @@ const { basename } = require('path')
 const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
 
 const p = 'template-plugin'
+const isFunctionKey = `${p} - export is function`
 
 module.exports = function templatePlugin(renderers) {
 
@@ -66,14 +67,44 @@ module.exports = function templatePlugin(renderers) {
 
           return data
         })
+
+        /*
+          Use the parser to determine if the template returns a function
+        */
+        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, withParser)
+        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, withParser)
+        normalModuleFactory.hooks.parser.for('javascript/esm').tap(p, withParser)
+
+        function withParser(parser) {
+          parser.hooks.export.tap(p, statement => {
+            if (!statement.declaration || statement.declaration.type !== 'FunctionDeclaration') return
+            if (!parser.state.module.request.endsWith('?template-source')) return
+
+            const { buildInfo } = parser.state.module
+            buildInfo[isFunctionKey] = true
+      })
+        }
       })
 
       compiler.hooks.compilation.tap(p, compilation => {
 
         /*
-          Determines if a given asset has the 'template pattern' and if so it
-          evaluates the template. If the template is a function it's turned into
-          a dynamic template (a javascript function that accepts props). If it's
+          Add `isFunction` asset info to templates
+        */
+        compilation.hooks.chunkAsset.tap(p, (chunk, file) => {
+          if (!chunk.entryModule) return
+          const { module } =
+            chunk.entryModule.dependencies.find(x =>
+              x.module && x.module.request.endsWith('?template-source')
+            ) || {}
+          if (!module) return
+          const assetInfo = compilation.assetsInfo.get(file)
+          assetInfo[isFunctionKey] = module.buildInfo[isFunctionKey]
+        })
+
+        /*
+          Determines if a given asset has the 'template pattern'. If the template is a function
+          it's turned into a dynamic template (a javascript function that accepts props). If it's
           not a function the template is rendered directly.
 
           For static templates the `x.type.js` file is removed and rendered into `x.type`.
@@ -106,12 +137,15 @@ module.exports = function templatePlugin(renderers) {
             const source = asset.source()
             const createMap = () => asset.map()
             renders.push(
-              new Promise(resolve => resolve(evalWithSourceMap(source, createMap))) // inside a promise to catch errors
-                .then(({ template, renderer }) => template ? { template, renderer } : Promise.reject(new Error(`${name} did not export a template`)))
-                .then(({ template, renderer }) => typeof template === 'function'
-                  ? [[srcExt, createDynamicTemplate(basename(outputName), templateExt, createMap)], [templateExt, asset]]
-                  : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
-                )
+              new Promise(resolve => resolve()) // inside a promise to catch errors
+                .then(async () => {
+                  const assetInfo = compilation.assetsInfo.get(name)
+                  const isFunction = assetInfo && assetInfo[isFunctionKey]
+
+                  return isFunction
+                    ? [[srcExt, createDynamicTemplate(path.basename(outputName), templateExt, createMap)], [templateExt, asset]]
+                    : [[targetExt, await createStaticTemplate(source, createMap)]]
+                })
                 .then(files => {
                   files.forEach(([ext, result]) => {
                     const filename = outputName + ext
