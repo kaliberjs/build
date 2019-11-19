@@ -196,7 +196,15 @@ module.exports = {
           )
         }
       `
-    }
+    },
+    {
+      filename: 'Test.js',
+      code: `
+      function Test() {
+        return <Test2 component={<div className={styles.test} />} />
+      }
+      `,
+    },
   ],
   invalid: [
     {
@@ -362,6 +370,34 @@ module.exports = {
                 <div className={styles.component2} />
               </div>
             </Wrapper>
+          )
+        }
+      `,
+      errors: [{ message: messages['no root className']('component2'), type: 'Identifier' }],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
+            <>
+              <div />
+              <div className={styles.component2} />
+            </>
+          )
+        }
+      `,
+      errors: [{ message: messages['no root className']('component2'), type: 'Identifier' }],
+    },
+    {
+      filename: 'Test.js',
+      code: `
+        function Test2() {
+          return (
+            <>
+              <div className={styles.component2} />
+              <div />
+            </>
           )
         }
       `,
