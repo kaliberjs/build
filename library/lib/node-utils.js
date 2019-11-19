@@ -24,10 +24,8 @@ function withSourceMappedError(createMap, fn, options) {
   })
 }
 
-async function evalInFork(source, createMap) {
+async function evalInFork(source, map) {
   return new Promise((resolve, reject) => {
-    const map = createMap()
-
     const js = childProcess.fork(
       path.join(__dirname, 'eval-in-fork.js'),
       [source, JSON.stringify(map)],

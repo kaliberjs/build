@@ -114,7 +114,7 @@ module.exports = function templatePlugin(renderers) {
           result (in `x.type.js`) is a simple function with one argument that can be called
           to obtain a rendered template.
         */
-        compilation.hooks.optimizeAssets.tapPromise(p, assets => {
+        compilation.hooks.optimizeAssets.tapPromise(p, async assets => {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
@@ -133,27 +133,32 @@ module.exports = function templatePlugin(renderers) {
 
             const { srcExt, targetExt, templateExt } = renderInfo
             const outputName = name.replace(templatePattern, '')
+            const assetInfo = compilation.assetsInfo.get(name)
+            const isFunction = assetInfo && assetInfo[isFunctionKey]
 
-            const source = asset.source()
-            const createMap = () => asset.map() // we should get the raw source map information instead of calling .map() and perform the source map logic ourselves in case of an error
+            const { source, map } = asset.sourceAndMap()
+
             renders.push(
-              new Promise(resolve => resolve()) // inside a promise to catch errors
-                .then(async () => {
-                  const assetInfo = compilation.assetsInfo.get(name)
-                  const isFunction = assetInfo && assetInfo[isFunctionKey]
+              Promise.resolve().then(async () => { // no await in the body of a `for`
+                try {
+                  const files = isFunction
+                    ? [
+                      [srcExt, createDynamicTemplate(path.basename(outputName), templateExt, map)],
+                      [templateExt, new RawSource(source)]
+                    ]
+                    : [
+                      [targetExt, await createStaticTemplate(source, map)]
+                    ]
 
-                  return isFunction
-                    ? [[srcExt, createDynamicTemplate(path.basename(outputName), templateExt, createMap)], [templateExt, asset]]
-                    : [[targetExt, await createStaticTemplate(source, createMap)]]
-                })
-                .then(files => {
                   files.forEach(([ext, result]) => {
                     const filename = outputName + ext
                     if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
                     assets[filename] = result
                   })
-                })
-                .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
+                } catch (e) {
+                  compilation.errors.push(`Template plugin (${name}): ${e.message}`)
+                }
+              })
             )
           }
 
@@ -164,13 +169,13 @@ module.exports = function templatePlugin(renderers) {
   }
 }
 
-async function createStaticTemplate(source, createMap) {
-  return new RawSource(await evalInFork(source, createMap))
+async function createStaticTemplate(source, map) {
+  return new RawSource(await evalInFork(source, map))
 }
 
-function createDynamicTemplate(name, ext, createMap) {
+function createDynamicTemplate(name, ext, map) {
   return new RawSource(
-    `|const createMap = () => (${JSON.stringify(createMap())})
+    `|const createMap = () => JSON.parse(${JSON.stringify((JSON.stringify(map)))})
      |
      |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
      |
