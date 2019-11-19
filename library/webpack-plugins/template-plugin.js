@@ -179,8 +179,8 @@ function createDynamicTemplate(name, ext, map) {
      |
      |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
      |
-     |if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve('./${name}${ext}')]
-     |const { template, renderer } = withSourceMappedError(createMap, () => require('./${name}${ext}'))
+     |const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
+     |const { template, renderer } = withSourceMappedError(createMap, () => envRequire('./${name}${ext}'))
      |
      |Object.assign(render, template)
      |
