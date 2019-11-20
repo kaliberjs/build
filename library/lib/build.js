@@ -279,7 +279,7 @@ module.exports = function build({ watch }) {
           loader: 'file-loader'
         }
 
-      ]}]
+      ] }]
     }
   }
 
@@ -289,7 +289,7 @@ module.exports = function build({ watch }) {
         ProgressBarPlugin(),
         watch && websocketCommunicationPlugin(),
         makeAdditionalEntriesPlugin(),
-        new CaseSensitivePathsPlugin(),
+        new CaseSensitivePathsPlugin({ useBeforeEmitHook: true }),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
           'process.env.WATCH': watch
@@ -385,7 +385,7 @@ module.exports = function build({ watch }) {
         }
       }
     }
-  } catch (e) { console.error(e.message) }
+  } catch (e) { console.error(e) }
 
   function gatherEntries() {
     const template = recognizedTemplates.join('|')
