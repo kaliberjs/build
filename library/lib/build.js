@@ -231,7 +231,7 @@ module.exports = function build({ watch }) {
 
         {
           test: /\.css$/,
-          loaders: ['json-loader', cssLoaderMinifyOnly]
+          loaders: [cssLoaderMinifyOnly]
         },
 
         {

@@ -69,6 +69,12 @@ module.exports = function CssLoader(source, map) {
     map : { prev: map || false, inline: false, annotation: false }
   }
 
+  if (!plugins.length) return emitAndCallback({
+    css: source,
+    map,
+    value: cssHash => `// no postcss plugins, no exports available ${cssHash}`
+  })
+
   const result = postcss(plugins).process(source, options)
   result
     .then(({ css, map, messages }) => {
@@ -82,18 +88,21 @@ module.exports = function CssLoader(source, map) {
         .filter(({ type }) => type === 'export')
         .reduce((result, { item }) => ({ ...result, [item.key]: item.value }), {})
 
-      this.emitFile(filename, css, map.toJSON())
-
-      const cssHash = require('crypto').createHash('md5').update(css).digest('hex')
-
-      if (loaderOptions.globalScopeBehaviour) {
-        callback(null, `// postcss-modules is disabled, no exports available ${cssHash}`)
-      } else {
-        exports.cssHash = cssHash
-        callback(null, exports)
-      }
+      emitAndCallback({
+        css,
+        map: map.toJSON(),
+        value: cssHash => loaderOptions.globalScopeBehaviour || loaderOptions.minifyOnly
+          ? `// postcss-modules is disabled, no exports available ${cssHash}`
+          : { ...exports, cssHash }
+      })
     })
     .catch(e => { callback(e) })
+
+  function emitAndCallback({ css, map, value }) {
+    self.emitFile(filename, css, map)
+    const cssHash = require('crypto').createHash('md5').update(css).digest('hex')
+    callback(null, value(cssHash))
+  }
 
   function resolveAndExecute(context, request) {
     return resolve(context, request).then(resolved =>
