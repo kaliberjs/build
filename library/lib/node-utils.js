@@ -20,7 +20,12 @@ function withSourceMappedError(createMap, fn, options) {
   return withRawErrorStack(() => {
     try {
       return fn()
-    } catch (e) { throw new Error(e + '\n' + toMappedStack(createMap, e.stack, options)) }
+    } catch (e) {
+      const messageWithStack = e + '\n' + toMappedStack(createMap, e.stack, options)
+      const error = new Error(messageWithStack)
+      error.stack = messageWithStack
+      throw error
+    }
   })
 }
 
