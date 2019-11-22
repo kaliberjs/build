@@ -57,7 +57,7 @@ module.exports = function CssLoader(source, map) {
     resolveForUrlReplace: (url, file) => isDependency(url)
       ? resolveAndExecute(dirname(file), url)
       : Promise.resolve(url),
-    resolveForImportExportParser: url => resolveAndExecute(this.context, url),
+    resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
   }
 
   const loaderOptions = loaderUtils.getOptions(this) || {}
