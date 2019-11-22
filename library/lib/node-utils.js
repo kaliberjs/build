@@ -28,18 +28,22 @@ async function evalInFork(source, map) {
   return new Promise((resolve, reject) => {
     const js = childProcess.fork(
       path.join(__dirname, 'eval-in-fork.js'),
-      [source, JSON.stringify(map)],
-      { silent: true }
+      [],
+      { stdio: ['pipe', 'pipe', 'pipe', 'ipc'] }
     )
     const outData = []
     const errData = []
+    const messageData = []
+    js.on('message', x => messageData.push(x))
     js.stdout.on('data', x => outData.push(x))
     js.stderr.on('data', x => errData.push(x))
-
     js.on('close', code => {
-      if (code === 0) resolve(outData.join(''))
+      if (outData.length) console.log(outData.join(''))
+      if (code === 0) resolve(messageData.join(''))
       else reject(new Error(errData.join('')))
     })
+    js.send(source)
+    js.send(map)
   })
 }
 

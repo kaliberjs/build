@@ -1,13 +1,29 @@
-const { evalWithSourceMap, withSourceMappedError } = require('./node-utils')
+attempt(() => {
+  const { evalWithSourceMap, withSourceMappedError } = require('./node-utils')
 
-const [,, source, map] = process.argv
+  const messages = []
+  process.on('message', handleMessage)
+  function handleMessage(x) {
+    attempt(() => {
+      messages.push(x)
+      const [source, map] = messages
+      if (source !== undefined && map !== undefined) {
+        const createMap = () => map
+        const { template, renderer } = evalWithSourceMap(source, createMap)
+        const result = withSourceMappedError(createMap, () => renderer(template))
+        process.send(result)
+        process.off('message', handleMessage)
+        process.exit()
+      }
+    })
+  }
+})
 
-const createMap = () => JSON.parse(map)
-const { template, renderer } = evalWithSourceMap(source, createMap)
-
-try {
-  console.log(withSourceMappedError(createMap, () => renderer(template)))
-} catch (e) {
-  console.error(e.message)
-  process.exitCode = 1
+function attempt(f) {
+  try {
+    f()
+  } catch (e) {
+    console.error(e)
+    process.exit(1)
+  }
 }
