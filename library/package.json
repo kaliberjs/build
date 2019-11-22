@@ -54,6 +54,7 @@
     "icss-utils": "^4.1.1",
     "image-maxsize-webpack-loader": "^1.1.1",
     "image-webpack-loader": "^6.0.0",
+    "import-fresh": "^3.2.1",
     "json-loader": "^0.5.7",
     "loader-utils": "^1.1.0",
     "pkg-dir": "^4.2.0",
