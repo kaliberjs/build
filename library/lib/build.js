@@ -269,8 +269,8 @@ module.exports = function build({ watch }) {
         {
           test: /\.(jpe?g|png|gif)$/,
           loaders: [
-            'cache-loader',
             urlLoader,
+            'cache-loader',
             isProduction && imageLoader,
             imageSizeLoader
           ].filter(Boolean)
