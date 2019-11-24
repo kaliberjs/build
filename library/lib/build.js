@@ -269,6 +269,7 @@ module.exports = function build({ watch }) {
         {
           test: /\.(jpe?g|png|gif)$/,
           loaders: [
+            'cache-loader',
             urlLoader,
             isProduction && imageLoader,
             imageSizeLoader
@@ -319,7 +320,7 @@ module.exports = function build({ watch }) {
     }
   }
 
-  function externalConfForModulesDir (modulesDir) {
+  function externalConfForModulesDir(modulesDir) {
     return {
       modulesDir,
       whitelist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
