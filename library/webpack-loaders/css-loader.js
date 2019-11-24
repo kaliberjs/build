@@ -3,6 +3,7 @@ const postcss = require('postcss')
 const { relative, dirname } = require('path')
 const genericNames = require('generic-names')
 const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
+const vm = require('vm')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -108,13 +109,13 @@ function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour }) {
   const cache = c.kaliberCache || (c.kaliberCache = {})
   if (cache[key]) return cache[key]
 
-  const handlers = createHandlers(loaderContext)
+  const handlers = createHandlers(loaderContext, cache)
   const plugins = createPlugins({ minifyOnly, globalScopeBehaviour }, handlers)
   return (cache[key] = plugins)
 }
 
 /** @param {import('webpack').loader.LoaderContext} loaderContext */
-function createHandlers(loaderContext) {
+function createHandlers(loaderContext, cache) {
   return {
     resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
     resolveForUrlReplace: (url, file) => isDependency(url)
@@ -143,8 +144,15 @@ function createHandlers(loaderContext) {
   }
 
   function executeModuleAt(url, source) {
-    const completeSource = `const __webpack_public_path__ = '${loaderContext._compiler.options.output.publicPath || '/'}'\n` + source
-    return loaderContext.exec(completeSource, url)
+    const key = `module-${url}`
+    if (cache[key]) return cache[key]
+
+    const sandbox = {
+      module: {},
+      __webpack_public_path__: loaderContext._compiler.options.output.publicPath || '/',
+    }
+    const result = vm.runInNewContext(source, sandbox, { displayErrors: true, contextName: `Execute ${url}` })
+    return (cache[key] = result)
   }
 }
 
