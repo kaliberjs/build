@@ -6,8 +6,10 @@ const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, resolveForImportExportParser, cssGlobalFiles }) {
-  const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
+function createPlugins(
+  { minifyOnly, globalScopeBehaviour },
+  { resolveForImport, resolveForUrlReplace, resolveForImportExportParser, cssGlobalFiles }
+) {
 
   return [
     ...(minifyOnly
@@ -48,22 +50,15 @@ function createPlugins(loaderOptions, { resolveForImport, resolveForUrlReplace, 
   ].filter(Boolean)
 }
 
+/** @type {import('webpack').loader.Loader} */
 module.exports = function CssLoader(source, map) {
 
   const self = this
   const callback = this.async()
 
-  const handlers = {
-    resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
-    resolveForUrlReplace: (url, file) => isDependency(url)
-      ? resolveAndExecute(dirname(file), url)
-      : Promise.resolve(url),
-    resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
-    cssGlobalFiles: findCssGlobalFiles(this.rootContext),
-  }
-
   const loaderOptions = loaderUtils.getOptions(this) || {}
-  const plugins = createPlugins(loaderOptions, handlers)
+  const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
+  const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour })
   const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
@@ -80,7 +75,7 @@ module.exports = function CssLoader(source, map) {
   const result = postcss(plugins).process(source, options)
   result
     .then(({ css, map, messages }) => {
-      throwErrorForWarnings(result.warnings())
+      throwErrorForWarnings(filename, result.warnings())
 
       messages
         .filter(({ type }) => type === 'dependency')
@@ -105,41 +100,62 @@ module.exports = function CssLoader(source, map) {
     const cssHash = require('crypto').createHash('md5').update(css).digest('hex')
     callback(null, value(cssHash))
   }
+}
 
-  function resolveAndExecute(context, request) {
-    return resolve(context, request).then(resolved =>
-      loadModule(resolved).then(executeModuleAt(resolved))
-    )
+function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour }) {
+  const key = `plugins${minifyOnly ? '-minifyOnly' : ''}${globalScopeBehaviour ? '-globalScope' : ''}`
+  const c = loaderContext._compilation
+  const cache = c.kaliberCache || (c.kaliberCache = {})
+  if (cache[key]) return cache[key]
+
+  const handlers = createHandlers(loaderContext)
+  const plugins = createPlugins({ minifyOnly, globalScopeBehaviour }, handlers)
+  return (cache[key] = plugins)
+}
+
+/** @param {import('webpack').loader.LoaderContext} loaderContext */
+function createHandlers(loaderContext) {
+  return {
+    resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
+    resolveForUrlReplace: (url, file) => isDependency(url)
+      ? resolveAndExecute(dirname(file), url)
+      : Promise.resolve(url),
+    resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
+    cssGlobalFiles: findCssGlobalFiles(loaderContext.rootContext),
   }
 
-  function resolve(context, request) {
+  async function resolveAndExecute(context, request) {
+    const resolved = await resolve(context, request)
+    const source = await loadModule(resolved)
+    return executeModuleAt(resolved, source)
+  }
+
+  async function resolve(context, request) {
     return new Promise((resolve, reject) => {
-      self.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
+      loaderContext.resolve(context, request, (err, result) => { err ? reject(err) : resolve(result) })
     })
   }
 
   function loadModule(url) {
     return new Promise((resolve, reject) => {
-      self.loadModule(url, (err, source) => { if (err) reject(err); else resolve(source) })
+      loaderContext.loadModule(url, (err, source) => { if (err) reject(err); else resolve(source) })
     })
   }
 
-  function executeModuleAt(url) {
-    return source => {
-      const completeSource = `const __webpack_public_path__ = '${self._compiler.options.output.publicPath || '/'}'\n` + source
-      return self.exec(completeSource, url)
-    }
+  function executeModuleAt(url, source) {
+    const completeSource = `const __webpack_public_path__ = '${loaderContext._compiler.options.output.publicPath || '/'}'\n` + source
+    return loaderContext.exec(completeSource, url)
   }
+}
 
-  function throwErrorForWarnings(warnings) {
-    if (warnings.length) throw new Error(warnings
-      .sort(({ line: a = 0 }, { line: b = 0}) => a - b)
-      .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
-    )
+function throwErrorForWarnings(filename, warnings) {
+  if (warnings.length) throw new Error(warnings
+    .sort(({ line: a = 0 }, { line: b = 0 }) => a - b)
+    .map(warning => fileAndLine(warning) + warning.text).join('\n\n') + '\n'
+  )
 
-    function fileAndLine({ line }) {
-      return filename + ((line || '') && (':' + line)) + '\n\n'
-    }
+  function fileAndLine({ line }) {
+    return filename + ((line || '') && (':' + line)) + '\n\n'
   }
 }
 
