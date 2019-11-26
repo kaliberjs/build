@@ -17,10 +17,11 @@
 */
 
 const { RawSource } = require('webpack-sources')
-const { basename } = require('path')
-const { evalWithSourceMap, withSourceMappedError } = require('../lib/node-utils')
+const path = require('path')
+const { evalInFork } = require('../lib/node-utils')
 
 const p = 'template-plugin'
+const isFunctionKey = `${p} - export is function`
 
 module.exports = function templatePlugin(renderers) {
 
@@ -66,14 +67,44 @@ module.exports = function templatePlugin(renderers) {
 
           return data
         })
+
+        /*
+          Use the parser to determine if the template returns a function
+        */
+        normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, withParser)
+        normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(p, withParser)
+        normalModuleFactory.hooks.parser.for('javascript/esm').tap(p, withParser)
+
+        function withParser(parser) {
+          parser.hooks.export.tap(p, statement => {
+            if (!statement.declaration || statement.declaration.type !== 'FunctionDeclaration') return
+            if (!parser.state.module.request.endsWith('?template-source')) return
+
+            const { buildInfo } = parser.state.module
+            buildInfo[isFunctionKey] = true
+          })
+        }
       })
 
       compiler.hooks.compilation.tap(p, compilation => {
 
         /*
-          Determines if a given asset has the 'template pattern' and if so it
-          evaluates the template. If the template is a function it's turned into
-          a dynamic template (a javascript function that accepts props). If it's
+          Add `isFunction` asset info to templates
+        */
+        compilation.hooks.chunkAsset.tap(p, (chunk, file) => {
+          if (!chunk.entryModule) return
+          const { module } =
+            chunk.entryModule.dependencies.find(x =>
+              x.module && x.module.request.endsWith('?template-source')
+            ) || {}
+          if (!module) return
+          const assetInfo = compilation.assetsInfo.get(file)
+          assetInfo[isFunctionKey] = module.buildInfo[isFunctionKey]
+        })
+
+        /*
+          Determines if a given asset has the 'template pattern'. If the template is a function
+          it's turned into a dynamic template (a javascript function that accepts props). If it's
           not a function the template is rendered directly.
 
           For static templates the `x.type.js` file is removed and rendered into `x.type`.
@@ -83,7 +114,7 @@ module.exports = function templatePlugin(renderers) {
           result (in `x.type.js`) is a simple function with one argument that can be called
           to obtain a rendered template.
         */
-        compilation.hooks.optimizeAssets.tapPromise(p, assets => {
+        compilation.hooks.optimizeAssets.tapPromise(p, async assets => {
           const renders = []
 
           const chunksByName = compilation.chunks.reduce(
@@ -102,24 +133,32 @@ module.exports = function templatePlugin(renderers) {
 
             const { srcExt, targetExt, templateExt } = renderInfo
             const outputName = name.replace(templatePattern, '')
+            const assetInfo = compilation.assetsInfo.get(name)
+            const isFunction = assetInfo && assetInfo[isFunctionKey]
 
-            const source = asset.source()
-            const createMap = () => asset.map()
+            const { source, map } = asset.sourceAndMap()
+
             renders.push(
-              new Promise(resolve => resolve(evalWithSourceMap(source, createMap))) // inside a promise to catch errors
-                .then(({ template, renderer }) => template ? { template, renderer } : Promise.reject(new Error(`${name} did not export a template`)))
-                .then(({ template, renderer }) => typeof template === 'function'
-                  ? [[srcExt, createDynamicTemplate(basename(outputName), templateExt, createMap)], [templateExt, asset]]
-                  : [[targetExt, createStaticTemplate(renderer, template, createMap)]]
-                )
-                .then(files => {
+              Promise.resolve().then(async () => { // no await in the body of a `for`
+                try {
+                  const files = isFunction
+                    ? [
+                      [srcExt, createDynamicTemplate(path.basename(outputName), templateExt, map)],
+                      [templateExt, new RawSource(source)]
+                    ]
+                    : [
+                      [targetExt, await createStaticTemplate(source, map)]
+                    ]
+
                   files.forEach(([ext, result]) => {
                     const filename = outputName + ext
                     if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
                     assets[filename] = result
                   })
-                })
-                .catch(e => { compilation.errors.push(`Template plugin (${name}): ${e.message}`) })
+                } catch (e) {
+                  compilation.errors.push(`Template plugin (${name}): ${e.message}`)
+                }
+              })
             )
           }
 
@@ -130,18 +169,18 @@ module.exports = function templatePlugin(renderers) {
   }
 }
 
-function createStaticTemplate(renderer, template, createMap) {
-  return new RawSource(withSourceMappedError(createMap, () => renderer(template)))
+async function createStaticTemplate(source, map) {
+  return new RawSource(await evalInFork(source, map))
 }
 
-function createDynamicTemplate(name, ext, createMap) {
+function createDynamicTemplate(name, ext, map) {
   return new RawSource(
-    `|const createMap = () => (${JSON.stringify(createMap())})
+    `|const createMap = () => JSON.parse(${JSON.stringify((JSON.stringify(map)))})
      |
      |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
      |
-     |if (process.env.NODE_ENV !== 'production') delete require.cache[require.resolve('./${name}${ext}')]
-     |const { template, renderer } = withSourceMappedError(createMap, () => require('./${name}${ext}'))
+     |const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
+     |const { template, renderer } = withSourceMappedError(createMap, () => envRequire('./${name}${ext}'))
      |
      |Object.assign(render, template)
      |

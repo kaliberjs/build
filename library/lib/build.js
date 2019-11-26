@@ -231,7 +231,7 @@ module.exports = function build({ watch }) {
 
         {
           test: /\.css$/,
-          loaders: ['json-loader', cssLoaderMinifyOnly]
+          loaders: [cssLoaderMinifyOnly]
         },
 
         {
@@ -270,6 +270,7 @@ module.exports = function build({ watch }) {
           test: /\.(jpe?g|png|gif)$/,
           loaders: [
             urlLoader,
+            'cache-loader',
             isProduction && imageLoader,
             imageSizeLoader
           ].filter(Boolean)
@@ -279,7 +280,7 @@ module.exports = function build({ watch }) {
           loader: 'file-loader'
         }
 
-      ]}]
+      ] }]
     }
   }
 
@@ -289,7 +290,7 @@ module.exports = function build({ watch }) {
         ProgressBarPlugin(),
         watch && websocketCommunicationPlugin(),
         makeAdditionalEntriesPlugin(),
-        new CaseSensitivePathsPlugin(),
+        new CaseSensitivePathsPlugin({ useBeforeEmitHook: true }),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
           'process.env.WATCH': watch
@@ -319,7 +320,7 @@ module.exports = function build({ watch }) {
     }
   }
 
-  function externalConfForModulesDir (modulesDir) {
+  function externalConfForModulesDir(modulesDir) {
     return {
       modulesDir,
       whitelist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
@@ -386,7 +387,7 @@ module.exports = function build({ watch }) {
         }
       }
     }
-  } catch (e) { console.error(e.message) }
+  } catch (e) { console.error(e) }
 
   function gatherEntries() {
     const template = recognizedTemplates.join('|')

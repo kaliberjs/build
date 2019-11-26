@@ -8,7 +8,7 @@ module.exports = postcss.plugin(
   ({ loadExports }) => async function process(css, result) {
     const { icssExports, icssImports } = extractICSS(css)
 
-    const importedValues = await resolveImportedValues(icssImports, loadExports)
+    const importedValues = await resolveImportedValues(css.source.input.file, icssImports, loadExports)
 
     replaceSymbols(css, importedValues)
 
@@ -23,10 +23,10 @@ module.exports = postcss.plugin(
   }
 )
 
-async function resolveImportedValues(icssImports, loadExports) {
+async function resolveImportedValues(file, icssImports, loadExports) {
   return Object.entries(icssImports).reduce(
     async (result, [url, values]) => {
-      const exportedValues = await loadExports(url)
+      const exportedValues = await loadExports(url, file)
       return {
         ...(await result),
         ...mapValues(values, x => exportedValues[x])
