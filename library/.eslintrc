@@ -4,7 +4,7 @@
   "parser": "babel-eslint",
   "plugins": ["import", "jsx-a11y", "react", "react-hooks"],
   "root": true,
-   "env": {
+  "env": {
     "browser": true,
     "commonjs": true,
     "es6": true,
@@ -24,7 +24,7 @@
   },
 
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": 2020,
     "sourceType": "module",
     "ecmaFeatures": {
       "jsx": true,
@@ -35,14 +35,19 @@
 
   "globals": {
     "Component": true,
-    "React": true
+    "React": true,
+    "cx": true
   },
 
   "rules": {
     // http://eslint.org/docs/rules/
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
-    // "indent": ["warn", 2, { "ignoredNodes": ["ConditionalExpression", "ConditionalExpression > CallExpression"] }], // needs better config to fit our needs
+    "indent": ["warn", 2, {
+      "SwitchCase": 1,
+      "flatTernaryExpressions": true
+      //"ignoredNodes": ["ConditionalExpression"]
+    }],
 
     "accessor-pairs": "warn",
     "array-callback-return": "warn",
@@ -102,12 +107,13 @@
     "no-unneeded-ternary": "warn",
     "no-unsafe-negation": "warn",
     "no-useless-return": "warn",
+    "object-curly-spacing": ["warn", "always"],
     "object-shorthand": ["warn", "always"],
     "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "semi": ["warn", "never"],
     "semi-spacing": ["warn", { "before": false, "after": true }],
     "space-before-blocks": "warn",
-    "space-before-function-paren": ["warn", { "anonymous": "ignore", "named": "ignore", "asyncArrow": "always" }],
+    "space-before-function-paren": ["warn", { "anonymous": "never", "named": "never", "asyncArrow": "always" }],
     "space-infix-ops": "warn",
     "space-unary-ops": ["warn", { "words": true, "nonwords": false }],
     "template-tag-spacing": "warn",
@@ -213,7 +219,7 @@
     "react/jsx-boolean-value": "warn",
     // "react/jsx-closing-bracket-location": "warn", // needs better config to fit our needs
     // "react/jsx-closing-tag-location": "warn", // needs better config to fit our needs
-    "react/jsx-curly-spacing": "warn",
+    "react/jsx-curly-spacing": ["warn", "never"],
     "react/jsx-equals-spacing": "warn",
     "react/jsx-indent": ["warn", 2],
     "react/jsx-indent-props": ["warn", 2],

@@ -97,8 +97,8 @@ function fileExists (path) {
 }
 
 function serveIndexWithRouting (req, res, next) {
-  if (!isProduction) delete require.cache[require.resolve(indexWithRouting)]
-  const template = require(indexWithRouting)
+  const envRequire = isProduction ? require : require('import-fresh')
+  const template = envRequire(indexWithRouting)
 
   const routes = template.routes
   const location = parsePath(req.url)
