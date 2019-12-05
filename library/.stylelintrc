@@ -180,7 +180,12 @@
     "selector-pseudo-element-colon-notation": "double",
     "selector-pseudo-element-no-unknown": true,
     "selector-type-case": "lower",
-    "selector-type-no-unknown": true,
+    "selector-type-no-unknown": [
+      true,
+      {
+        ignore: ["custom-elements"]
+      }
+    ],
     "string-no-newline": true,
     "unit-case": "lower",
     "unit-no-unknown": true,
