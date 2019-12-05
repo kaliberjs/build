@@ -4,6 +4,16 @@ process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled rejection of:\n', p, '\nReason:\n', reason)
 })
 
+let caseSensitive = false
+try {
+  require('./CaSe-SeNsItIvE')
+  caseSensitive = false
+} catch (e) {
+  caseSensitive = true
+} finally {
+  if (!caseSensitive) throw new Error(`@kaliber/build will not run on a filesystem that is case-insensitive`)
+}
+
 const findYarnWorkspaceRoot = require('find-yarn-workspace-root')
 const fs = require('fs-extra')
 const nodeExternals = require('webpack-node-externals')
@@ -27,7 +37,6 @@ const websocketCommunicationPlugin = require('../webpack-plugins/websocket-commu
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
 
-const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const TimeFixPlugin = require('time-fix-plugin') // https://github.com/webpack/watchpack/issues/25
@@ -290,7 +299,6 @@ module.exports = function build({ watch }) {
         ProgressBarPlugin(),
         watch && websocketCommunicationPlugin(),
         makeAdditionalEntriesPlugin(),
-        new CaseSensitivePathsPlugin({ useBeforeEmitHook: true }),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
           'process.env.WATCH': watch

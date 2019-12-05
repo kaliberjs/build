@@ -1,5 +1,5 @@
 {
-  "version": "0.0.97-alpha.2",
+  "version": "0.0.99-alpha.3",
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
@@ -32,7 +32,6 @@
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
     "cache-loader": "^4.1.0",
-    "case-sensitive-paths-webpack-plugin": "^2.1.2",
     "classnames": "^2.2.6",
     "compression": "^1.7.4",
     "cross-spawn": "^7.0.0",
