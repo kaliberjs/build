@@ -147,7 +147,12 @@
     "number-leading-zero": "always",
     "number-no-trailing-zeros": true,
     "property-case": null,
-    "property-no-unknown": true,
+    "property-no-unknown": [
+      true,
+      {
+        ignoreSelectors: ":export"
+      }
+    ],
     "rule-empty-line-before": [
       "always-multi-line",
       {
