@@ -10,45 +10,36 @@ const appPath = process.cwd()
 const templatePath = path.resolve(__dirname, '../template')
 const useYarn = fs.existsSync(path.join(appPath, 'yarn.lock'))
 
-const appPackage = require(path.resolve(appPath, 'package.json'))
+const packageJson = path.resolve(appPath, 'package.json')
+const appPackage = require(packageJson)
 
-appPackage.scripts = Object.assign({}, appPath.scripts, {
+appPackage.scripts = { ...(appPath.scripts || {}),
+  'start': 'npm-run-all --parallel watch serve:dev',
+  'watch': 'CONFIG_ENV=dev kaliber-watch',
+
   'build': 'NODE_ENV=production kaliber-build',
-  'lint': 'kaliber-lint',
+
   'serve': 'kaliber-serve',
   'serve:dev': 'PORT=8000 CONFIG_ENV=dev kaliber-serve',
-  'start': 'npm-run-all --parallel watch serve:dev',
-  'watch': 'CONFIG_ENV=dev kaliber-watch'
-})
+
+  'lint': 'npm-run-all --serial lint.javascript lint.styles',
+  'lint.javascript': 'eslint -c .eslintrc --ignore-path .gitignore \'./**/*.js\'',
+  'lint.styles': 'stylelint --config .stylelintrc --ignore-path .gitignore \'./**/*.css\'',
+}
 
 // write package.json
-fs.writeFileSync(
-  path.resolve(appPath, 'package.json'),
-  JSON.stringify(appPackage, null, 2)
-)
+fs.writeFileSync(packageJson, JSON.stringify(appPackage, null, 2))
 
 // Copy the template
 fs.copySync(templatePath, appPath, { overwrite: false })
 
-// Rename gitignore after the fact to prevent npm from renaming it to .npmignore
-// See: https://github.com/npm/npm/issues/1862
-fs.move(
-  path.join(appPath, 'gitignore'),
-  path.join(appPath, '.gitignore'),
-  [],
-  err => {
-    if (err) {
-      // Append if there's already a `.gitignore` file there
-      if (err.code === 'EEXIST') {
-        const data = fs.readFileSync(path.join(appPath, 'gitignore'))
-        fs.appendFileSync(path.join(appPath, '.gitignore'), data)
-        fs.unlinkSync(path.join(appPath, 'gitignore'))
-      } else {
-        throw err
-      }
-    }
-  }
-)
+const templateGitIgnore = path.join(appPath, 'gitignore')
+const gitignore = path.join(appPath, '.gitignore')
+try {
+  // Rename gitignore after the fact to prevent npm from renaming it to .npmignore
+  // See: https://github.com/npm/npm/issues/1862
+  fs.moveSync(templateGitIgnore, gitignore)
+} catch (e) { /* ignore if file exists */ }
 
 // install dev depenendecy `npm-run-all`
 const [ command, args ] = useYarn
