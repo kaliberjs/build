@@ -1,60 +1,18 @@
-
-body, html {
-  margin: 0;
-  padding: 0;
-}
+*,
+*::before,
+*::after { box-sizing: inherit; }
 
 html {
-  animation: woah 30s ease-in-out infinite;
+  box-sizing: border-box;
+
+  /* force scroll bar, so there's no ui-jank when opening/closing menu on windows */
+  overflow-y: scroll;
 }
 
 body {
-  box-sizing: border-box;
-  background: linear-gradient(45deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  border: 50px white double;
-  animation: borderColor 6s linear infinite;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-
-  &::before,
-  &::after {
-    content: '';
-    width: 200vw;
-    height: 1px;
-    background: white;
-    position: absolute;
-    z-index: -1;
-  }
-
-  &::before { transform: rotatez(45deg); }
-  &::after  { transform: rotatez(-45deg); }
-}
-
-.suchWowMuchMarquee {
-  text-align: center;
-  width: 10vw;
-  animation: rotate 1s linear infinite;
-
-  font-weight: bold;
-  font-size: 30px;
-}
-
-@keyframes woah {
-  0% { transform: rotate(-3deg) scale(1); }
-  50% { transform: rotate(60deg) scale(0.001); }
-  100% { transform: rotate(-3deg) scale(1); }
-}
-
-@keyframes rotate {
-  from { transform: rotatez(0deg); }
-  to { transform: rotatez(360deg); }
-}
-
-@keyframes borderColor {
-  0% { border: 50px var(--color-primary) double; }
-  50% { border: 50px var(--color-secondary) double; }
-  100% { border: 50px var(--color-primary) double; }
+  color: var(--color-gray-90);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-base-400);
+  line-height: 1.7;
 }
