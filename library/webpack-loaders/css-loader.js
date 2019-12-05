@@ -117,13 +117,16 @@ function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour }) {
 
 /** @param {import('webpack').loader.LoaderContext} loaderContext */
 function createHandlers(loaderContext, cache) {
+  const cssGlobalFiles = findCssGlobalFiles(loaderContext.rootContext)
+  cssGlobalFiles.forEach(x => loaderContext._compilation.compilationDependencies.add(x))
+
   return {
     resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
     resolveForUrlReplace: (url, file) => isDependency(url)
       ? resolveAndExecute(dirname(file), url)
       : Promise.resolve(url),
     resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
-    cssGlobalFiles: findCssGlobalFiles(loaderContext.rootContext),
+    cssGlobalFiles,
   }
 
   async function resolveAndExecute(context, request) {
