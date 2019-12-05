@@ -2,7 +2,7 @@ const {
   getPropertyName,
   getFunctionName,
   getParentJSXElement,
-  hasParentsJSXElementsWithClassName, isInJSXBranch
+  hasParentsJSXElementsWithClassName, isInJSXBranch, isInExport,
 } = require('../../machinery/ast')
 const { isApp, isPage, getBaseFilename } = require('../../machinery/filename')
 const { firstLetterLowerCase } = require('../../machinery/word')
@@ -179,9 +179,10 @@ module.exports = {
 function getValidRootElementClassNames(context) {
   const prefix = new RegExp(`^${getBaseFilename(context)}`)
   const name = getFunctionName(context).replace(prefix, '')
+  const exported = isInExport(context)
   return (
-    isApp(context) ? [`app${name}`] :
-    isPage(context) ? [`page${name}`] :
+    exported && isApp(context) ? [`app${name}`] :
+    exported && isPage(context) ? [`page${name}`] :
     [`component${name}`, `component_root${name}`]
   )
 }

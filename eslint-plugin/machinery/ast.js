@@ -2,7 +2,7 @@ module.exports = {
   getPropertyName,
   getFunctionName,
   getJSXElementName, getParentJSXElement,
-  isRootJSXElement, hasParentsJSXElementsWithClassName, isInJSXBranch
+  isRootJSXElement, hasParentsJSXElementsWithClassName, isInJSXBranch, isInExport,
 }
 
 function getPropertyName(property) {
@@ -18,22 +18,27 @@ function getPropertyName(property) {
 }
 
 function getFunctionName(context) {
-  return getRootFunctionName(context.getScope())
+  return getName(getRootFunctionScope(context.getScope()))
 
-  function getRootFunctionName(node, previous = []) {
-    const { upper } = node
-    const [lastSeen] = previous
-    if (upper.type === 'module') {
-      if (node.type === 'function') return getName(node)
-      else if (lastSeen) return getName(lastSeen)
-      else throw new Error('Could not find root function name')
-    } else {
-      return getRootFunctionName(upper, [...(node.type === 'function' ? [node] : []), ...previous])
-    }
+  function getName({ block: { id } }) {
+    return id ? id.name : '???'
+  }
+}
 
-    function getName({ block: { id } }) {
-      return id ? id.name : '???'
-    }
+function isInExport(context) {
+  const { type } = getRootFunctionScope(context.getScope()).block.parent
+  return ['ExportDefaultDeclaration', 'ExportNamedDeclaration'].includes(type)
+}
+
+function getRootFunctionScope(node, previous = []) {
+  const { upper } = node
+  const [lastSeen] = previous
+  if (upper.type === 'module') {
+    if (node.type === 'function') return node
+    else if (lastSeen) return lastSeen
+    else throw new Error('Could not find root function name')
+  } else {
+    return getRootFunctionScope(upper, [...(node.type === 'function' ? [node] : []), ...previous])
   }
 }
 

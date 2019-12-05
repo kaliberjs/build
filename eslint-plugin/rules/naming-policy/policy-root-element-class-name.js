@@ -108,7 +108,7 @@ module.exports = {
     {
       filename: 'App.js',
       code: `
-        function App() {
+      export default function App() {
           return (
             <div className={styles.app} />
           )
@@ -118,7 +118,7 @@ module.exports = {
     {
       filename: 'TestApp.js',
       code: `
-        function TestApp() {
+        export default function TestApp() {
           return (
             <div className={styles.app} />
           )
@@ -126,9 +126,29 @@ module.exports = {
       `,
     },
     {
+      filename: 'TestApp.js',
+      code: `
+        export function TestApp() {
+          return (
+            <div className={styles.app} />
+          )
+        }
+      `,
+    },
+    {
+      filename: 'App.js',
+      code: `
+        function Input() {
+          return (
+            <div className={styles.componentInput} />
+          )
+        }
+      `,
+    },
+    {
       filename: 'src/pages/Something.js',
       code: `
-        function Something() {
+        export function Something() {
           return (
             <div className={styles.page} />
           )
@@ -276,16 +296,25 @@ module.exports = {
     {
       filename: 'App.js',
       code: `
-      function App() {
+      export function App() {
         return <div className={styles.test} />
       }
       `,
       errors: [{ message: messages['invalid className']('test', 'app'), type: 'Identifier' }],
     },
     {
+      filename: 'App.js',
+      code: `
+      function Input() {
+        return <div className={styles.test} />
+      }
+      `,
+      errors: [{ message: messages['invalid className']('test', 'componentInput'), type: 'Identifier' }],
+    },
+    {
       filename: 'src/pages/Something.js',
       code: `
-      function Something() {
+      export function Something() {
         return <div className={styles.test} />
       }
       `,
