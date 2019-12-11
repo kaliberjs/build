@@ -107,7 +107,17 @@ const imageSizeLoader = {
 
 const urlLoader = {
   loader: 'url-loader',
-  options: { limit: 5000 }
+  options: { limit: 5000, esModule: false }
+}
+
+const fileLoader = {
+  loader: 'file-loader',
+  options: { esModule: false }
+}
+
+const rawLoader = {
+  loader: 'raw-loader',
+  options: { esModule: false }
 }
 
 module.exports = function build({ watch }) {
@@ -218,7 +228,7 @@ module.exports = function build({ watch }) {
 
         {
           test: /\.raw\.[^.]+$/,
-          loaders: ['raw-loader']
+          loaders: [rawLoader]
         },
 
         {
@@ -246,7 +256,7 @@ module.exports = function build({ watch }) {
         {
           test: /\.js$/,
           resourceQuery: /transpiled-javascript-string/,
-          loaders: ['raw-loader', babelLoader]
+          loaders: [rawLoader, babelLoader]
         },
 
         {
@@ -286,7 +296,7 @@ module.exports = function build({ watch }) {
         },
 
         {
-          loader: 'file-loader'
+          loader: fileLoader
         }
 
       ] }]
