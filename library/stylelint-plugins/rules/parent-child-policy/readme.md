@@ -286,6 +286,14 @@ Examples of *correct* code for this rule:
 }
 ```
 
+```css
+.parent {
+  &::after {
+    pointer-events: none;
+  }
+}
+```
+
 Examples of *incorrect* code for this rule:
 
 ```css

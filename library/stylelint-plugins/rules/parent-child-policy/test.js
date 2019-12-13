@@ -1,4 +1,5 @@
 const { messages } = require('./')
+const layoutRelatedProperties = require('../layout-related-properties')
 const { test } = require('../../machinery/test')
 
 function createMessages(key, values) { return values.map(messages[key]) }
@@ -39,6 +40,7 @@ test('parent-child-policy', {
       {
         code: '.good { pointer-events: none; & > * { pointer-events: auto; } }',
       },
+      { code: '.good { &::after { pointer-events: none; } }' },
       {
         title: 'detect in non-direct children',
         code: `
@@ -248,6 +250,7 @@ test('parent-child-policy', {
     valid: [
       { code: '.good { display: none; }' },
       { code: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
+      { code: `.good { &::after { pointer-events: none; } }` },
       {
         title: 'allow position: static',
         code: `
@@ -262,6 +265,10 @@ test('parent-child-policy', {
       },
     ],
     invalid: [
+      {
+        code: '.bad { & > * { pointer-events: none; } }',
+        warnings: [layoutRelatedProperties.messages['nested - only layout related props in nested']('pointer-events')]
+      },
     ],
   },
 })

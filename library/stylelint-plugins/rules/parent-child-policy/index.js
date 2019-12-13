@@ -69,7 +69,9 @@ const childParentRelations = {
     ]
   },
   validPointerEvents: {
-    nestedHasOneOf: ['pointer-events'],
+    nestedHasOneOf: [
+      ['pointer-events', 'auto']
+    ],
     requireInRoot: [
       ['pointer-events', 'none']
     ]
@@ -88,7 +90,7 @@ module.exports = {
   ruleName: 'parent-child-policy',
   ruleInteraction: {
     'layout-related-properties': {
-      childAllowDecl: decl => declMatches(decl, ['pointer-events', ['position', 'static']])
+      childAllowDecl: decl => declMatches(decl, [['pointer-events', 'auto'], ['position', 'static']])
     },
   },
   cssRequirements: {
