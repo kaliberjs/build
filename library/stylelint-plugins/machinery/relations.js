@@ -4,7 +4,7 @@ module.exports = { checkRuleRelation }
 
 function checkRuleRelation({ rule, triggerProperties, rulesToCheck, requiredProperties }) {
   const triggerDecls = findDecls(rule, triggerProperties)
-  const relationApplicable = !!triggerDecls.length
+  const relationApplicable = !!triggerDecls.filter(x => x.value !== 'unset').length
   if (!relationApplicable) return []
 
   const normalizedRequiredProperties = requiredProperties.map(x => {

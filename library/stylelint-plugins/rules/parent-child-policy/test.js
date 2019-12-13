@@ -8,6 +8,7 @@ test('parent-child-policy', {
   'parent-child-policy': {
     valid: [
       { code: '.good { position: relative; z-index: 0; & > .test { z-index: 1; } }' },
+      { code: '.good { & > .test { z-index: unset; } }' },
       { code: '.good { position: relative; & > .test { position: absolute; } }' },
       {
         title: `don't report when display flex is present`,
@@ -82,6 +83,44 @@ test('parent-child-policy', {
             }
           }
         `
+      },
+      {
+        title: 'allow flex prop when media query removed flex and specifies `unset`',
+        code: `
+          .parent {
+            display: flex;
+
+            @media (--mq-viewport-md) {
+              display: block;
+            }
+
+            & > .child {
+              flex: 1 1 auto;
+              @media (--mq-viewport-md) {
+                flex: unset;
+              }
+            }
+          }
+        `,
+      },
+      {
+        title: 'allow flex prop when media query removed flex and specifies `unset`',
+        code: `
+          .parent {
+            display: grid;
+
+            @media (--xyz) {
+              display: block;
+            }
+
+            & > .child {
+              flex-column: 1;
+              @media (--xyz) {
+                flex-column: unset;
+              }
+            }
+          }
+        `,
       },
     ],
     invalid: [
@@ -243,6 +282,23 @@ test('parent-child-policy', {
       {
         code: '.bad { & > * { pointer-events: auto; } }',
         warnings: [messages['invalid pointer events']]
+      },
+      {
+        title: 'disallow flex prop when media query removed flex',
+        code: `
+          .parent {
+            display: flex;
+
+            @media (--mq-viewport-md) {
+              display: block;
+            }
+
+            & > .child {
+              flex: 1 1 auto;
+            }
+          }
+        `,
+        warnings: [messages['nested - require display flex in parent']('flex')]
       },
     ]
   },

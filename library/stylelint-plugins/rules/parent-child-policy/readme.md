@@ -224,6 +224,8 @@ The `display: grid` and `display: flex` properties are similar, they are both se
 
 This rule helps you to keep that relation tight and prevent you from accidentally using one of the child properties in a parent.
 
+Note that you can use `unset` in case an `@media` rule overrides the parent `display: flex` or `display: grid` property (see examples).
+
 ### Examples
 
 Examples of *correct* code for this rule:
@@ -244,6 +246,23 @@ Examples of *correct* code for this rule:
 
   & > .child {
     flex-column: 1;
+  }
+}
+```
+
+```css
+.parent {
+  display: grid;
+
+  @media (--xyz) {
+    display: block;
+  }
+
+  & > .child {
+    flex-column: 1;
+    @media (--xyz) {
+      flex-column: unset;
+    }
   }
 }
 ```
