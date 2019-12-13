@@ -46,6 +46,7 @@ function createPlugins(
         require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
         require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace }),
+        require('../postcss-plugins/postcss-kaliber-scoped')(),
       ].filter(Boolean)
     ),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })

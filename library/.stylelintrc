@@ -51,7 +51,7 @@
     "at-rule-no-unknown": [
       true,
       {
-        "ignoreAtRules": [ "value" ]
+        "ignoreAtRules": [ "value", "kaliber-scoped" ]
       }
     ],
     "at-rule-semicolon-newline-after": "always",
