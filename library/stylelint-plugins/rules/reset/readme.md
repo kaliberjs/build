@@ -17,6 +17,10 @@ Allowed layout related properties:
   margin, margin-top, margin-right, margin-bottom, margin-left,
 ```
 
+## Scoping index styles
+
+See [the documentation of `index.css`](../index) for details.
+
 ## Examples
 
 Examples of *correct* code for this rule:
