@@ -82,4 +82,21 @@ test('reset', {
       },
     ]
   },
+  'at-rule-restrictions': {
+    valid: [
+      {
+        title: 'allow @kaliber-scoped custom-element',
+        filename: 'reset.css',
+        code: `@kaliber-scoped custom-element;`
+      },
+    ],
+    invalid: [
+      {
+        title: 'only allow @kaliber-scoped with custom-element',
+        filename: 'reset.css',
+        code: `@kaliber-scoped noCustomElement;`,
+        warnings: [messages['only scope custom element']]
+      },
+    ]
+  }
 })

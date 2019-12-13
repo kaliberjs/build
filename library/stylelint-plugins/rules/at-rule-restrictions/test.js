@@ -1,8 +1,8 @@
-const { messages } = require('./')
+const { messages } = require('.')
 const { test } = require('../../machinery/test')
 
-test('no-import', {
-  'no-import': {
+test('at-rule-restrictions', {
+  'at-rule-restrictions': {
     valid: [
       { code: `.good { }` },
       {
@@ -15,6 +15,10 @@ test('no-import', {
       {
         code: `@import 'x';`,
         warnings: [messages['no import']]
+      },
+      {
+        code: `@kaliber-scoped abc;`,
+        warnings: [messages['no kaliber-scoped']]
       },
     ]
   }

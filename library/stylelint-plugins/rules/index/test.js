@@ -49,12 +49,17 @@ test('index', {
     ],
     invalid: []
   },
-  'no-import': {
+  'at-rule-restrictions': {
     valid: [
       {
         title: 'allow font @import in index.css',
         filename: 'index.css',
         code: `@import url('https://fonts.googleapis.com/css');`
+      },
+      {
+        title: 'allow custom element @kaliber-scoped in index.css',
+        filename: 'index.css',
+        code: `@kaliber-scoped custom-element;`
       },
     ],
     invalid: [
@@ -63,6 +68,12 @@ test('index', {
         filename: 'index.css',
         code: `@import 'x';`,
         warnings: [messages['only import font']]
+      },
+      {
+        title: 'prevent non custom element @kaliber-scoped in index.css',
+        filename: 'index.css',
+        code: `@kaliber-scoped abc;`,
+        warnings: [messages['only scope custom element']]
       },
     ]
   },

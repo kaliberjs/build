@@ -29,7 +29,7 @@ const rules = toStyleLintPlugins(
   require('./rules/selector-policy'),
   require('./rules/parent-child-policy'),
   require('./rules/root-policy'),
-  require('./rules/no-import'),
+  require('./rules/at-rule-restrictions'),
   require('./rules/index'),
   require('./rules/reset'),
 )

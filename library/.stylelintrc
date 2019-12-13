@@ -9,7 +9,7 @@
     "kaliber/index": true,
     "kaliber/layout-related-properties": true,
     "kaliber/naming-policy": true,
-    "kaliber/no-import": true,
+    "kaliber/at-rule-restrictions": true,
     "kaliber/parent-child-policy": true,
     "kaliber/reset": true,
     "kaliber/root-policy": true,

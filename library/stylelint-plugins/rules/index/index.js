@@ -3,11 +3,12 @@ const { isFile } = require('../../machinery/filename')
 
 const messages = {
   'no class selectors': selector =>
-      `Unexpected class selector '${selector}', only tag selectors are allowed in index.css - ` +
+    `Unexpected class selector '${selector}', only tag selectors are allowed in index.css - ` +
       `move the selector to another file or wrap it in \`:global(...)\``,
   'only import font':
-    `Invalid @import value\n` +
-    `you can only import fonts`,
+    `Invalid @import value, you can only import fonts`,
+  'only scope custom element':
+    `Invalid @kaliber-scoped, you can only scope using custom elements`
 }
 
 module.exports = {
@@ -16,11 +17,15 @@ module.exports = {
     'selector-policy': {
       tagSelectorsAllowCss: isIndex,
     },
-    'no-import': {
+    'at-rule-restrictions': {
       allowSpecificImport: rule => isIndex(rule.root()) && (
         rule.params.includes('font') ||
         messages['only import font']
-      )
+      ),
+      allowSpecificKaliberScoped: rule => isIndex(rule.root()) && (
+        /[a-z]+(-[a-z]+)+/.test(rule.params) ||
+        messages['only scope custom element']
+      ),
     },
   },
   cssRequirements: {
