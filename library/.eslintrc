@@ -215,7 +215,7 @@
     "import/no-amd": "warn",
     "import/no-webpack-loader-syntax": "warn",
     "import/no-default-export": "off",
-    "import/no-duplicates": "warn",
+    "import/no-duplicates": ["warn", { "considerQueryString": true }],
     "import/export": "warn",
     "import/default": "warn",
     "import/no-unresolved": "warn",
