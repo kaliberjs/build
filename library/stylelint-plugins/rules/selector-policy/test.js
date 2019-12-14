@@ -70,9 +70,20 @@ test('selector-policy', {
       },
       {
         code: `.test { &:focus::after, &:hover::after { transform: scaleX(1); } }`
-      }
+      },
+      { code: `*:checked + .b { color: red; }` },
     ],
     invalid: [
+      {
+        title: 'invalid :checked selector - not universal',
+        code: `.test:checked + .other { }`,
+        warnings: [messages['invalid state selector']('+')]
+      },
+      {
+        title: 'invalid :checked selector - not +',
+        code: `*:checked ~ .other { }`,
+        warnings: [messages['invalid state selector']('~')]
+      },
       {
         code: `.bad { & svg { & path { } } }`,
         warnings: [messages['only direct child selectors'](' ')]

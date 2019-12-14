@@ -3,7 +3,9 @@
   "ignoreFiles": ["node_modules/**/*", "**/*.js", "**/*.svg", "**/*.md"],
   "plugins": ["stylelint-use-nesting", "./stylelint-plugins/kaliber.js"],
   "rules": {
-    "csstools/use-nesting": "always",
+    "csstools/use-nesting": ["always", {
+      "except": ["*:checked +"]
+    }],
     "kaliber/color-schemes": true,
     "kaliber/css-global": true,
     "kaliber/index": true,

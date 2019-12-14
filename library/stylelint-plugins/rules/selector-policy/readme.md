@@ -15,6 +15,7 @@ This rule helps you to do that. In many cases a naive way of writing has caused 
 - [No selectors in media queries](#no-selectors-in-media-queries)
 - [Context](#context)
 - [SVG](#svg)
+- [Checked sibling](#checked-sibling)
 
 ## Direct child selectors
 
@@ -289,8 +290,9 @@ Examples of *incorrect* code for this rule:
     width: 10px;
   }
 }
+```
 
-## Common refactorings
+### Common refactorings
 
 Before:
 ```css
@@ -307,5 +309,69 @@ After:
   & > .icon {
     ...
   }
+}
+```
+
+## Checked sibling
+
+In some case the state comes from an `input` element, it would be awesome if you were able to do something like this:
+
+```css
+.myInput {
+  &:checked > .abc {
+    ...
+  }
+}
+```
+
+`input` elements however can't have children. To solve this use case we allow the following pattern to be used:
+
+```css
+*:checked + .abc {
+  ...
+}
+```
+
+This allows you to style an element based on the `:checked` property of its direct sibling. The rules are very strict and only this version (`*:checked + `) is allowed. Reason for this is that it prevents you from creating tangles and overreaching, which in turn makes component less portable.
+
+### Examples
+
+Examples of *correct* code for this rule:
+
+```css
+.abc {
+  color: green;
+}
+
+*:checked + .abc {
+  color: red;
+}
+```
+
+Examples of *incorrect* code for this rule:
+
+```css
+.abc {
+  color: green;
+}
+
+.other:checked ~ .abc {
+  color: red;
+}
+```
+
+### Common refactorings
+
+Before:
+```css
+.other:checked ~ .abc {
+  ...
+}
+```
+
+After:
+```css
+*:checked + .abc {
+  ...
 }
 ```

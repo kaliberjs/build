@@ -5,6 +5,8 @@ const {
   getParentRule, getChildSelectors, getRootRules,
 } = require('../../machinery/ast')
 
+const { isSelector } = require('postcss-selector-parser')
+
 const messages = {
   'only direct child selectors': type =>
     `no \`${type}\` selector combinator\n` +
@@ -32,6 +34,10 @@ const messages = {
     `unexpected rule in @media\n` +
     `@media should be placed inside rules and not the other way around - ` +
     `swap the selector and @media statement`,
+  'invalid state selector': type =>
+    `no \`${type}\` selector combinator\n` +
+    `you can only use direct sibling selectors in combination with a universal state selector - ` +
+    'change the selector to `*:checked +`'
 }
 
 module.exports = {
@@ -68,6 +74,12 @@ function onlyDirectChildSelectors({ root, report, nonDirectChildSelectorsAllowCs
 
       const [invalidCombinator] =  combinators.filter(x => x.value !== '>')
       if (!invalidCombinator) return
+      const precedingSelector = invalidCombinator.prev()
+      if (isStateSelector(precedingSelector)) {
+        if (invalidCombinator.value === '+' && isUniversalStateSelector(precedingSelector.prev())) return
+        report(rule, messages['invalid state selector'](invalidCombinator.value), invalidCombinator.sourceIndex)
+        return
+      }
       if (invalidCombinator.value === ' ') {
         if (isDataContextSelector(selector.first)) return
         const parent = getParentRule(rule)
@@ -155,4 +167,12 @@ function isSvgSelector(rule) {
     const [svg] = selector.filter(x => x.type === 'tag' && x.value === 'svg')
     return !!svg
   })
+}
+
+function isStateSelector(node) {
+  return node && node.type === 'pseudo' && node.value === ':checked'
+}
+
+function isUniversalStateSelector(node) {
+  return node && node.type === 'universal'
 }
