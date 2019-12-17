@@ -14,13 +14,13 @@ const packageJson = path.resolve(appPath, 'package.json')
 const appPackage = require(packageJson)
 
 appPackage.scripts = { ...(appPath.scripts || {}),
-  'start': 'npm-run-all --parallel watch serve:dev',
+  'start': 'npm-run-all --parallel watch serve.dev',
   'watch': 'CONFIG_ENV=dev kaliber-watch',
 
   'build': 'NODE_ENV=production kaliber-build',
 
   'serve': 'kaliber-serve',
-  'serve:dev': 'PORT=8000 CONFIG_ENV=dev kaliber-serve',
+  'serve.dev': 'PORT=8000 CONFIG_ENV=dev kaliber-serve',
 
   'lint': 'npm-run-all --serial lint.javascript lint.styles',
   'lint.javascript': 'eslint -c .eslintrc --ignore-path .gitignore \'./**/*.js\'',
