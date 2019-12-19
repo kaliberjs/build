@@ -44,8 +44,10 @@ async function evalInFork(source, map) {
     js.stderr.on('data', x => errData.push(x))
     js.on('close', code => {
       if (outData.length) console.log(outData.join(''))
-      if (code === 0) resolve(messageData.join(''))
-      else reject(new Error(errData.join('')))
+      if (code === 0) {
+        if (!messageData.length) reject(new Error('Execution failed, no result from eval'))
+        else resolve(messageData.join(''))
+      } else reject(new Error(errData.join('')))
     })
     js.send(source)
     js.send(map)
