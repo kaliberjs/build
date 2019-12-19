@@ -2,7 +2,7 @@
 
 {
   "parser": "babel-eslint",
-  "plugins": ["import", "jsx-a11y", "react", "react-hooks"],
+  "plugins": ["import", "jsx-a11y", "react", "react-hooks", "@kaliber/eslint-plugin"],
   "root": true,
   "env": {
     "browser": true,
@@ -41,6 +41,11 @@
 
   "rules": {
     // http://eslint.org/docs/rules/
+    "@kaliber/component-properties": "warn",
+    "@kaliber/layout-class-name": "warn",
+    "@kaliber/naming-policy": "warn",
+    "@kaliber/no-default-export": "warn",
+    "@kaliber/no-relative-parent-import": "warn",
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     "indent": ["warn", 2, {
@@ -209,7 +214,8 @@
     "import/first": "warn",
     "import/no-amd": "warn",
     "import/no-webpack-loader-syntax": "warn",
-    "import/no-duplicates": "warn",
+    "import/no-default-export": "off",
+    "import/no-duplicates": ["warn", { "considerQueryString": true }],
     "import/export": "warn",
     "import/default": "warn",
     "import/no-unresolved": "warn",

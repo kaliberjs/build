@@ -1,5 +1,4 @@
 /* partials/test.css */
-@import '/theme.css';
 
 :root {
   --test-apply: {
@@ -12,6 +11,10 @@
   background: var(--color-green);
   padding: calc(30px - 25px);
   display: flex;
+
+  &:--enter {
+    color: black;
+  }
 
   @media (--breakpoint) {
     background-color: #BADA55;

@@ -27,6 +27,7 @@ function createPlugins(
             'custom-selectors': { preserve: false, importFrom: cssGlobalFiles },
             'media-query-ranges': true,
             'nesting-rules': true,
+            'hexadecimal-alpha-notation': true,
             'color-functional-notation': true,
             'color-mod-function': true,
             'font-variant-property': true,
@@ -45,6 +46,7 @@ function createPlugins(
         require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
         require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace }),
+        require('../postcss-plugins/postcss-kaliber-scoped')(),
       ].filter(Boolean)
     ),
     isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
@@ -116,13 +118,16 @@ function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour }) {
 
 /** @param {import('webpack').loader.LoaderContext} loaderContext */
 function createHandlers(loaderContext, cache) {
+  const cssGlobalFiles = findCssGlobalFiles(loaderContext.rootContext)
+  cssGlobalFiles.forEach(x => loaderContext._compilation.compilationDependencies.add(x))
+
   return {
     resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
     resolveForUrlReplace: (url, file) => isDependency(url)
       ? resolveAndExecute(dirname(file), url)
       : Promise.resolve(url),
     resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
-    cssGlobalFiles: findCssGlobalFiles(loaderContext.rootContext),
+    cssGlobalFiles,
   }
 
   async function resolveAndExecute(context, request) {

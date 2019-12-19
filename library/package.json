@@ -3,13 +3,15 @@
   "name": "@kaliber/build",
   "description": "Zero configuration, opinionated webpack / react build setup",
   "scripts": {
-    "lint": "eslint -c .eslintrc ."
+    "lint": "npm-run-all --parallel lint.javascript lint.styles",
+    "lint.javascript": "eslint -c .eslintrc .",
+    "lint.styles": "stylelint --config .stylelintrc .",
+    "test.stylelint": "mocha '**/test.js'"
   },
   "bin": {
     "kaliber-build": "bin/build.js",
     "kaliber-watch": "bin/watch.js",
     "kaliber-serve": "bin/serve.js",
-    "kaliber-lint": "bin/lint.js",
     "kaliber-scaffold": "bin/scaffold.js"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "@babel/preset-react": "^7.0.0",
     "@babel/runtime": "^7.7.6",
     "@kaliber/config": "^0.0.7",
+    "@kaliber/eslint-plugin": "*",
     "ansi-regex": "^5.0.0",
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
@@ -58,6 +61,7 @@
     "import-fresh": "^3.2.1",
     "json-loader": "^0.5.7",
     "loader-utils": "^1.1.0",
+    "npm-run-all": "^4.1.5",
     "pkg-dir": "^4.2.0",
     "postcss": "^7.0.24",
     "postcss-apply": "^0.12.0",
@@ -67,12 +71,17 @@
     "postcss-modules-scope": "^2.1.0",
     "postcss-modules-values": "^3.0.0",
     "postcss-preset-env": "^6.7.0",
+    "postcss-selector-parser": "^6.0.2",
+    "postcss-values-parser": "^2.0.0",
     "progress-bar-webpack-plugin": "^1.11.0",
     "raw-loader": "^4.0.0",
     "react": "^16.10.1",
     "react-dom": "^16.10.1",
     "rollbar": "^2.13.0",
     "source-map": "0.6.1",
+    "stylelint": "^11.0.0",
+    "stylelint-config-standard": "^19.0.0",
+    "stylelint-use-nesting": "^1.2.1",
     "tapable": "^1.1.3",
     "terser-webpack-plugin": "^2.2.3",
     "time-fix-plugin": "^2.0.6",
@@ -96,5 +105,8 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kaliberjs/build/issues"
+  },
+  "devDependencies": {
+    "mocha": "^6.2.2"
   }
 }

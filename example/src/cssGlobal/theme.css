@@ -4,3 +4,5 @@
 }
 
 @custom-media --breakpoint all and (min-width: 768px);
+
+@custom-selector :--enter :hover, :focus;
