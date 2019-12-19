@@ -4,11 +4,9 @@
 
 const fs = require('fs-extra')
 const path = require('path')
-const spawn = require('cross-spawn')
 
 const appPath = process.cwd()
 const templatePath = path.resolve(__dirname, '../template')
-const useYarn = fs.existsSync(path.join(appPath, 'yarn.lock'))
 
 const packageJson = path.resolve(appPath, 'package.json')
 const appPackage = require(packageJson)
@@ -40,14 +38,3 @@ try {
   // See: https://github.com/npm/npm/issues/1862
   fs.moveSync(templateGitIgnore, gitignore)
 } catch (e) { /* ignore if file exists */ }
-
-// install dev depenendecy `npm-run-all`
-const [ command, args ] = useYarn
-  ? [ 'yarn', [ 'add', '--dev', 'npm-run-all' ] ]
-  : [ 'npm', [ 'install', '--save-dev', 'npm-run-all' ] ]
-
-const proc = spawn.sync(command, args, { stdio: 'inherit' })
-
-if (proc.status !== 0) {
-  console.error(`\`${command} ${args.join(' ')}\` failed`)
-}
