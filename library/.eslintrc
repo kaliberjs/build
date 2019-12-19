@@ -220,7 +220,6 @@
     "import/default": "warn",
     "import/no-unresolved": "warn",
     "import/named": "warn", // Needs a custom resolver to work with non-relative imports
-    // "import/no-relative-parent-imports": "warn",
 
     // https://github.com/yannickcr/eslint-plugin-react/tree/master/docs/rules
     "react/jsx-boolean-value": "warn",
