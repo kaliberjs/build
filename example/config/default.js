@@ -3,7 +3,8 @@ module.exports = {
     compileWithBabel: [/node_modules\/subscribe-ui-event/],
     templateRenderers: {
       xml: '/xmlRenderer',
-      mjml: '/mjml-renderer'
+      mjml: '/mjml-renderer',
+      big: '/bigFileRenderer',
     }
   },
   client: {

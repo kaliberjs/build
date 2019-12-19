@@ -8,12 +8,14 @@ attempt(() => {
       messages.push(x)
       const [source, map] = messages
       if (source !== undefined && map !== undefined) {
+        process.off('message', handleMessage)
         const createMap = () => map
         const { template, renderer } = evalWithSourceMap(source, createMap)
         const result = withSourceMappedError(createMap, () => renderer(template))
-        process.send(result)
-        process.off('message', handleMessage)
-        process.exit()
+        process.send(result, e => attempt(() => {
+          if (e) throw e
+          else process.exit()
+        }))
       }
     })
   }
