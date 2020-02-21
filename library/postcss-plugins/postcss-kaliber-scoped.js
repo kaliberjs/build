@@ -1,6 +1,6 @@
 const postcss = require('postcss')
 
-const plugin = 'postcss-import-export-parser'
+const plugin = 'postcss-kaliber-scoped'
 
 module.exports = postcss.plugin(
   plugin,
