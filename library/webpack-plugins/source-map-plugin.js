@@ -8,7 +8,7 @@ const { RawSource, ConcatSource } = require('webpack-sources')
 
 const p = 'source-map-plugin'
 
-module.exports = function sourceMapPlugin() {
+module.exports = function sourceMapPlugin({ sourceRoot }) {
   return {
     apply: compiler => {
       compiler.hooks.compilation.tap(p, compilation => {
@@ -27,7 +27,7 @@ module.exports = function sourceMapPlugin() {
 
               // make sure sources in the source map are timestamped, this helps with hot reloading
               const now = Date.now()
-              map.sources = map.sources.map(source => source + (source.includes('?') ? '&' : '?') + now)
+              map.sources = map.sources.map(source => path.relative(sourceRoot, source) + (source.includes('?') ? '&' : '?') + now)
 
               const [startComment, endComment] = name.endsWith('.css') ? ['/*', ' */'] : ['//', '']
               assets[name] = new ConcatSource(asset, `\n${startComment}# sourceMappingURL=${path.basename(name)}.map${endComment}\n`)

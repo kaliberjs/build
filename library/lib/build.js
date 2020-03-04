@@ -318,7 +318,7 @@ module.exports = function build({ watch }) {
           Component: ['react', 'Component'],
           cx: 'classnames',
         }),
-        sourceMapPlugin(),
+        sourceMapPlugin({ sourceRoot: cwd }),
       ].filter(Boolean),
       node: () => [
         new TimeFixPlugin(),
