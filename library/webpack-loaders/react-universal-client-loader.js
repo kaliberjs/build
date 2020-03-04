@@ -1,12 +1,15 @@
 const { relative } = require('path')
+const { OriginalSource } = require('webpack-sources')
 
 module.exports = ReactUniversalClientLoader
 
-function ReactUniversalClientLoader(source, map) {
+function ReactUniversalClientLoader(source, map, meta) {
   const filename = relative(this.rootContext, this.resourcePath)
   const importPath = relative(this.context, this.resourcePath)
   const id = filename.replace(/[/.]/g, '_')
-  return createClientCode({ importPath, id })
+  const code = createClientCode({ importPath, id })
+  const generated = new OriginalSource(code, this.resourcePath + '?generated').sourceAndMap()
+  this.callback(null, generated.source, generated.map, meta)
 }
 
 function createClientCode({ importPath, id }) {
