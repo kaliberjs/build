@@ -33,7 +33,7 @@ const notCached = ['html', 'txt', 'json', 'xml']
 // hsts-headers are sent by our loadbalancer
 app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
-app.set('trust proxy', false)
+app.set('trust proxy', true)
 serveMiddleware && app.use(...[].concat(serveMiddleware))
 app.use((req, res, next) => {
   if (blockedTemplatesRegex.test(req.path)) {
