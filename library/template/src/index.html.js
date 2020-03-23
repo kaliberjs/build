@@ -3,8 +3,9 @@ import '/index.css'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 import javascript from '@kaliber/build/lib/javascript'
 import polyfill from '@kaliber/build/lib/polyfill'
+import rollbar from '@kaliber/build/lib/rollbar'
 import config from '@kaliber/config'
-import App from '/domain/App?universal'
+import App from '/App?universal'
 
 Index.routes = {
   match(location) {
@@ -23,6 +24,7 @@ export default function Index({ location, data }) {
         <meta name='description' content='' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         {stylesheet}
+        {rollbar({ accessToken: config.rollbar.accessToken })}
         {polyfill(['default', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019'])}
         {javascript}
       </head>
