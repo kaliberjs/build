@@ -1,4 +1,4 @@
-const { parse: valuesParser } = require('postcss-values-parser')
+const { parse: parseValue } = require('postcss-values-parser')
 const createSelectorParser = require('postcss-selector-parser')
 
 const selectorParser = createSelectorParser()
@@ -57,8 +57,6 @@ function getChildSelectors(rule) {
 function isPseudoElement({ type, value }) {
   return type === 'pseudo' && value.startsWith('::')
 }
-
-function parseValue(value) { return valuesParser(value) }
 
 function parseSelector(rule) { return selectorParser.astSync(rule) }
 
