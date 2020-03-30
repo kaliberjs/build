@@ -24,7 +24,7 @@ export default function Index({ location, data }) {
         <meta name='description' content='' />
         <meta name='viewport' content='width=device-width, initial-scale=1' />
         {stylesheet}
-        {rollbar({ post_client_item: config.rollbar.post_client_item })}
+        {rollbar({ accessToken: config.rollbar.post_client_item })}
         {polyfill(['default', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019'])}
         {javascript}
       </head>

@@ -32,7 +32,7 @@ export default (
   <html>
     <head>
       {/* include rollbar before any other javascript */}
-      {rollbar({ post_client_item, ...  })}
+      {rollbar({ accessToken, ...  })}
 
       {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
       {javascripts}
