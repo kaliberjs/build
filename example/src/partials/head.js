@@ -11,12 +11,11 @@ export default function (title) {
   return (
     <head>
       <title>{title}</title>
-      { stylesheet }
-      { rollbar({}, `_rollbarConfig.checkIgnore = ${rollbarCheckIgnore}`) }
-      { rollbar() }
-      { polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch']) }
-      { javascript }
-      <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.css' rel='stylesheet' type='text/css' />
+      {stylesheet}
+      {rollbar({}, `_rollbarConfig.checkIgnore = ${rollbarCheckIgnore}`)}
+      {rollbar()}
+      {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
+      {javascript}
     </head>
   )
 }
