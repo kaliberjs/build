@@ -95,7 +95,26 @@ module.exports = {
 
 #### templateRenderers
 
-...
+Template renderes react to the `*.xyz.js` pattern. The `xyz` part refers to the renderer.
+
+An example of specifying an `mjml` renderer which handles `*.mjml.js` files:
+```js
+module.exports = {
+  kaliber: {
+    templateRenderers: {
+      mjml: '/mjml-renderer'
+    }
+  }
+}
+```
+
+Note that template if a template file exports a function it will retain the same name. If it exports
+a non function, the result of the renderer will be placed in a file without the `.js` part.
+
+- `index.html.js` with function exported results in `index.html.js`
+- `index.html` with a non function exported results in `index.html`
+
+See [template-renderers](/template-renderers) for more details.
 
 #### serveMiddleware
 
