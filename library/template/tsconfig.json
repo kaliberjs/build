@@ -14,8 +14,8 @@
     "checkJs": true,
     "noEmit": true,
     "paths": {
-      "/*?universal": ["src/*"],
-      "/*": ["src/*"]
+      "/*": ["src/*"],
+      "/*?universal": ["src/*"]
     }
   }
 }
