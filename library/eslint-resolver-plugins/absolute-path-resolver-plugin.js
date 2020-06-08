@@ -4,12 +4,14 @@ const path = require('path')
 
 const modifiers = [
   function removeQueryString(source, file, config) {
-    const [newSource] = source.split('?')
+    const newSource = source.split('?')
     return newSource
   },
   function absoluteImport(source, file, config) {
-    if (source.startsWith('/')) return path.resolve(pkgDir.sync(file), config.path, '.' + source)
-    return source
+    if (!source.startsWith('/')) return source
+
+    const paths = Array.isArray(config.path) ? config.path : [config.path]
+    return paths.map(x => path.resolve(pkgDir.sync(file), x, '.' + source))
   }
 ]
 
@@ -19,9 +21,17 @@ module.exports = {
 }
 
 function resolve(source, file, config) {
-  const newSource = modifiers.reduce(
-    (result, modify) => modify(result, file, config),
-    source
+  const possibleSources = modifiers.reduce(
+    (input, modify) => input.reduce(
+      (result, x) => result.concat(modify(x, file, config)),
+      []
+    ),
+    [source]
   )
-  return node.resolve(newSource, file, config)
+  return possibleSources.reduce(
+    (result, possibleSource) => result.found
+      ? result
+      : node.resolve(possibleSource, file, config),
+    { found: false }
+  )
 }
