@@ -23,23 +23,23 @@ import { StaticRouter } from 'react-router'
 
 import App from '/App?universal'
 
-index.routes: {
+index.routes = {
   match: location => {
     const context = {}
     const app = ReactDOMServer.renderToString(
-      <StaticRouter location={location} context={context}>
-        <App/>
-      </StaticRouter>
+      <StaticRouter {...{ location, context }}>
+        <App />
+      </StaticRouter>,
     )
     const headers = context.url ? { Location: context.url } : {}
     const status = context.status
     return { status, headers, data: { app } }
-  }
+  },
 }
 
-export default function index({ location, data: { app } }) {
+export function index({ location, data: { app } }) {
   return (
-    <html>
+    <html lang="en">
       <head />
       <body>
         <div dangerouslySetInnerHTML={{ __html: app }} />
@@ -53,12 +53,15 @@ export default function index({ location, data: { app } }) {
 ```jsx
 import { BrowserRouter } from 'react-router-dom'
 
-export default class App extends Component {
-
+export class App extends Component {
   render() {
-    return this.isMounted
-      ? <BrowserRouter><ActualApp /></BrowserRouter>
-      : <ActualApp />
+    return this.isMounted ? (
+      <BrowserRouter>
+        <ActualApp />
+      </BrowserRouter>
+    ) : (
+      <ActualApp />
+    )
   }
 
   componentDidMount() {

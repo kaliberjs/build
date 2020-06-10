@@ -28,11 +28,11 @@ function value. An example:
 ```jsx
 return function index({ location }) {
   return (
-    <html>
-      <head></head>
+    <html lang="en">
+      <head />
       <body>
         <p>Hello world at {location.pathname}</p>
-      <body>
+      </body>
     </html>
   )
 }
@@ -67,22 +67,15 @@ index.routes = {
     } catch (e) {
       return { status: 500, data: { error: true } }
     }
-  }
+  },
 }
 
-export default function index({ location, data }) {
+export function index({ location, data }) {
   const { error, missing, content } = data
   return (
-    <html>
-      <head></head>
-      <body>
-        {error
-          ? '500 - error'
-          : missing
-          ? '404 - not found'
-          : <p>{content}</p>
-        }
-      </body>
+    <html lang="en">
+      <head />
+      <body>{error ? '500 - error' : missing ? '404 - not found' : <p>{content}</p>}</body>
     </html>
   )
 }

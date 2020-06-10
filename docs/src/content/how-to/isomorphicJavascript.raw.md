@@ -82,17 +82,19 @@ Passing functions or children does not work. This means that the following will 
 ```jsx
 import App from '/App?univeral'
 
-export default (
-  <html>
-    <head></head>
-    <body>
-      <App>
-        <h1>Title</h1>
-        <p>Content</p>
-      </App>
-    </body>
-  </html>
-)
+export function fnName() {
+  return (
+    <html lang="en">
+      <head />
+      <body>
+        <App>
+          <h1>Title</h1>
+          <p>Content</p>
+        </App>
+      </body>
+    </html>
+  )
+}
 ```
 
 ### routing
@@ -109,10 +111,10 @@ Each link you have should call `pushState` and buttons (for example tabs) might 
 An simple example of a component that could help you with that looks like this:
 
 ```jsx
-export default function Link({ href, title, children }) {
-  return <a href={href} onClick={onClick}>{children}</a>
+export function Link({ href, title, children }) {
+  return <a {...{ href, onClick }}>{children}</a>
 
-function onClick(e) {
+  function onClick(e) {
     e.preventDefault()
     window.history.pushState(null, title, href)
   }
@@ -161,12 +163,12 @@ To make it truly universal you would need to the following changes:
 ```jsx
 import App from '/App?univeral'
 
-export default function index(location) {
+export function index({ location }) {
   return (
-    <html>
-      <head></head>
+    <html lang="en">
+      <head />
       <body>
-        <App location={location} />
+        <App {...{ location }} />
       </body>
     </html>
   )

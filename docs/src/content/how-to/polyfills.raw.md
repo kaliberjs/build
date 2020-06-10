@@ -16,17 +16,19 @@ Our `polyfill()` method (see example below) expects an array of features and ali
 // import the polyfill
 import polyfill from '@kaliber/build/lib/polyfill'
 
-export default (
-  <html>
-    <head>
-      {/* call the polyfill with the required aliases and features */}
-      {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
-      {/*
-        this will output: 
-        <script defer src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,es2015,es2016,es2017,fetch" crossorigin="anonymous" />
-      */}
-    </head>
-    <body />
-  </html>
-)
+export function fnName() {
+  return (
+    <html lang="en">
+      <head>
+        {/* call the polyfill with the required aliases and features */}
+        {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
+        {/*
+          this will output:
+          <script defer src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,es2015,es2016,es2017,fetch" crossorigin="anonymous" />
+        */}
+      </head>
+      <body />
+    </html>
+  )
+}
 ```

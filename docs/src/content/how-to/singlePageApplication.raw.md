@@ -5,10 +5,10 @@ logic is completely handled by the browser. In most cases the html looks very si
 like this:
 
 ```jsx
-<html>
+<html lang="en">
   <head />
   <body>
-    <div id='app' />
+    <div id="app" />
   </body>
 </html>
 ```
@@ -31,26 +31,27 @@ An example:
 ```jsx
 import App from '/App?universal'
 
-export default (
-  <html>
-    <head />
-    <body><App /></body>
-  </html>
-)
+export function fnName() {
+  return (
+    <html lang="en">
+      <head />
+      <body>
+        <App />
+      </body>
+    </html>
+  )
+}
 ```
 
 `src/App.js`
 ```jsx
-export default class SinglePageApplication extends Component {
-
+export class SinglePageApplication extends Component {
   state = {
-    isMounted: false
+    isMounted: false,
   }
 
   render() {
-    return isMounted
-      ? <App {...this.props} />
-      : null
+    return isMounted ? <App {...this.props} /> : null
   }
 
   componentDidMount() {
@@ -79,15 +80,13 @@ index.routes = {
   match: async location => {
     const data = await fetchMetadataForLocation(location)
     return { data }
-  }
+  },
 }
 
-export default function index({ data }) {
+export function index({ data }) {
   return (
-    <html>
-      <head>
-        {renderMetadata(data)}
-      </head>
+    <html lang="en">
+      <head>{renderMetadata(data)}</head>
       <body>
         <App />
       </body>
