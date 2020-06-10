@@ -17,16 +17,16 @@ non-function value. An example:
 `src/index.html.js`
 ```jsx
 import stylesheet from '@kaliber/build/lib/stylesheet'
-import styles from '/main.css'
+import styles from './main.css'
 
 return (
-  <html>
+  <html lang="en">
     <head>{stylesheet}</head>
     <body>
       <div className={styles.content}>
         <p>Hello world</p>
       </div>
-    <body>
+    </body>
   </html>
 )
 ```
@@ -73,16 +73,16 @@ files the have the `{name}.entry.css` pattern. Your template would look like thi
 `src/index.html.js`
 ```jsx
 import stylesheet from '@kaliber/build/lib/stylesheet'
-import '/main.entry.css'
+import './main.entry.css'
 
 return (
-  <html>
+  <html lang="en">
     <head>{stylesheet}</head>
     <body>
-      <div className='content'>
+      <div className="content">
         <p>Hello world</p>
       </div>
-    <body>
+    </body>
   </html>
 )
 ```
@@ -109,21 +109,20 @@ import javascript from '@kaliber/build/lib/javascript'
 import MyInteractiveComponent from '/MyInteractiveComponent?universal'
 
 return (
-  <html>
+  <html lang="en">
     <head>{javascript}</head>
     <body>
       <MyInteractiveComponent content='Hello world!' />
-    <body>
+    </body>
   </html>
 )
 ```
 
 `src/MyInteractiveComponent.js`
 ```js
-export default class MyInteractiveComponent extends Component {
-
+export class MyInteractiveComponent extends Component {
   state = {
-    content: this.props.content
+    content: this.props.content,
   }
 
   render() {
@@ -176,25 +175,26 @@ import javascript from '@kaliber/build/lib/javascript'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 import htmlReactRenderer from '@kaliber/build/lib/htmlReactRenderer'
 
-export default tplRenderer(template) {
+export function tplRenderer(template) {
   if (!template) return template
 
   const { title, content } = template
   const page = (
-    <html>
+    <html lang="en">
       <head>
         {javascript}
         {stylesheet}
       </head>
       <body>
         <h1>{template.title}</h1>
-        <p>{template.content}<p>
+        <p>{template.content}</p>
       </body>
     </html>
   )
 
   return htmlReactRenderer(page)
 }
+
 ```
 
 This renderer assumes that the template is a javascript object with the properties `title` and

@@ -28,16 +28,18 @@ const defaultOptions = {
 ```jsx
 import rollbar from '@kaliber/build/lib/rollbar'
 
-export default (
-  <html>
-    <head>
-      {/* include rollbar before any other javascript */}
-      {rollbar({ accessToken, ...  })}
+export function fnName() {
+  return (
+    <html lang="en">
+      <head>
+        {/* include rollbar before any other javascript */}
+        {rollbar({ accessToken, ignoredMessages })}
 
-      {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
-      {javascripts}
-    </head>
-    <body />
-  </html>
-)
+        {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
+        {javascripts}
+      </head>
+      <body />
+    </html>
+  )
+}
 ```

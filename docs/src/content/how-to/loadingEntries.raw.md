@@ -16,13 +16,15 @@ import '/main.entry.js'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 import javascript from '@kaliber/build/lib/javascript'
 
-export default (
-  <html>
-    <head>
-      {stylesheet}
-      {javscript}
-    </head>
-    <body />
-  </html>
-)
+export function fnName() {
+  return (
+    <html lang="en">
+      <head>
+        {stylesheet}
+        {javascript}
+      </head>
+      <body />
+    </html>
+  )
+}
 ```

@@ -17,10 +17,10 @@ index.routes = {
     if (location.pathname === '/old-path') {
       return { status: 301, headers: { Location: '/new-path' } }
     }
-  )
+  }
 }
 
-export default function index() {
+export function index() {
   ...
 }
 ```

@@ -28,7 +28,7 @@ We first render React to mjml and then render that result to html.
 import { mjml2html } from 'mjml'
 import htmlReactRenderer from '@kaliber/build/lib/html-react-renderer'
 
-export default function mjmlRenderer(template) {
+export function mjmlRenderer({ template }) {
   const { html, errors } = mjml2html(htmlReactRenderer(template))
 
   if (errors.length > 0) throw new Error(errors.map(e => e.formattedMessage).join('\n'))
@@ -58,7 +58,7 @@ e-mail. In most cases however you want your e-mail to contain dynamic data.
 
 `dynamic.mjml.js`
 ```js
-export default function dynamic(props) {
+export function dynamic({ props }) {
   const { content } = props
   return (
     <mjml>
