@@ -20,9 +20,19 @@ A high level overview of the express modules and handlers we have defined:
 
 ### Project types
 
-`index.html`, `404.html` and `500.html` - [Static site](/how-to/static-site)
-`index.html` - [Single page application](/how-to/single-page-application)
-`index.html.js` - [Server side rendering](/server-side-rendering) (might render a single page application)
+- `index.html.js` - [Server side rendering](/server-side-rendering) (might render a single page application)
+- `index.html`, `404.html` and `500.html` - [Static site](/how-to/static-site)
+- `index.html` - [Single page application](/how-to/single-page-application)
+
+### File resolution
+
+- If a file exists: serve using `express.static`
+- If not, look for `index.html.js` and serve that
+- If not, look for `404.html` and serve that
+- If not, look for `index.html` and serve that
+
+This proces is repeated for each directory in the path. So if the path is `/a/b/something`, the server first
+looks for these files in `/a/b/`, then in `/a/` and finally in `/` .
 
 ### Port
 

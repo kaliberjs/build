@@ -108,7 +108,7 @@ function onlyLayoutRelatedPropsInNested({ modifiedRoot, report, childAllowCss, c
 }
 
 function isIntrinsicValue({ important, value }) {
-  const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
+  const number = parseValue(value).nodes.find(x => x.type === 'numeric')
   return important && number && intrinsicUnits.includes(number.unit)
 }
 
@@ -121,7 +121,7 @@ function isRatioHack({ prop, value }, rule) {
   }
 
   function isPercentage({ value }) {
-    const [number] = parseValue(value).first.nodes.filter(x => x.type === 'number')
+    const number = parseValue(value).nodes.find(x => x.type === 'numeric')
     return number && number.unit === '%'
   }
 }

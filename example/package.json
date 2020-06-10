@@ -16,10 +16,10 @@
   "dependencies": {
     "@kaliber/build": "*",
     "express-basic-auth": "^1.2.0",
-    "firebase": "^7.9.3",
-    "firebase-admin": "^8.9.2",
+    "firebase": "^7.11.0",
+    "firebase-admin": "^8.10.0",
     "gsap": "^3.2.4",
-    "mjml": "^4.6.1",
+    "mjml": "^4.6.2",
     "normalize.css": "^8.0.0",
     "react-stickynode": "^2.0.1",
     "xml": "^1.0.1"

@@ -19,11 +19,11 @@ const blockedTemplatesRegex = new RegExp(`^(${blockedTemplateFiles.join('|')})$`
 const app = express()
 
 const target = resolve(process.cwd(), 'target')
-const dir = publicPath.slice(1)
-const index = resolve(target, dir, 'index.html')
-const indexWithRouting = resolve(target, dir, 'index.html.js')
-const notFound = resolve(target, dir, '404.html')
-const internalServerError = resolve(target, dir, '500.html')
+const publicPathDir = publicPath.slice(1)
+const index = 'index.html'
+const indexWithRouting = 'index.html.js'
+const notFound = '404.html'
+const internalServerError = '500.html'
 
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
@@ -33,6 +33,7 @@ const notCached = ['html', 'txt', 'json', 'xml']
 // hsts-headers are sent by our loadbalancer
 app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
 app.use(compression())
+app.set('trust proxy', true)
 serveMiddleware && app.use(...[].concat(serveMiddleware))
 app.use((req, res, next) => {
   if (blockedTemplatesRegex.test(req.path)) {
@@ -49,21 +50,7 @@ app.use(express.static(target, {
 }))
 
 app.use((req, res, next) => {
-  fileExists(indexWithRouting)
-    .then(fileFound => fileFound ? serveIndexWithRouting(req, res, next) : next())
-    .catch(next)
-})
-
-app.use((req, res, next) => {
-  fileExists(notFound)
-    .then(fileFound => fileFound ? res.status(404).sendFile(notFound) : next())
-    .catch(next)
-})
-
-app.use((req, res, next) => {
-  fileExists(index)
-    .then(fileFound => fileFound ? res.status(200).sendFile(index) : next())
-    .catch(next)
+  resolveFile(req, res, next).catch(next)
 })
 
 app.use((err, req, res, next) => {
@@ -72,33 +59,76 @@ app.use((err, req, res, next) => {
   console.error(err)
   const response = res.status(500)
   if (isProduction) {
-    fileExists(internalServerError)
-      .then(() => response.sendFile(internalServerError))
+    findFile(req.path, internalServerError)
+      .then(file => file ? response.sendFile(file) : next())
       .catch(next)
   } else response.send(`<pre>${err.toString()}</pre>`)
 })
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))
 
-function fileExists (path) {
-  return isProduction
-    ? (!fileExists.cache || fileExists.cache[path] === undefined)
-      ? accessFile(path).then(fileFound => (addPathToCache(path, fileFound), fileFound))
-      : Promise.resolve(fileExists.cache[path])
-    : accessFile(path)
+async function resolveFile(req, res, next) {
+  try {
+    const { path } = req
+    /** @type {Array<[string, (file:any) => any]>} */
+    const combinations = [
+      [indexWithRouting, file => serveIndexWithRouting(req, res, file)],
+      [notFound, file => res.status(404).sendFile(file)],
+      [index, file => res.status(200).sendFile(file)],
+    ]
 
-  function accessFile (path) {
-    return new Promise(resolve => access(path, err => resolve(!err)))
-  }
+    const dirs = possibleDirectories(path)
+    for (const dir of dirs) {
+      for (const [file, handler] of combinations) {
+        const filePath = resolve(dir, file)
+        if (await fileExists(filePath)) return handler(filePath)
+      }
+    }
 
-  function addPathToCache (path, fileFound) {
-    fileExists.cache = Object.assign({}, fileExists.cache, { [path]: fileFound })
+    next()
+  } catch (e) {
+    next(e)
   }
 }
 
-function serveIndexWithRouting (req, res, next) {
+async function findFile(path, file) {
+  const dirs = possibleDirectories(path)
+  for (path of dirs) {
+    const filePath = resolve(path, file)
+    if (await fileExists(filePath)) return filePath
+  }
+  return null
+}
+
+async function fileExists(path) {
+  return isProduction
+    ? (!fileExists.cache || fileExists.cache[path] === undefined)
+      ? accessFile(path).then(exists => (addPathToCache(path, exists), exists))
+      : fileExists.cache[path]
+    : accessFile(path)
+
+  function addPathToCache(path, exists) {
+    fileExists.cache = Object.assign({}, fileExists.cache, { [path]: exists })
+  }
+}
+
+async function accessFile(path) {
+  return new Promise(resolve => access(path, err => resolve(!err)))
+}
+
+function possibleDirectories(path) {
+  const pathSections = path.split('/').filter(Boolean)
+  const possibleDirectories = []
+  let sectionCount = pathSections.length
+  do {
+    possibleDirectories.push(resolve(...[target, publicPathDir, ...pathSections.slice(0, sectionCount)]))
+  } while (sectionCount--)
+  return possibleDirectories
+}
+
+function serveIndexWithRouting(req, res, file) {
   const envRequire = isProduction ? require : require('import-fresh')
-  const template = envRequire(indexWithRouting)
+  const template = envRequire(file)
 
   const routes = template.routes
   const location = parsePath(req.url)

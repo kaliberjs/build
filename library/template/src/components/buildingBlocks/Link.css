@@ -1,0 +1,13 @@
+.componentBase {
+  color: currentColor;
+  text-decoration: none;
+}
+
+.componentText {
+  text-decoration: underline;
+
+  &:hover,
+  &:focus { text-decoration: none; }
+}
+
+.componentBlock { display: block; }

@@ -4,9 +4,6 @@
 
 html {
   box-sizing: border-box;
-
-  /* force scroll bar, so there's no ui-jank when opening/closing menu on windows */
-  overflow-y: scroll;
 }
 
 body {
