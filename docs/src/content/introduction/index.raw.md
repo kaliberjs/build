@@ -21,19 +21,21 @@ is written in using modern css.
 
 ```jsx
 import stylesheet from '@kaliber/build/stylesheet'
-import styles from '/main.css'
+import styles from './main.css'
 
-export default (
-  <html>
-    <head>
-      {stylesheet}
-    </head>
-    <body>
-      <h1>Hello world!</h1>
-      <div className={styles.body}>How are you doing?</div>
-    </body>
-  </html>
-)
+export function fnName() {
+  return (
+    <html lang="en">
+      <head>
+        {stylesheet}
+      </head>
+      <body>
+        <h1>Hello world!</h1>
+        <p className={styles.body}>How are you doing?</p>
+      </body>
+    </html>
+  )
+}
 ```
 
 Read more at [how-to: static site](/how-to/static-site)
@@ -47,11 +49,14 @@ easy: simply add `?universal` to your import.
 import MyComponent from '/MyComponent?universal'
 import Page from '/Page'
 
-export default (
-  <Page>
-    <MyComponent title='Hello world!' flashInterval={1000} />
-  </Page>
-)
+export function fnName () {
+  return (
+    <Page>
+      <MyComponent title="Hello world!" flashInterval={1000} />
+    </Page>
+  )
+}
+
 ```
 
 Read more at [how-to: isomorphic javascript](/how-to/isomorphic-javascript)
@@ -64,13 +69,15 @@ create separate html pages for each location.
 ```jsx
 import Page from '/Page'
 
-export default ({ location }) => (
-  <Page>
-    location.pathname === '/part1'
+export function fnName ({ location }) {
+  return (
+    <Page>
+      location.pathname === '/part1'
       ? <Part1 />
       : <Part2 />
-  </Page>
-)
+    </Page>
+  )
+}
 ```
 
 Read more at [how-to: server side rendering](/how-to/server-side-rendering)
@@ -102,7 +109,7 @@ index.routes = {
   }
 }
 
-export default function index(({ location, data })) {
+export function index(({ location, data })) {
   return ...
 }
 ```
@@ -130,7 +137,7 @@ It consists of two parts:
 First step is to create a renderer (`/myRenderer.js`).
 
 ```js
-export default function myRenderer(template) {
+export function myRenderer({ template }) {
   // in real life, use a csv library
   return template.map(x => x.join(',')).join('\n') + '\n'
 }
@@ -195,14 +202,16 @@ Let's say you have the following static site:
 ```jsx
 import MyComponent from '/MyComponent'
 
-export default (
-  <html>
-    <head>...</head>
-    <body>
-      <MyComponent someProp='value' />
-    </body>
-  </html>
-)
+export function fnName() {
+  return (
+    <html lang="en">
+      <head>...</head>
+      <body>
+        <MyComponent someProp="value" />
+      </body>
+    </html>
+  )
+}
 ```
 
 The contents of `MyComponent` are only rendered on the server and many of lifecycle methods that
@@ -212,14 +221,17 @@ to make to be able to add dynamic stuff and start using `state` in my component 
 ```jsx
 import MyComponent from '/MyComponent?universal' // <--
 
-export default (
-  <html>
-    <head>...</head>
-    <body>
-      <MyComponent someProp='value' />
-    </body>
-  </html>
-)
+export function fnName() {
+  return (
+    <html>
+      <head>...</head>
+      <body>
+        <MyComponent someProp="value" />
+      </body>
+    </html>
+  )
+}
+
 ```
 
 Read more at [how-to: isomorphic javascript](/how-to/isomorphic-javascript)
