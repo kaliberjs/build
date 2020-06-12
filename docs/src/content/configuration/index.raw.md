@@ -139,3 +139,5 @@ app.use(...[].concat(serveMiddleware))
 This allows you to call the `use` function in any way you like. If you only need to supply a single
 argument you set the value of that argument to `serveMiddleware`. If you need multiple arguments you
 define `serveMiddleware` as an array corresponding to those arguments.
+
+A note on arrays: we shallow merge the `default` configuration with the current staging's configuration, so arrays (as for example in `serveMiddleWare`) are overwritten by the one in current staging's configuration. If this is the case for you, it is best to define arrays in each staging's configuration and not in `default`.
