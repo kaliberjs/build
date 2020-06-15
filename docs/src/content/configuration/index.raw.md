@@ -140,4 +140,17 @@ This allows you to call the `use` function in any way you like. If you only need
 argument you set the value of that argument to `serveMiddleware`. If you need multiple arguments you
 define `serveMiddleware` as an array corresponding to those arguments.
 
-A note on arrays: we shallow merge the `default` configuration with the current staging's configuration, so arrays (as for example in `serveMiddleWare`) are overwritten by the one in current staging's configuration. If this is the case for you, it is best to define arrays in each staging's configuration and not in `default`.
+A note on arrays: we merge the `default` configuration with the current staging's configuration as objects, so array values (as for example in `serveMiddleWare`) are overwritten by the one with the same key in current staging's configuration.
+
+```js
+// default.js
+{ test: [1, 2, 3] }
+
+// phase.js
+{ test: [4, 5] }
+
+// result
+{ test: [4, 5, 3] }
+```
+
+If this is the case for you, it is best to define arrays in each staging's configuration and not in `default`.
