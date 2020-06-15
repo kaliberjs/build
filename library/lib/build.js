@@ -62,6 +62,7 @@ const babelLoader = {
     presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
     plugins: [
       '@babel/syntax-dynamic-import',
+      '@babel/syntax-optional-chaining',
       ['@babel/proposal-decorators', { legacy: true }],
       '@babel/proposal-class-properties',
       '@babel/proposal-object-rest-spread',
