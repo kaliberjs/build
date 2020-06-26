@@ -54,7 +54,7 @@
     "generic-names": "^2.0.1",
     "gm": "^1.23.1",
     "helmet": "^3.23.2",
-    "history": "^4.10.1",
+    "history": "^5.0.0",
     "hoist-non-react-statics": "^3.3.2",
     "icss-utils": "^4.1.1",
     "image-maxsize-webpack-loader": "^1.1.1",
