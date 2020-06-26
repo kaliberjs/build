@@ -13,7 +13,7 @@ import testString from './test.raw.txt'
 
 const extra = { x: 'x' }
 
-export default class Test extends Component {
+export class Test extends Component {
 
   static message = 'Works!'
 
@@ -27,7 +27,7 @@ export default class Test extends Component {
   render() {
     return (
       <>
-        <img src={img} />
+        <img src={img} alt='img' />
         <Sticky>
           <p>I am compiled with babel!</p>
         </Sticky>
@@ -73,7 +73,7 @@ export default class Test extends Component {
     clearInterval(this.interval)
   }
 
-  async asyncFunction () {
+  async asyncFunction() {
     const asyncValue = await new Promise(resolve => setTimeout(() => resolve('Resolved!'), 1000))
     this.setState({ asyncValue })
   }
