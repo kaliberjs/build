@@ -73,7 +73,7 @@ export default class Test extends Component {
     clearInterval(this.interval)
   }
 
-  async asyncFunction () {
+  async asyncFunction() {
     const asyncValue = await new Promise(resolve => setTimeout(() => resolve('Resolved!'), 1000))
     this.setState({ asyncValue })
   }
