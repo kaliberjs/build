@@ -13,7 +13,7 @@ import testString from './test.raw.txt'
 
 const extra = { x: 'x' }
 
-export class Test extends Component {
+export default class Test extends Component {
 
   static message = 'Works!'
 
@@ -27,7 +27,7 @@ export class Test extends Component {
   render() {
     return (
       <>
-        <img src={img} alt='img' />
+        <img src={img} />
         <Sticky>
           <p>I am compiled with babel!</p>
         </Sticky>
