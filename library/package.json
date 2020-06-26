@@ -107,6 +107,6 @@
     "url": "https://github.com/kaliberjs/build/issues"
   },
   "devDependencies": {
-    "mocha": "^7.1.0"
+    "mocha": "^8.0.1"
   }
 }
