@@ -342,7 +342,7 @@ module.exports = function build({ watch }) {
   function externalConfForModulesDir(modulesDir) {
     return {
       modulesDir,
-      whitelist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
+      allowlist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
     }
   }
 

@@ -31,7 +31,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 const notCached = ['html', 'txt', 'json', 'xml']
 
 // hsts-headers are sent by our loadbalancer
-app.use(helmet(Object.assign({ hsts: false }, helmetOptions)))
+app.use(helmet(Object.assign({ hsts: false, contentSecurityPolicy: false }, helmetOptions)))
 app.use(compression())
 app.set('trust proxy', true)
 serveMiddleware && app.use(...[].concat(serveMiddleware))
