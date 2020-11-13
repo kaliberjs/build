@@ -10,3 +10,7 @@ declare module '*.svg' {
   const x: string
   export default x
 }
+
+interface Window {
+  'Rollbar': import('rollbar')
+}

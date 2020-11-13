@@ -62,6 +62,7 @@ const babelLoader = {
     presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
     plugins: [
       '@babel/syntax-dynamic-import',
+      '@babel/syntax-optional-chaining',
       ['@babel/proposal-decorators', { legacy: true }],
       '@babel/proposal-class-properties',
       '@babel/proposal-object-rest-spread',
@@ -346,7 +347,7 @@ module.exports = function build({ watch }) {
   function externalConfForModulesDir(modulesDir) {
     return {
       modulesDir,
-      whitelist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
+      allowlist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
     }
   }
 
