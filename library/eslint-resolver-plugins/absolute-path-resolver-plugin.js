@@ -4,7 +4,7 @@ const path = require('path')
 
 const modifiers = [
   function removeQueryString(source, file, config) {
-    const newSource = source.split('?')
+    const [newSource] = source.split('?')
     return newSource
   },
   function absoluteImport(source, file, config) {
