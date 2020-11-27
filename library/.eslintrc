@@ -15,7 +15,7 @@
   "settings": {
     "import/resolver": {
       "@kaliber/build/eslint-resolver-plugins/absolute-path-resolver-plugin": {
-        "path": ["./src/sub", "./src"]
+        "path": ["./src/features", "./src"]
       }
     },
     "react": {

@@ -126,7 +126,7 @@ module.exports = function build({ watch }) {
   const cwd = process.cwd()
 
   const srcDir = path.resolve(cwd, 'src')
-  const subDir = path.resolve(srcDir, 'sub')
+  const featuresDir = path.resolve(srcDir, 'features')
   const yarnWorkspaceDir = findYarnWorkspaceRoot(cwd)
   const targetDir = path.resolve(cwd, 'target')
   fs.removeSync(targetDir)
@@ -212,7 +212,7 @@ module.exports = function build({ watch }) {
       extensions: ['.js'],
       modules: ['node_modules'],
       plugins: [
-        absolutePathResolverPlugin(subDir),
+        absolutePathResolverPlugin(featuresDir),
         absolutePathResolverPlugin(srcDir),
         fragmentResolverPlugin(),
       ]
