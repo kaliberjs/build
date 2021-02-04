@@ -1,13 +1,8 @@
-const { addBuiltInVariable } = require('../lib/webpack-utils')
+const { addBuiltInVariable, createChildCompiler } = require('../lib/webpack-utils')
 const { RawSource } = require('webpack-sources')
 const { relative } = require('path')
-const { ReplaceSource } = require('webpack-sources')
-const Compiler = require('webpack/lib/Compiler')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const RawModule = require('webpack/lib/RawModule')
-const Stats = require('webpack/lib/Stats')
-const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
-const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 
 /*
   The idea is simple:
@@ -20,14 +15,14 @@ const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 const p = 'react-universal-plugin'
 
 // works only when entry is an object
-module.exports = function reactUniversalPlugin (webCompilerOptions) {
+module.exports = function reactUniversalPlugin(webCompilerOptions) {
 
   return {
     apply: compiler => {
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
 
-      const webCompiler = createWebCompiler(compiler, webCompilerOptions, () => clientEntries)
+      const webCompiler = createWebCompiler(compiler, webCompilerOptions)
 
       // when the webCompiler starts compiling add the recorded client entries
       webCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
@@ -76,12 +71,6 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
             }
           }
         })
-      })
-
-      // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
-      compiler.hooks.beforeCompile.tap(p, params => {
-        webCompiler.fileTimestamps = compiler.fileTimestamps
-        webCompiler.contextTimestamps = compiler.contextTimestamps
       })
 
       // we claim entries ending with `entry.js` and record them as client entries for the web compiler
@@ -137,37 +126,6 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
         })
       })
 
-      // tell the web compiler to compile, emit the assets and notify the appropriate plugins
-      // Note, we can not use `make` because it's parallel
-      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, _, callback) => {
-
-        const startTime = Date.now()
-        webCompiler.compile((err, webCompilation) => {
-          if (err) return finish(err)
-
-          compilation.children.push(webCompilation)
-
-          webCompiler.emitAssets(webCompilation, err => {
-            if (err) return finish(err)
-
-            finish(null, webCompilation)
-          })
-        })
-
-        function finish(err, compilation) {
-          if (err) {
-            webCompiler.hooks.failed.call(err)
-            return callback(err)
-          }
-
-          const stats = new Stats(compilation)
-          stats.startTime = startTime
-          stats.endTime = Date.now()
-
-          webCompiler.hooks.done.callAsync(stats, callback)
-        }
-      })
-
       // make sure the __webpack_js_chunk_information__ is available in modules
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
 
@@ -207,9 +165,9 @@ function getJavascriptChunkNames(chunk, compiler) {
     .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 }
 
-function createWebCompiler(compiler, options, getEntries) {
+function createWebCompiler(compiler, options) {
 
-  const webCompiler = createCompiler(compiler, options)
+  const webCompiler = createChildCompiler(p, compiler, options)
 
   /*
     push the client loader when appropriate
@@ -230,32 +188,5 @@ function createWebCompiler(compiler, options, getEntries) {
     })
   })
 
-  // make the chunk manifest available
-  webCompiler.hooks.compilation.tap(p, compilation => {
-    compilation.hooks.chunkManifest.tap(p, chunkManifest => {
-      compilation._kaliber_chunk_manifest_ = chunkManifest
-    })
-  })
-
   return webCompiler
-}
-
-function createCompiler(compiler, options) {
-  /* from lib/webpack.js */
-  options = new WebpackOptionsDefaulter().process(options)
-
-  const childCompiler = new Compiler(options.context)
-  childCompiler.options = options
-
-  // instead of using the NodeEnvironmentPlugin
-  childCompiler.inputFileSystem = compiler.inputFileSystem
-  childCompiler.outputFileSystem = compiler.outputFileSystem
-  childCompiler.watchFileSystem = compiler.watchFileSystem
-
-  options.plugins.forEach(plugin => { plugin.apply(childCompiler) })
-  childCompiler.hooks.environment.call()
-  childCompiler.hooks.afterEnvironment.call()
-  childCompiler.options = new WebpackOptionsApply().process(options, childCompiler)
-
-  return childCompiler
 }

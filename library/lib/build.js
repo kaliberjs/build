@@ -33,6 +33,7 @@ const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const websocketCommunicationPlugin = require('../webpack-plugins/websocket-communication-plugin')
+const webworkerPlugin = require('../webpack-plugins/webworker-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
@@ -206,6 +207,43 @@ module.exports = function build({ watch }) {
     }
   }
 
+  function webworkerOptions() {
+    return {
+      mode,
+      target: 'webworker',
+      context: srcDir,
+      devtool: false,
+      entry: false,
+      output: {
+        filename: '[id].[hash].js',
+        chunkFilename: '[id].[hash].js',
+        path: outputPath,
+        publicPath
+      },
+      optimization: {
+        minimize: isProduction,
+        minimizer: [
+          new TerserPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true
+          })
+        ],
+        namedChunks: false,
+        splitChunks: false
+      },
+      resolve: resolveOptions(),
+      resolveLoader: resolveLoaderOptions(),
+      module: Object.assign({
+        unsafeCache: false
+      }, moduleOptions()),
+      plugins: [
+        ...pluginsOptions().all(),
+        ...pluginsOptions().webworker()
+      ]
+    }
+  }
+
   function resolveOptions() {
     return {
       extensions: ['.js'],
@@ -308,7 +346,6 @@ module.exports = function build({ watch }) {
     return {
       all: () => [
         ProgressBarPlugin(),
-        watch && websocketCommunicationPlugin(),
         makeAdditionalEntriesPlugin(),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -322,6 +359,7 @@ module.exports = function build({ watch }) {
         sourceMapPlugin({ sourceRoot: cwd }),
       ].filter(Boolean),
       node: () => [
+        watch && websocketCommunicationPlugin(),
         new TimeFixPlugin(),
         new ExtendedAPIPlugin(),
         configLoaderPlugin(),
@@ -330,12 +368,18 @@ module.exports = function build({ watch }) {
         templatePlugin(templateRenderers), // does work on .*.js
         mergeCssPlugin(),
         copyUnusedFilesPlugin(),
-        watch && hotCssReplacementPlugin()
+        watch && hotCssReplacementPlugin(),
+        webworkerPlugin.ignoreImports,
       ].filter(Boolean),
       web: () => [
-        chunkManifestPlugin(),
-        watch && hotModuleReplacementPlugin()
-      ].filter(Boolean)
+        watch && websocketCommunicationPlugin(),
+        chunkManifestPlugin({ filename: 'chunk-manifest.json' }),
+        watch && hotModuleReplacementPlugin(),
+        webworkerPlugin(webworkerOptions()),
+      ].filter(Boolean),
+      webworker: () => [
+        chunkManifestPlugin({ filename: 'webworker-manifest.json' }),
+      ].filter(Boolean),
     }
   }
 
