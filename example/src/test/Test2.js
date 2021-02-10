@@ -19,15 +19,15 @@ export default class Test2 extends Component {
 }
 
 function WebWorker() {
-  const [firstRender, setFirstRender] = React.useState(true)
-  if (firstRender) setFirstRender(false)
-
   const [fromWorker, setFromWorker] = React.useState('from server render')
   const worker = useWebWorker()
-  if (firstRender) {
-    worker.postMessage('from first render')
-    worker.onmessage = e => setFromWorker(e.data)
-  }
+  React.useMemo(
+    () => {
+      worker.postMessage('from first render')
+      worker.onmessage = e => setFromWorker(e.data)
+    },
+    [worker]
+  )
 
   return (
     <>

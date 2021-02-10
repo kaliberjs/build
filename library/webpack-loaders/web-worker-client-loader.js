@@ -9,7 +9,7 @@ function WebworkerClientLoader(source, map) {
 
 function createClientCode({ filename }) {
   return `|export function useWebWorker() {
-          |  const workerRef = React.useRef(createSimpleCaptureProxy())
+          |  const workerRef = React.useRef(createProxy())
           |  React.useEffect(
           |    () => {
           |      const workerPath = __webpack_public_path__ +
@@ -20,7 +20,7 @@ function createClientCode({ filename }) {
           |        if (type === 'call') worker[info.method](...info.args)
           |        if (type === 'set') worker[info.prop] = info.value
           |      })
-          |      workerRef.current = worker
+          |      workerRef.current.target = worker
           |      return () => { worker.terminate() }
           |    },
           |    []
@@ -29,22 +29,42 @@ function createClientCode({ filename }) {
           |  return workerRef.current
           |}
           |
-          |function createSimpleCaptureProxy() {
-          |  return new Proxy({ pending: [] }, {
-          |    get(target, prop) {
-          |      if (prop === 'pending') return target.pending
+          |function createProxy() {
+          |  const simpleHandler = {
+          |    get(target, prop) { return target[prop].bind(target) },
+          |    set(target, prop, value) { target[prop] = value }
+          |  }
           |
-          |      return new Proxy(() => {}, {
-          |        apply(_, __, args) {
-          |          target.pending.push({ type: 'call', method: prop, args })
-          |        }
-          |      })
-          |    },
-          |    set(target, prop, value) {
-          |      target.pending.push({ type: 'set', prop, value })
-          |      return true
-          |    },
-          |  })
+          |  const ref = {
+          |    current: {
+          |      target: { pending: [] },
+          |      handler: {
+          |        get(target, prop) {
+          |          if (prop === 'pending') return target.pending
+          |
+          |          return new Proxy(() => {}, {
+          |            apply(_, __, args) {
+          |              target.pending.push({ type: 'call', method: prop, args })
+          |            }
+          |          })
+          |        },
+          |        set(target, prop, value) {
+          |          if (prop === 'target') ref.current = { target: value, handler: simpleHandler }
+          |          else target.pending.push({ type: 'set', prop, value })
+          |          return true
+          |        },
+          |      }
+          |    }
+          |  }
+          |
+          |  return new Proxy(
+          |    ref.current.target,
+          |    new Proxy({}, {
+          |      get(_, prop) {
+          |        return (_, ...args) => ref.current.handler[prop](ref.current.target, ...args)
+          |      }
+          |    })
+          |  )
           |}
           |`.split(/^[ \t]*\|/m).join('')
 }
