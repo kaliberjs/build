@@ -76,7 +76,7 @@ function createChildCompiler(pluginName, compiler, options) {
     childCompiler.fileTimestamps = compiler.fileTimestamps
     childCompiler.contextTimestamps = compiler.contextTimestamps
   })
-  // tell the web compiler to compile, emit the assets and notify the appropriate plugins
+  // Tell the sub compiler to compile
   // Note, we can not use `make` because it's parallel
   // We use `stage: 1` to allow plugins to register new entries right before building
   if (!compiler.hooks.makeAdditionalEntries) throw new Error('Make sure the make-addition-entries plugin is installed')
