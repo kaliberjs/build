@@ -1,7 +1,6 @@
+/* eslint-disable no-restricted-globals */
 self.onmessage = ref => {
-  var text = ref.data
-  console.log('from worker', ref)
-  self.postMessage({
-    text: text + '-' + text
-  })
+  const text = ref.data
+  console.log('In worker:', ref)
+  self.postMessage(`"${text}" - "${text}"`)
 }

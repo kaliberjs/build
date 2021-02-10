@@ -1,4 +1,4 @@
-import { Worker } from './test-worker?webworker'
+import { useWebWorker } from './test-worker?webworker'
 // eslint-disable-next-line @kaliber/no-default-export
 export default class Test2 extends Component {
 
@@ -7,22 +7,32 @@ export default class Test2 extends Component {
   render() {
     return (
       <div>
-        Test2 - {this.state.message} - {this.state.messageFromWorker}
-        <button
-          type='button'
-          onClick={() => this.worker.postMessage('hallo')}
-        >
-          Send to worker
-        </button>
+        Test2 - {this.state.message}
+        <WebWorker />
       </div>
     )
   }
 
   componentDidMount() {
     this.setState({ message: 'mounted' })
-    this.worker = new Worker()
-    this.worker.onmessage = event => {
-      this.setState({ messageFromWorker: JSON.stringify(event.data) })
-    }
   }
+}
+
+function WebWorker() {
+  const [firstRender, setFirstRender] = React.useState(true)
+  if (firstRender) setFirstRender(false)
+
+  const [fromWorker, setFromWorker] = React.useState('from server render')
+  const worker = useWebWorker()
+  if (firstRender) {
+    worker.postMessage('from first render')
+    worker.onmessage = e => setFromWorker(e.data)
+  }
+
+  return (
+    <>
+      <p>From worker: {fromWorker}</p>
+      <button type='button' onClick={e => worker.postMessage('from button')}>click</button>
+    </>
+  )
 }

@@ -33,7 +33,7 @@ const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const websocketCommunicationPlugin = require('../webpack-plugins/websocket-communication-plugin')
-const webworkerPlugin = require('../webpack-plugins/webworker-plugin')
+const webWorkerPlugin = require('../webpack-plugins/web-worker-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
@@ -207,7 +207,7 @@ module.exports = function build({ watch }) {
     }
   }
 
-  function webworkerOptions() {
+  function webWorkerOptions() {
     return {
       mode,
       target: 'webworker',
@@ -239,7 +239,7 @@ module.exports = function build({ watch }) {
       }, moduleOptions()),
       plugins: [
         ...pluginsOptions().all(),
-        ...pluginsOptions().webworker()
+        ...pluginsOptions().webWorker()
       ]
     }
   }
@@ -369,16 +369,16 @@ module.exports = function build({ watch }) {
         mergeCssPlugin(),
         copyUnusedFilesPlugin(),
         watch && hotCssReplacementPlugin(),
-        webworkerPlugin.ignoreImports,
+        webWorkerPlugin.handleWebWorkerImports,
       ].filter(Boolean),
       web: () => [
         watch && websocketCommunicationPlugin(),
         chunkManifestPlugin({ filename: 'chunk-manifest.json' }),
         watch && hotModuleReplacementPlugin(),
-        webworkerPlugin(webworkerOptions()),
+        webWorkerPlugin(webWorkerOptions()),
       ].filter(Boolean),
-      webworker: () => [
-        chunkManifestPlugin({ filename: 'webworker-manifest.json' }),
+      webWorker: () => [
+        chunkManifestPlugin({ filename: 'web-worker-manifest.json' }),
       ].filter(Boolean),
     }
   }
