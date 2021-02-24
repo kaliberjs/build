@@ -34,6 +34,7 @@ const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const websocketCommunicationPlugin = require('../webpack-plugins/websocket-communication-plugin')
 const webWorkerPlugin = require('../webpack-plugins/web-worker-plugin')
+const noKaliberConfigPlugin = require('../webpack-plugins/no-kaliber-config-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
@@ -376,9 +377,11 @@ module.exports = function build({ watch }) {
         chunkManifestPlugin({ filename: 'chunk-manifest.json' }),
         watch && hotModuleReplacementPlugin(),
         webWorkerPlugin(webWorkerOptions()),
+        noKaliberConfigPlugin(),
       ].filter(Boolean),
       webWorker: () => [
         chunkManifestPlugin({ filename: 'web-worker-manifest.json' }),
+        noKaliberConfigPlugin(),
       ].filter(Boolean),
     }
   }

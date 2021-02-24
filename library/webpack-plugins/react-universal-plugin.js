@@ -169,20 +169,13 @@ function createWebCompiler(compiler, options) {
 
   const webCompiler = createChildCompiler(p, compiler, options)
 
-  /*
-    push the client loader when appropriate
-
-    provide a friendly error if @kaliber/config is loaded from a client module
-  */
+  // push the client loader when appropriate
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
     normalModuleFactory.hooks.afterResolve.tap(p, data => {
-      const { loaders, rawRequest, resourceResolveData: { query } } = data
+      const { loaders, resourceResolveData: { query } } = data
 
       if (query === '?universal-client')
         loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
-
-      if (rawRequest === '@kaliber/config')
-        throw new Error('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
 
       return data
     })

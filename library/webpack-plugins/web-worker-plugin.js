@@ -32,7 +32,7 @@ function webWorkerPlugin(webWorkerCompilerOptions) {
       // keep a record of web worker entries for additional compiler runs (watch)
       const claimedEntries = {}
 
-      const subCompiler = createSubCompiler(compiler, webWorkerCompilerOptions)
+      const subCompiler = createChildCompiler(p, compiler, webWorkerCompilerOptions)
 
       // when the subCompiler starts compiling add the recorded client entries
       subCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
@@ -76,23 +76,4 @@ function webWorkerPlugin(webWorkerCompilerOptions) {
       })
     }
   }
-}
-
-function createSubCompiler(compiler, options) {
-
-  const subCompiler = createChildCompiler(p, compiler, options)
-
-  // provide a friendly error if @kaliber/config is loaded from a client module
-  subCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
-    normalModuleFactory.hooks.afterResolve.tap(p, data => {
-      const { rawRequest } = data
-
-      if (rawRequest === '@kaliber/config')
-        throw new Error('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
-
-      return data
-    })
-  })
-
-  return subCompiler
 }
