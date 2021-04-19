@@ -1,6 +1,6 @@
 ## Web Workers
 
-Web Workers are a tool run scripts in background threads. The worker thread can perform tasks without interfering with the user interface. This can be used to offload heavy tasks from the main js thread. Extra information about this subject can be found on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
+Web Workers are a tool to run scripts in background threads. The worker threads can perform tasks without interfering with the user interface. This can be used to offload heavy tasks from the main js thread. Extra information about this subject can be found on [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
 
 Browser support is great for this feature: [caniuse](https://caniuse.com/?search=web%20workers)
 
@@ -9,20 +9,21 @@ One important thing is that web workers are only working on the client so we nee
 
 `heavy-component.js`
 ```js
-export function HeavyComponent () {
-  React.useEffect(() => {
-    const currentWorker = new Worker(require('./worker?webworker'))
+const [fromWorker, setFromWorker] = React.useState(null)
 
+React.useEffect(
+  () => {
+    const currentWorker = new Worker(require('./worker?webworker'))
+    
     currentWorker.postMessage('send data to the worker')
     currentWorker.onmessage = e => setFromWorker(e.data)
 
     return () => currentWorker.terminate()
-  }, [])
+  }, 
+  []
+)
 
-  return (
-    <div>HeavyComponent<div>
-  )
-}
+return fromWorker && <HeavyComponent data={fromWorker} />
 ```
 
 `worker.js`

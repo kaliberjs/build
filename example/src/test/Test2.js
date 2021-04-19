@@ -1,7 +1,7 @@
 // eslint-disable-next-line @kaliber/no-default-export
 export default class Test2 extends Component {
 
-  state = { message: 'unmounted', messageFromWorker: 'no message' }
+  state = { message: 'unmounted' }
 
   render() {
     return (
@@ -18,18 +18,21 @@ export default class Test2 extends Component {
 }
 
 function WebWorker() {
-  const [fromWorker, setFromWorker] = React.useState('from server render')
+  const [fromWorker, setFromWorker] = React.useState('from first render')
   const [worker, setWorker] = React.useState(null)
 
-  React.useEffect(() => {
-    const currentWorker = new Worker(require('./test-worker?webworker'))
-    setWorker(currentWorker)
+  React.useEffect(
+    () => {
+      const currentWorker = new Worker(require('./test-worker?webworker'))
+      setWorker(currentWorker)
 
-    currentWorker.postMessage('from first render')
-    currentWorker.onmessage = e => setFromWorker(e.data)
+      currentWorker.postMessage('from mount')
+      currentWorker.onmessage = e => setFromWorker(e.data)
 
-    return () => currentWorker.terminate()
-  }, [])
+      return () => currentWorker.terminate()
+    },
+    []
+  )
 
   return (
     <>
