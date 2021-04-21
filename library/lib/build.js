@@ -247,7 +247,7 @@ module.exports = function build({ watch }) {
 
   function resolveOptions() {
     return {
-      extensions: ['.js'],
+      extensions: ['.js', '.mjs'],
       modules: ['node_modules'],
       plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
     }
@@ -301,14 +301,14 @@ module.exports = function build({ watch }) {
 
         {
           resource: {
-            test: /(\.html\.js|\.js)$/,
+            test: /(\.html\.js|\.js|\.mjs)$/,
             or: [{ exclude: /node_modules/ }, ...compileWithBabel],
           },
           loaders: [babelLoader]
         },
 
         {
-          test: /\.js$/
+          test: /(\.js|\.mjs)$/
         },
 
         {
