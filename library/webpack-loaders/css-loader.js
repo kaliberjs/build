@@ -49,7 +49,7 @@ function createPlugins(
         require('../postcss-plugins/postcss-kaliber-scoped')(),
       ].filter(Boolean)
     ),
-    isProduction && require('cssnano')({ preset: ['default', { cssDeclarationSorter: false }] })
+    isProduction && require('cssnano')({ preset: ['default', { svgo: false, cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }
 
