@@ -3,7 +3,7 @@ module.exports = {
     'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order',
   ],
   gridChildProps: [
-    'grid', 'grid-area', 'grid-column', 'grid-row',
+    'grid', 'grid-area', 'grid-column', 'grid-row', 'order',
     'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
   ],
 }
