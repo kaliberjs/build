@@ -21,7 +21,7 @@ const { SyncHook } = require('tapable')
 
 const p = 'chunk-manifest-plugin'
 
-module.exports = function chunkManifestPlugin() {
+module.exports = function chunkManifestPlugin({ filename }) {
   return {
     apply: compiler => {
 
@@ -32,7 +32,7 @@ module.exports = function chunkManifestPlugin() {
         const chunkAssets = {}
         compilation.hooks.chunkAsset.tap(p, (chunk, filename, _) => {
 
-          /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === "HotModuleReplacementPlugin") return
+          /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === 'HotModuleReplacementPlugin') return
           if (filename.includes('hot-update')) return
 
           const groups = [...chunk.groupsIterable]
@@ -50,9 +50,9 @@ module.exports = function chunkManifestPlugin() {
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {
           const chunkManifest = sortGroups(chunkAssets)
           compilation.hooks.chunkManifest.call(chunkManifest)
-          compilation.assets['chunk-manifest.json'] = new RawSource(JSON.stringify(chunkManifest, null, 2))
+          compilation.assets[filename] = new RawSource(JSON.stringify(chunkManifest, null, 2))
 
-          function sortGroups (chunkAssets) {
+          function sortGroups(chunkAssets) {
             return Object.keys(chunkAssets).reduce(
               (result, key) => {
                 const group = []
