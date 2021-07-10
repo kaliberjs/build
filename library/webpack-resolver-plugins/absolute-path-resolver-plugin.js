@@ -9,7 +9,7 @@ function absolutePathResolverPlugin(path) {
         const innerRequest = request.request
         if (innerRequest && innerRequest.startsWith('/')) {
           const newRequest = Object.assign({}, request, {
-            path: path,
+            path,
             request: './' + innerRequest.slice(1)
           })
           resolver.doResolve(resolver.hooks.resolve, newRequest, 'looking for file in ' + path, resolveContext, callback)

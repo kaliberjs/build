@@ -15,7 +15,7 @@
     "noEmit": true,
     "paths": {
       "/*?universal": ["src/*"],
-      "/*": ["src/*"]
+      "/*": ["src/features/*", "src/*"]
     },
     "downlevelIteration": true
   }

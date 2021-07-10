@@ -10,6 +10,7 @@ import 'firebase/database'
 import { testCalc } from '/partials/values.css'
 import checkIgnoreString from '/rollbarCheckIgnore.raw'
 import testString from './test.raw.txt'
+import { Test as TestFeature } from '/Test'
 
 const extra = { x: 'x' }
 
@@ -31,6 +32,7 @@ export default class Test extends Component {
         <Sticky>
           <p>I am compiled with babel!</p>
         </Sticky>
+        <TestFeature />
         <pre>
           {testString}
           {checkIgnoreString}

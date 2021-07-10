@@ -1,6 +1,6 @@
-import { Intro, IntroLink } from '/components/home/Intro'
-import { Section } from '/components/home/pageOnly/Section'
-import { ContentContainer } from '/components/home/pageOnly/ContentContainer'
+import { Intro, IntroLink } from '/home/Intro'
+import { Section } from '/home/pageOnly/Section'
+import { ContentContainer } from '/home/pageOnly/ContentContainer'
 
 export function Home() {
   return (

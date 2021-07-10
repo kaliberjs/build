@@ -6,6 +6,11 @@ declare module '*.css' {
   export default x
 }
 
+declare module '*.svg' {
+  const x: string
+  export default x
+}
+
 interface Window {
   'Rollbar': import('rollbar')
 }
