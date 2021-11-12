@@ -177,12 +177,17 @@ function createDynamicTemplate(name, ext, map) {
   return new RawSource(
     `|const createMap = () => JSON.parse(${JSON.stringify((JSON.stringify(map)))})
      |
-     |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
+     |const { withSourceMappedError, withSourceMappedErrorAsync } = require('@kaliber/build/lib/node-utils')
      |
      |const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
      |const { template, renderer } = withSourceMappedError(createMap, () => envRequire('./${name}${ext}'))
      |
-     |Object.assign(render, template)
+     |Object.assign(render, template, {
+     |  routes: {
+     |    match: (...args) =>
+     |      withSourceMappedErrorAsync(createMap, () => template.routes.match(...args))
+     |  }
+     |})
      |
      |module.exports = render
      |
