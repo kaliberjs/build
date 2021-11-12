@@ -8,8 +8,8 @@ const vm = require('vm')
 const isProduction = process.env.NODE_ENV === 'production'
 
 function createPlugins(
-  { minifyOnly, globalScopeBehaviour },
-  { resolveForImport, resolveForUrlReplace, resolveForImportExportParser, cssGlobalFiles }
+  { minifyOnly, globalScopeBehaviour, cssGlobalFiles },
+  { resolveForImport, resolveForUrlReplace, resolveForImportExportParser }
 ) {
 
   return [
@@ -53,7 +53,7 @@ function createPlugins(
   ].filter(Boolean)
 }
 
-/** @type {import('webpack').loader.Loader} */
+/** @type {import('webpack').LoaderDefinitionFunction} */
 module.exports = function CssLoader(source, map) {
 
   const self = this
@@ -61,7 +61,11 @@ module.exports = function CssLoader(source, map) {
 
   const loaderOptions = loaderUtils.getOptions(this) || {}
   const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
-  const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour })
+
+  const cssGlobalFiles = cachedFindCssGlobalFiles(this)
+  cssGlobalFiles.forEach(x => this.addDependency(x))
+
+  const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour, cssGlobalFiles })
   const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
@@ -105,29 +109,24 @@ module.exports = function CssLoader(source, map) {
   }
 }
 
-function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour }) {
+function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour, cssGlobalFiles }) {
   const key = `plugins${minifyOnly ? '-minifyOnly' : ''}${globalScopeBehaviour ? '-globalScope' : ''}`
-  const c = loaderContext._compilation
-  const cache = c.kaliberCache || (c.kaliberCache = {})
-  if (cache[key]) return cache[key]
 
-  const handlers = createHandlers(loaderContext, cache)
-  const plugins = createPlugins({ minifyOnly, globalScopeBehaviour }, handlers)
-  return (cache[key] = plugins)
+  return cachedInConmpilation(loaderContext, key, () => {
+    const handlers = createHandlers(loaderContext)
+    const plugins = createPlugins({ minifyOnly, globalScopeBehaviour, cssGlobalFiles }, handlers)
+    return plugins
+  })
 }
 
-/** @param {import('webpack').loader.LoaderContext} loaderContext */
-function createHandlers(loaderContext, cache) {
-  const cssGlobalFiles = findCssGlobalFiles(loaderContext.rootContext)
-  cssGlobalFiles.forEach(x => loaderContext._compilation.compilationDependencies.add(x))
-
+/** @param {import('webpack').LoaderContext<any>} loaderContext */
+function createHandlers(loaderContext) {
   return {
     resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
     resolveForUrlReplace: (url, file) => isDependency(url)
       ? resolveAndExecute(dirname(file), url)
       : Promise.resolve(url),
     resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
-    cssGlobalFiles,
   }
 
   async function resolveAndExecute(context, request) {
@@ -150,15 +149,30 @@ function createHandlers(loaderContext, cache) {
 
   function executeModuleAt(url, source) {
     const key = `module-${url}`
-    if (cache[key]) return cache[key]
+    return cachedInConmpilation(loaderContext, key, () => {
 
-    const sandbox = {
-      module: {},
-      __webpack_public_path__: loaderContext._compiler.options.output.publicPath || '/',
-    }
-    const result = vm.runInNewContext(source, sandbox, { displayErrors: true, contextName: `Execute ${url}` })
-    return (cache[key] = result)
+      const sandbox = {
+        module: {},
+        __webpack_public_path__: loaderContext._compiler.options.output.publicPath || '/',
+      }
+      const result = vm.runInNewContext(source, sandbox, { displayErrors: true, contextName: `Execute ${url}` })
+      return result
+    })
   }
+}
+
+function cachedFindCssGlobalFiles(loaderContext) {
+  return cachedInConmpilation(loaderContext, 'global-css-files', () =>
+    findCssGlobalFiles(loaderContext.rootContext)
+  )
+}
+
+function cachedInConmpilation(loaderContext, key, f) {
+  const c = loaderContext._compilation
+  const cache = c.kaliberCache || (c.kaliberCache = {})
+  if (cache[key]) return cache[key]
+
+  return (cache[key] = f())
 }
 
 function throwErrorForWarnings(filename, warnings) {
