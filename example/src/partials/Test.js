@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import Test2 from './Test2'
 import styles from './test.css'
 import json from './test.json'
@@ -13,6 +13,7 @@ import testString from './test.raw.txt'
 
 const extra = { x: 'x' }
 
+// eslint-disable-next-line @kaliber/no-default-export
 export default class Test extends Component {
 
   static message = 'Works!'
