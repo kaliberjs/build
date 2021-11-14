@@ -30,7 +30,10 @@ export function FunctionComponent({ prop1, prop2 }) {
       <h1>Function component</h1>
       <p>{prop1} / {prop2}</p>
       <p>first {counter}</p>
-      <p>second {counter}</p>
+      <p>{Boolean(counter % 2) && <strong>second</strong>} {counter}</p>
+      {/* this use case does not work (top level element appearance / disappearance):
+      {Boolean(counter % 2) && <p>third {counter}</p>}
+      */}
       <p>
         <button
           type='button'
