@@ -20,13 +20,18 @@ export function ComponentServerWrapper({ componentName, props, renderedComponent
 export function findComponents({ componentName }) {
   if (typeof window === 'undefined') throw new Error(`The function 'findComponents' can only be used in the browser`)
 
-  const cache = getCache()
-  const components = cache[componentName] || []
+  const findComponentCache = getFindComponentCache()
+  const components = findComponentCache[componentName] || []
   if (!components.length) console.warn(`Could not find any component with name '${componentName}', dit you render it to the page?`)
   return components
 
-  function getCache() {
-    return findComponents.cache || (findComponents.cache = groupComponentsByName(findAllComponents()))
+  function getFindComponentCache() {
+    if (!findComponents.cache) findComponents.cache = findAndGroupAllComponents()
+    return findComponents.cache
+
+    function findAndGroupAllComponents() {
+      return groupComponentsByName(findAllComponents())
+    }
   }
 }
 
