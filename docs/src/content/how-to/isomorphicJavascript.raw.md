@@ -11,11 +11,11 @@ can be.
 
 ### universal
 
-To make a component 'isormorphic' or 'universal' the only thing you need to do is import it with
-`?universal` appended.
+To make a component 'isormorphic' or 'universal' you need to import it with
+`.universal` appended.
 
 ```jsx
-import App from '/App?univeral'
+import App from '/App.univeral'
 
 export default (
   <html>
@@ -27,23 +27,17 @@ export default (
 )
 ```
 
-In this example `App` is universal and will be rendered both on the server and client.
-
-Note that switching from a non-universal component to a universal component changes the resulting
-html. When `?universal` is added, the result of `App` is rendered into an extra `<div />`. This is
-needed to later 'hydrate' it again using `App` in the client.
-
-This extra `<div />` can be given properties by giving the `<App />` a `universalContainerProps`
-prop:
+The `App.universal.js` component can simply be:
 
 ```jsx
-<App universalContainerProps={{ className: styles.appContainer }} />
+export { App as default } from './App'
 ```
 
-Because of the 'universal' nature of the component, any props passed to the component other than
-`universalContainerProps` will be serialized to make sure they are available on the client as well.
-As a consequence, it's not possible to pass `children` and other data types that can not be
-serialized to JSON.
+In this example `App` is universal and will be rendered both on the server and client.
+
+Because of the 'universal' nature of the component, any props passed to the component other will be
+serialized to make sure they are available on the client as well. As a consequence, it's not
+possible to pass `children` and other data types that can not be serialized to JSON.
 
 
 ### window

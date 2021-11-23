@@ -106,7 +106,7 @@ For this type of site universal rendering is the way to do it.
 `src/index.html.js`
 ```jsx
 import javascript from '@kaliber/build/lib/javascript'
-import MyInteractiveComponent from '/MyInteractiveComponent?universal'
+import MyInteractiveComponent from '/MyInteractiveComponent.universal'
 
 return (
   <html>
@@ -118,25 +118,27 @@ return (
 )
 ```
 
+`src/MyInteractiveComponent.universal.js`
+```jsx
+export { MyInteractiveComponent as default } from './MyInteractiveComponent'
+```
+
 `src/MyInteractiveComponent.js`
 ```js
-export default class MyInteractiveComponent extends Component {
+export function MyInteractiveComponent({ content: initialContent }) {
 
-  state = {
-    content: this.props.content
-  }
+  const [content, setContent] = React.useState(initialContent)
 
-  render() {
-    return <p>{this.state.content}</p>
-  }
+  React.useEffect(
+    () => { setContent('This content is set using javascript in the browser') },
+    []
+  )
 
-  componentDidMount() {
-    this.setState({ content: 'This content is set using javascript in the browser' })
-  }
+  return <p>{this.state.content}</p>
 }
 ```
 
-The `componentDidMount` function is only executed in the browser.
+The `useEffect` function is only executed in the browser.
 
 ### The server (404 and 500)
 

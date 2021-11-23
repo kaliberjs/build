@@ -73,12 +73,12 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
         })
       })
 
-      // we claim entries ending with `entry.js` and record them as client entries for the web compiler
+      // we claim entries ending with `entry.js` and `.universal.js` and record them as client entries for the web compiler
       compiler.hooks.claimEntries.tap(p, entries => {
         const [claimed, unclaimed] = Object.keys(entries).reduce(
           ([claimed, unclaimed], name) => {
             const entry = entries[name]
-            if (entry.endsWith('.entry.js')) claimed[name] = entry
+            if (entry.endsWith('.entry.js') || entry.endsWith('.universal.js')) claimed[name] = entry
             else unclaimed[name] = entry
 
             return [claimed, unclaimed]
@@ -97,6 +97,9 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
 
         When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
         loaders and add the module marked with `?universal-client` as client entry.
+
+        When a module marked with `.universal.js` has been resolved, add the `react-containerless-universal-server-loader` to it's
+        loaders and add the module marked with `?continerless-universal-client` as client entry.
       */
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
@@ -116,6 +119,13 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
 
             const name = relative(compiler.context, path)
             if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
+          }
+
+          if (path.endsWith('.universal.js') && query !== '?original') {
+            loaders.push({ loader: require.resolve('../webpack-loaders/react-containerless-universal-server-loader') })
+
+            const name = relative(compiler.context, path)
+            if (!clientEntries[name]) clientEntries[name] = './' + name + '?containerless-universal-client'
           }
 
           if (path.endsWith('.entry.js')) {
@@ -159,9 +169,13 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
 }
 
 function getJavascriptChunkNames(chunk, compiler) {
-  // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
+  // find universal modules in the current chunk (client chunk names) and grab their filenames (uniquely)
   return chunk.getModules()
-    .filter(x => x.resource && (x.resource.endsWith('?universal') || x.resource.endsWith('.entry.js')))
+    .filter(x => x.resource && (
+      x.resource.endsWith('?universal') ||
+      x.resource.endsWith('.entry.js') ||
+      x.resource.endsWith('.universal.js')
+    ))
     .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 }
 
@@ -176,6 +190,9 @@ function createWebCompiler(compiler, options) {
 
       if (query === '?universal-client')
         loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
+
+      if (query === '?containerless-universal-client')
+        loaders.push({ loader: require.resolve('../webpack-loaders/react-containerless-universal-client-loader') })
 
       return data
     })

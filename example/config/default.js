@@ -5,6 +5,10 @@ module.exports = {
       xml: '/xmlRenderer',
       mjml: '/mjml-renderer',
       big: '/bigFileRenderer',
+    },
+    universal: {
+      clientWrapper: '/wrapper/Client',
+      serverWrapper: '/wrapper/Server',
     }
   },
   client: {

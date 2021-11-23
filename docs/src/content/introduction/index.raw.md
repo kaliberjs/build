@@ -41,10 +41,10 @@ Read more at [how-to: static site](/how-to/static-site)
 #### A static site with javascript in the browser
 
 Server side rendering is the default, but switching to a universal/isomorphic component is very
-easy: simply add `?universal` to your import.
+easy: simply add `.universal` to your import and export a default.
 
 ```jsx
-import MyComponent from '/MyComponent?universal'
+import MyComponent from '/MyComponent.universal'
 import Page from '/Page'
 
 export default (
@@ -52,6 +52,11 @@ export default (
     <MyComponent title='Hello world!' flashInterval={1000} />
   </Page>
 )
+```
+
+`MyComponent.universal.js`
+```jsx
+export { MyComponent as default } from './MyComponent'
 ```
 
 Read more at [how-to: isomorphic javascript](/how-to/isomorphic-javascript)
@@ -187,8 +192,8 @@ We provide 3 npm binaries that can be used in the `scripts` of your `package.jso
 
 #### Easy universal rendering
 
-What if I told you that making a component universal was as easy as adding `?universal` to it's
-import statement?
+What if I told you that making a component universal was as easy as adding `.universal` to it's
+import statement and creating a file that exported the correct component as `default`?
 
 Let's say you have the following static site:
 
@@ -206,11 +211,11 @@ export default (
 ```
 
 The contents of `MyComponent` are only rendered on the server and many of lifecycle methods that
-are triggered in the client never happen (most notably `componentDidMount`). The only change I need
+are triggered in the client never happen (most notably `componentDidMount` / `useEffect`). The only change I need
 to make to be able to add dynamic stuff and start using `state` in my component is the following:
 
 ```jsx
-import MyComponent from '/MyComponent?universal' // <--
+import MyComponent from '/MyComponent.universal' // <--
 
 export default (
   <html>
@@ -220,6 +225,11 @@ export default (
     </body>
   </html>
 )
+```
+
+`/MyComponent.universal`
+```jsx
+export { MyComponent as default } from './MyComponent'
 ```
 
 Read more at [how-to: isomorphic javascript](/how-to/isomorphic-javascript)

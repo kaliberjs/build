@@ -1,6 +1,6 @@
 import javascript from '@kaliber/build/lib/javascript'
 import stylesheet from '@kaliber/build/lib/stylesheet'
-import App from '/App?universal'
+import App from '/App.universal'
 import config from '@kaliber/config'
 import polyfill from '@kaliber/build/lib/polyfill'
 

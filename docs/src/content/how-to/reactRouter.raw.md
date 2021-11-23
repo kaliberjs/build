@@ -13,6 +13,8 @@ The server should fetch the main content of a page and respond with a `404` if t
 present. Any other details should be handled in the client (extra information, showing a certain
 tab, ...).
 
+We recommend using [`@kaliber/routing`](https://github.com/kaliberjs/routing)
+
 In any case, if you do not want to roll your own server and really want to use React router, here
 is how you could do it.
 

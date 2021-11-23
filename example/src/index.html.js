@@ -2,24 +2,29 @@ import './global.css'
 import 'normalize.css'
 import head from '/partials/head'
 import Test from './partials/Test?universal'
-import Test2 from './test/Test2?universal'
+import TestC from '/partials/Test.universal'
+import Test2 from '/test/Test2?universal'
+import Test2C from '/test/Test2.universal'
 import styles from './index.html.js.css'
 import publicSvg from '/public/public.svg'
 import config from '@kaliber/config'
 import firebase from 'firebase-admin'
 import bg1 from './bg1.jpg'
 import SharedComponent from '/partials/SharedComponent?universal'
+import SharedComponentC from '/partials/SharedComponent.universal'
 import '/partials/NotRendered?universal'
+import '/partials/NotRendered.universal'
 import '/test.entry.css'
+import { FunctionComponent, FunctionComponentContainer } from './test/FunctionComponent'
+import FunctionComponentC from './test/FunctionComponent.universal'
+import FunctionComponentU from '/test/FunctionComponentApp?universal'
 
 main.routes = {
-  match: ({ pathname }, request) => pathname === '/'
-    ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } }))
-    : pathname === '/error'
-    ? Promise.reject(new Error('fake error'))
-    : pathname === '/redirect'
-    ? { status: 302, headers: { 'Location': '/redirect-target' } }
-    : { status: 404, data: { message: 'missing' } }
+  match: ({ pathname }, request) =>
+    pathname === '/' ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } })) :
+    pathname === '/error' ? Promise.reject(new Error('fake error')) :
+    pathname === '/redirect' ? { status: 302, headers: { 'Location': '/redirect-target' } } :
+    { status: 404, data: { message: 'missing' } }
 }
 
 function getMessage() {
@@ -40,7 +45,7 @@ function getMessage() {
   }
 }
 
-export default function main ({ location, data }) {
+export default function main({ location, data }) {
   if (!data) return null
   return (
     <html lang='en'>
@@ -57,14 +62,19 @@ export default function main ({ location, data }) {
           message: { data.message }
         </p>
         <SharedComponent />
+        <SharedComponentC />
         <span className={styles.test}>Something</span>
         <h1>1.</h1>
-        <Test2 />
+        <Test2 name="1" />
+        <Test2C name="2" />
         <h1>2.</h1>
-        <Test2 />
+        <Test2 name="3" />
+        <Test2C name="4" />
         <Test soep='kip' initialMessage={data.message} clientConfig={config.client} />
+        <TestC soep='kip' initialMessage={data.message} clientConfig={config.client} />
 
         Test static message, wrapped with universal wrapper: "{Test.message}"
+        Test static message, wrapped with universal wrapper: "{TestC.message}"
         <br /><br />
         <div className={styles.multipleBackground}>multiple backgrounds</div>
         <div className={styles.svgBackground}>svg background</div>
@@ -79,6 +89,16 @@ export default function main ({ location, data }) {
             </clipPath>
           </defs>
         </svg>
+        <hr />
+        <FunctionComponentContainer>
+          <FunctionComponent prop1='1' prop2='Non-universal' />
+        </FunctionComponentContainer>
+        <FunctionComponentContainer>
+          <FunctionComponentC prop1='2' prop2='Containerless Universal' />
+        </FunctionComponentContainer>
+        <FunctionComponentContainer>
+          <FunctionComponentU prop1='3' prop2='Universal' />
+        </FunctionComponentContainer>
       </body>
     </html>
   )

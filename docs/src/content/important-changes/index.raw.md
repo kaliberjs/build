@@ -22,6 +22,7 @@
 
 ### New features
 
+- v0.0.116 - Introduced `*.universal.js` and context handling across client/server boundary
 - ? - `*.raw.*` sources are now loaded using the `raw-loader`
 - v0.0.58 - `ExtendedAPIPlugin` is now also used in the web compiler
 - v0.0.56 - all sub directories of `src/` are being watched
