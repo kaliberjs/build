@@ -15,7 +15,7 @@ To make a component 'isormorphic' or 'universal' you need to import it with
 `.universal` appended.
 
 ```jsx
-import App from '/App.univeral'
+import App from '/App.universal'
 
 export default (
   <html>
@@ -74,7 +74,7 @@ the JSON spec.
 Passing functions or children does not work. This means that the following will fail:
 
 ```jsx
-import App from '/App?univeral'
+import App from '/App?universal'
 
 export default (
   <html>
@@ -153,7 +153,7 @@ loaded it will display the location.
 To make it truly universal you would need to the following changes:
 
 ```jsx
-import App from '/App?univeral'
+import App from '/App?universal'
 
 export default function index(location) {
   return (
