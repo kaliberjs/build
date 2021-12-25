@@ -46,6 +46,7 @@
     "@kaliber/naming-policy": "warn",
     "@kaliber/no-default-export": "warn",
     "@kaliber/no-relative-parent-import": "warn",
+    "@kaliber/jsx-key": "warn",
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     "indent": ["warn", 2, {
@@ -229,7 +230,7 @@
     "react/jsx-equals-spacing": "warn",
     "react/jsx-indent": ["warn", 2],
     "react/jsx-indent-props": ["warn", 2],
-    "react/jsx-key": "warn",
+    "react/jsx-key": "off",
     "react/jsx-no-comment-textnodes": "warn",
     "react/jsx-no-duplicate-props": ["warn", { "ignoreCase": true }],
     "react/jsx-no-target-blank": "warn",
