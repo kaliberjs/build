@@ -6,7 +6,7 @@ const {
   getRootRules,
 } = require('../../machinery/ast')
 const { checkRuleRelation } = require('../../machinery/relations')
-const { flexChildProps, gridChildProps } = require('../../machinery/css')
+const { flexChildProps, gridChildProps, flexOrGridChildProps } = require('../../machinery/css')
 
 const messages = {
   'nested - missing stacking context in parent':
@@ -27,6 +27,11 @@ const messages = {
     `\`${prop}\` can only be used when the containing root rule has \`display: grid;\` - ` +
     `add \`display: grid;\` to the containing root rule or, if this is caused by a media query ` +
     `that overrides \`display: grid;\`, use \`${prop}: unset\``,
+  'nested - require display flex or grid in parent': prop =>
+    `missing \`display: flex;\` or \`display: grid;\`\n` +
+    `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` or \`display: grid;\` - ` +
+    `add \`display: flex;\` or \`display: grid;\` to the containing root rule or, if this is caused by a media query ` +
+    `that overrides \`display: flex;\` or \`display: grid;\`, use \`${prop}: unset\``,
   'invalid pointer events':
     `Incorrect pointer events combination\n` +
     `you can only set pointer events in a child if the parent disables pointer events - ` +
@@ -58,16 +63,22 @@ const childParentRelations = {
       ['position', 'relative']
     ]
   },
-  rootHasPositionFlex: {
+  rootHasDisplayFlex: {
     nestedHasOneOf: flexChildProps,
     requireInRoot: [
       ['display', 'flex']
     ]
   },
-  rootHasPositionGrid: {
+  rootHasDisplayGrid: {
     nestedHasOneOf: gridChildProps,
     requireInRoot: [
       ['display', 'grid']
+    ]
+  },
+  rootHasDisplayFlexOrGrid: {
+    nestedHasOneOf: flexOrGridChildProps,
+    requireInRoot: [
+      ['display', ['flex', 'grid']]
     ]
   },
   validPointerEvents: {
@@ -109,6 +120,7 @@ module.exports = {
       absoluteHasRelativeParent({ root: modifiedRoot, report })
       requireDisplayFlexInParent({ root: modifiedRoot, report })
       requireDisplayGridInParent({ root: modifiedRoot, report })
+      requireDisplayFlexOrGridInParent({ root: modifiedRoot, report })
       validPointerEvents({ root: modifiedRoot, report })
       relativeToParent({ root: modifiedRoot, report })
     }
@@ -137,7 +149,7 @@ function absoluteHasRelativeParent({ root, report }) {
 
 function requireDisplayFlexInParent({ root, report }) {
   withNestedRules(root, (rule, parent) => {
-    const result = checkChildParentRelation(rule, childParentRelations.rootHasPositionFlex)
+    const result = checkChildParentRelation(rule, childParentRelations.rootHasDisplayFlex)
 
     result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
       report(triggerDecl, messages['nested - require display flex in parent'](triggerDecl.prop))
@@ -147,10 +159,20 @@ function requireDisplayFlexInParent({ root, report }) {
 
 function requireDisplayGridInParent({ root, report }) {
   withNestedRules(root, (rule, parent) => {
-    const result = checkChildParentRelation(rule, childParentRelations.rootHasPositionGrid)
+    const result = checkChildParentRelation(rule, childParentRelations.rootHasDisplayGrid)
 
     result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
       report(triggerDecl, messages['nested - require display grid in parent'](triggerDecl.prop))
+    })
+  })
+}
+
+function requireDisplayFlexOrGridInParent({ root, report }) {
+  withNestedRules(root, (rule, parent) => {
+    const result = checkChildParentRelation(rule, childParentRelations.rootHasDisplayFlexOrGrid)
+
+    result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
+      report(triggerDecl, messages['nested - require display flex or grid in parent'](triggerDecl.prop))
     })
   })
 }
