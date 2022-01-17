@@ -1,13 +1,8 @@
-const { addBuiltInVariable } = require('../lib/webpack-utils')
+const { addBuiltInVariable, createChildCompiler } = require('../lib/webpack-utils')
 const { RawSource } = require('webpack-sources')
 const { relative } = require('path')
-const { ReplaceSource } = require('webpack-sources')
-const Compiler = require('webpack/lib/Compiler')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const RawModule = require('webpack/lib/RawModule')
-const Stats = require('webpack/lib/Stats')
-const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
-const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 
 /*
   The idea is simple:
@@ -20,14 +15,14 @@ const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 const p = 'react-universal-plugin'
 
 // works only when entry is an object
-module.exports = function reactUniversalPlugin (webCompilerOptions) {
+module.exports = function reactUniversalPlugin(webCompilerOptions) {
 
   return {
     apply: compiler => {
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
 
-      const webCompiler = createWebCompiler(compiler, webCompilerOptions, () => clientEntries)
+      const webCompiler = createWebCompiler(compiler, webCompilerOptions)
 
       // when the webCompiler starts compiling add the recorded client entries
       webCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
@@ -78,18 +73,12 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
         })
       })
 
-      // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
-      compiler.hooks.beforeCompile.tap(p, params => {
-        webCompiler.fileTimestamps = compiler.fileTimestamps
-        webCompiler.contextTimestamps = compiler.contextTimestamps
-      })
-
-      // we claim entries ending with `entry.js` and record them as client entries for the web compiler
+      // we claim entries ending with `entry.js` and `.universal.js` and record them as client entries for the web compiler
       compiler.hooks.claimEntries.tap(p, entries => {
         const [claimed, unclaimed] = Object.keys(entries).reduce(
           ([claimed, unclaimed], name) => {
             const entry = entries[name]
-            if (entry.endsWith('.entry.js')) claimed[name] = entry
+            if (entry.endsWith('.entry.js') || entry.endsWith('.universal.js')) claimed[name] = entry
             else unclaimed[name] = entry
 
             return [claimed, unclaimed]
@@ -108,6 +97,9 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
 
         When a module marked with `?universal` has been resolved, add the `react-universal-server-loader` to it's
         loaders and add the module marked with `?universal-client` as client entry.
+
+        When a module marked with `.universal.js` has been resolved, add the `react-containerless-universal-server-loader` to it's
+        loaders and add the module marked with `?continerless-universal-client` as client entry.
       */
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
@@ -129,43 +121,19 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
             if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
           }
 
+          if (path.endsWith('.universal.js') && query !== '?original') {
+            loaders.push({ loader: require.resolve('../webpack-loaders/react-containerless-universal-server-loader') })
+
+            const name = relative(compiler.context, path)
+            if (!clientEntries[name]) clientEntries[name] = './' + name + '?containerless-universal-client'
+          }
+
           if (path.endsWith('.entry.js')) {
             data.loaders = [{ loader: require.resolve('../webpack-loaders/ignore-content-loader') }]
           }
 
           return data
         })
-      })
-
-      // tell the web compiler to compile, emit the assets and notify the appropriate plugins
-      // Note, we can not use `make` because it's parallel
-      compiler.hooks.makeAdditionalEntries.tapAsync(p, (compilation, _, callback) => {
-
-        const startTime = Date.now()
-        webCompiler.compile((err, webCompilation) => {
-          if (err) return finish(err)
-
-          compilation.children.push(webCompilation)
-
-          webCompiler.emitAssets(webCompilation, err => {
-            if (err) return finish(err)
-
-            finish(null, webCompilation)
-          })
-        })
-
-        function finish(err, compilation) {
-          if (err) {
-            webCompiler.hooks.failed.call(err)
-            return callback(err)
-          }
-
-          const stats = new Stats(compilation)
-          stats.startTime = startTime
-          stats.endTime = Date.now()
-
-          webCompiler.hooks.done.callAsync(stats, callback)
-        }
       })
 
       // make sure the __webpack_js_chunk_information__ is available in modules
@@ -201,61 +169,34 @@ module.exports = function reactUniversalPlugin (webCompilerOptions) {
 }
 
 function getJavascriptChunkNames(chunk, compiler) {
-  // find univeral modules in the current chunk (client chunk names) and grab their filenames (uniquely)
+  // find universal modules in the current chunk (client chunk names) and grab their filenames (uniquely)
   return chunk.getModules()
-    .filter(x => x.resource && (x.resource.endsWith('?universal') || x.resource.endsWith('.entry.js')))
+    .filter(x => x.resource && (
+      x.resource.endsWith('?universal') ||
+      x.resource.endsWith('.entry.js') ||
+      x.resource.endsWith('.universal.js')
+    ))
     .map(x => relative(compiler.context, x.resource.replace('?universal', '')))
 }
 
-function createWebCompiler(compiler, options, getEntries) {
+function createWebCompiler(compiler, options) {
 
-  const webCompiler = createCompiler(compiler, options)
+  const webCompiler = createChildCompiler(p, compiler, options)
 
-  /*
-    push the client loader when appropriate
-
-    provide a friendly error if @kaliber/config is loaded from a client module
-  */
+  // push the client loader when appropriate
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
     normalModuleFactory.hooks.afterResolve.tap(p, data => {
-      const { loaders, rawRequest, resourceResolveData: { query } } = data
+      const { loaders, resourceResolveData: { query } } = data
 
       if (query === '?universal-client')
         loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
 
-      if (rawRequest === '@kaliber/config')
-        throw new Error('@kaliber/config\n------\nYou can not load @kaliber/config from a client module.\n\nIf you have a use-case, please open an issue so we can discuss how we can\nimplement this safely.\n------')
+      if (query === '?containerless-universal-client')
+        loaders.push({ loader: require.resolve('../webpack-loaders/react-containerless-universal-client-loader') })
 
       return data
     })
   })
 
-  // make the chunk manifest available
-  webCompiler.hooks.compilation.tap(p, compilation => {
-    compilation.hooks.chunkManifest.tap(p, chunkManifest => {
-      compilation._kaliber_chunk_manifest_ = chunkManifest
-    })
-  })
-
   return webCompiler
-}
-
-function createCompiler(compiler, options) {
-  /* from lib/webpack.js */
-  options = new WebpackOptionsDefaulter().process(options)
-
-  const childCompiler = new Compiler(options.context)
-  childCompiler.options = options
-
-  // instead of using the NodeEnvironmentPlugin
-  childCompiler.inputFileSystem = compiler.inputFileSystem
-  childCompiler.outputFileSystem = compiler.outputFileSystem
-  childCompiler.watchFileSystem = compiler.watchFileSystem
-
-  options.plugins.forEach(plugin => { plugin.apply(childCompiler) })
-  childCompiler.hooks.environment.call()
-  childCompiler.hooks.afterEnvironment.call()
-  childCompiler.options = new WebpackOptionsApply().process(options, childCompiler)
-
-  return childCompiler
 }

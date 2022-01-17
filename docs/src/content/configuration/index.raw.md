@@ -154,3 +154,61 @@ A note on arrays: we merge the `default` configuration with the current staging'
 ```
 
 If this is the case for you, it is best to define arrays in each staging's configuration and not in `default`.
+
+#### universal
+
+One problem with universal rendering is that React contexts do cross the client / server gap. A context defined in server rendered code is not useable in client side code. Any values passed from `server` to `client` must be passed using props.
+
+A way to solve this issue is to wrap your universal component in a consumer of the context, converting the value to props. And then on the client convert those props back into a provider of that context. To simplify this mechanism you can provide universal client and server wrappers:
+
+```js
+module.exports = {
+  kaliber: {
+    universal: {
+      clientWrapper: '/wrapper/Client',
+      serverWrapper: '/wrapper/Server',
+    }
+  }
+}
+```
+
+`/wrapper/Client`
+```jsx
+import { ClientConfigProvider } from '/ClientConfig'
+
+// eslint-disable-next-line @kaliber/no-default-export
+export default function ClientWrapper({ children, ...props }) {
+  return <ClientConfigProvider config={props.clientConfigContext} {...{ children }} />
+}
+```
+
+`/wrapper/Server`
+```jsx
+import { useClientConfig } from '/ClientConfig'
+
+// eslint-disable-next-line @kaliber/no-default-export
+export default function ServerWrapper({ children, ...props }) {
+  const clientConfigContext = useClientConfig()
+  return React.Children.map(children, child =>
+    React.isValidElement(child)
+      ? React.cloneElement(child, { clientConfigContext })
+      : child
+  )
+}
+```
+
+`/ClientConfig`
+```jsx
+/** @type {React.Context<any>} */
+const clientConfigContext = React.createContext({})
+
+export function ClientConfigProvider({ children, config }) {
+  return <clientConfigContext.Provider value={config} {...{ children }} />
+}
+
+export function useClientConfig() {
+  return React.useContext(clientConfigContext)
+}
+```
+
+This allows you to only specify the `ClientConfigProvider` at the root of your server rendered application and use the context in clients.

@@ -21,17 +21,17 @@ const messages = {
     `missing \`display: flex;\`\n` +
     `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` - ` +
     `add \`display: flex;\` to the containing root rule or, if this is caused by a media query ` +
-    `that overrides \`display: flex;\`, use \`flex: unset\``,
+    `that overrides \`display: flex;\`, use \`${prop}: unset\``,
   'nested - require display grid in parent': prop =>
     `missing \`display: grid;\`\n` +
     `\`${prop}\` can only be used when the containing root rule has \`display: grid;\` - ` +
     `add \`display: grid;\` to the containing root rule or, if this is caused by a media query ` +
-    `that overrides \`display: grid;\`, use \`grid: unset\``,
+    `that overrides \`display: grid;\`, use \`${prop}: unset\``,
   'nested - require display flex or grid in parent': prop =>
     `missing \`display: flex;\` or \`display: grid;\`\n` +
     `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` or \`display: grid;\` - ` +
     `add \`display: flex;\` or \`display: grid;\` to the containing root rule or, if this is caused by a media query ` +
-    `that overrides \`display: flex;\` or \`display: grid;\`, use \`grid: unset\``,
+    `that overrides \`display: flex;\` or \`display: grid;\`, use \`${prop}: unset\``,
   'invalid pointer events':
     `Incorrect pointer events combination\n` +
     `you can only set pointer events in a child if the parent disables pointer events - ` +

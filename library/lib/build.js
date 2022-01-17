@@ -33,6 +33,8 @@ const sourceMapPlugin = require('../webpack-plugins/source-map-plugin')
 const templatePlugin = require('../webpack-plugins/template-plugin')
 const watchContextPlugin = require('../webpack-plugins/watch-context-plugin')
 const websocketCommunicationPlugin = require('../webpack-plugins/websocket-communication-plugin')
+const webWorkerPlugin = require('../webpack-plugins/web-worker-plugin')
+const noKaliberConfigPlugin = require('../webpack-plugins/no-kaliber-config-plugin')
 
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
@@ -50,7 +52,7 @@ const { kaliber: { compileWithBabel: userDefinedcompileWithBabel = [], publicPat
 
 const recognizedTemplates = Object.keys(templateRenderers)
 
-const kaliberBuildClientModules = [/(@kaliber\/build\/lib\/(stylesheet|javascript|polyfill|withPolyfill|hot-module-replacement-client|rollbar)|ansi-regex)/]
+const kaliberBuildClientModules = [/(@kaliber\/build\/lib\/(stylesheet|javascript|polyfill|withPolyfill|hot-module-replacement-client|rollbar|universalComponents)|ansi-regex)/]
 const compileWithBabel = kaliberBuildClientModules.concat(userDefinedcompileWithBabel)
 
 const babelLoader = {
@@ -206,9 +208,46 @@ module.exports = function build({ watch }) {
     }
   }
 
+  function webWorkerOptions() {
+    return {
+      mode,
+      target: 'webworker',
+      context: srcDir,
+      devtool: false,
+      entry: false,
+      output: {
+        filename: '[id].[hash].js',
+        chunkFilename: '[id].[hash].js',
+        path: outputPath,
+        publicPath
+      },
+      optimization: {
+        minimize: isProduction,
+        minimizer: [
+          new TerserPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true
+          })
+        ],
+        namedChunks: false,
+        splitChunks: false
+      },
+      resolve: resolveOptions(),
+      resolveLoader: resolveLoaderOptions(),
+      module: Object.assign({
+        unsafeCache: false
+      }, moduleOptions()),
+      plugins: [
+        ...pluginsOptions().all(),
+        ...pluginsOptions().webWorker()
+      ]
+    }
+  }
+
   function resolveOptions() {
     return {
-      extensions: ['.js'],
+      extensions: ['.js', '.mjs'],
       modules: ['node_modules'],
       plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()]
     }
@@ -262,14 +301,14 @@ module.exports = function build({ watch }) {
 
         {
           resource: {
-            test: /(\.html\.js|\.js)$/,
+            test: /(\.html\.js|\.js|\.mjs)$/,
             or: [{ exclude: /node_modules/ }, ...compileWithBabel],
           },
           loaders: [babelLoader]
         },
 
         {
-          test: /\.js$/
+          test: /(\.js|\.mjs)$/
         },
 
         {
@@ -308,7 +347,6 @@ module.exports = function build({ watch }) {
     return {
       all: () => [
         ProgressBarPlugin(),
-        watch && websocketCommunicationPlugin(),
         makeAdditionalEntriesPlugin(),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -322,6 +360,7 @@ module.exports = function build({ watch }) {
         sourceMapPlugin({ sourceRoot: cwd }),
       ].filter(Boolean),
       node: () => [
+        watch && websocketCommunicationPlugin(),
         new TimeFixPlugin(),
         new ExtendedAPIPlugin(),
         configLoaderPlugin(),
@@ -330,12 +369,20 @@ module.exports = function build({ watch }) {
         templatePlugin(templateRenderers), // does work on .*.js
         mergeCssPlugin(),
         copyUnusedFilesPlugin(),
-        watch && hotCssReplacementPlugin()
+        watch && hotCssReplacementPlugin(),
+        webWorkerPlugin.handleWebWorkerImports,
       ].filter(Boolean),
       web: () => [
-        chunkManifestPlugin(),
-        watch && hotModuleReplacementPlugin()
-      ].filter(Boolean)
+        watch && websocketCommunicationPlugin(),
+        chunkManifestPlugin({ filename: 'chunk-manifest.json' }),
+        watch && hotModuleReplacementPlugin(),
+        webWorkerPlugin(webWorkerOptions()),
+        noKaliberConfigPlugin(),
+      ].filter(Boolean),
+      webWorker: () => [
+        chunkManifestPlugin({ filename: 'web-worker-manifest.json' }),
+        noKaliberConfigPlugin(),
+      ].filter(Boolean),
     }
   }
 

@@ -293,7 +293,7 @@ They are provided.
 #### reactUniversalPlugin
 
 `node` - Custom plugin that is responsible for spawning a `web` compiler that is used for compiling
-`*.entry.js` and `*.js?universal` resources.
+`*.entry.js`, `*.js?universal` and `*.universal.js` resources.
 
 When it encounters a universal resource, the resource is duplicated and compiled by both the `node`
 and the `web` compiler. It's quite performant because it reuses any non-js module that was already

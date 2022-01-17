@@ -1,7 +1,7 @@
 // Based on eslint-config-react-app; https://github.com/facebookincubator/create-react-app/blob/cd3d04b71e91f533bdbdc3856775e1da81d445cf/packages/eslint-config-react-app/index.js
 
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "plugins": ["import", "jsx-a11y", "react", "react-hooks", "@kaliber/eslint-plugin"],
   "root": true,
   "env": {
@@ -30,6 +30,10 @@
       "jsx": true,
       "generators": true,
       "experimentalObjectRestSpread": true
+    },
+    "requireConfigFile": false,
+    "babelOptions": {
+      "presets": ["@babel/preset-react"]
     }
   },
 
@@ -46,6 +50,7 @@
     "@kaliber/naming-policy": "warn",
     "@kaliber/no-default-export": "warn",
     "@kaliber/no-relative-parent-import": "warn",
+    "@kaliber/jsx-key": "warn",
 
     "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
     "indent": ["warn", 2, {
@@ -229,7 +234,7 @@
     "react/jsx-equals-spacing": "warn",
     "react/jsx-indent": ["warn", 2],
     "react/jsx-indent-props": ["warn", 2],
-    "react/jsx-key": "warn",
+    "react/jsx-key": "off",
     "react/jsx-no-comment-textnodes": "warn",
     "react/jsx-no-duplicate-props": ["warn", { "ignoreCase": true }],
     "react/jsx-no-target-blank": "warn",
