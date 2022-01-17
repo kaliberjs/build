@@ -29,7 +29,7 @@ test('parent-child-policy', {
             display: grid;
 
             & > .test {
-              grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
+              grid: 0; grid-area: 0; grid-column: 0; grid-row: 0; order: 0;
               grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
             }
           }
@@ -207,12 +207,12 @@ test('parent-child-policy', {
         code: `
           .bad {
             & > .test {
-              flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
+              flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
             }
           }
         `,
         warnings: createMessages('nested - require display flex in parent', [
-          'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order'
+          'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
         ])
       },
       {
@@ -221,13 +221,13 @@ test('parent-child-policy', {
           .bad {
             & > .test {
               @media x {
-                flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0; order: 0;
+                flex: 0; flex-grow: 0; flex-shrink: 0; flex-basis: 0;
               }
             }
           }
         `,
         warnings: createMessages('nested - require display flex in parent', [
-          'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order'
+          'flex', 'flex-grow', 'flex-shrink', 'flex-basis',
         ])
       },
       {
@@ -299,6 +299,20 @@ test('parent-child-policy', {
           }
         `,
         warnings: [messages['nested - require display flex in parent']('flex')]
+      },
+      {
+        title: 'report missing flex or grid',
+        code: `.bad { & > .test { order: 0; } }`,
+        warnings: createMessages('nested - require display flex or grid in parent', [
+          'order'
+        ])
+      },
+      {
+        title: '└─ take @media into account',
+        code: `.bad { & > .test { @media x { order: 0; } } }`,
+        warnings: createMessages('nested - require display flex or grid in parent', [
+          'order'
+        ])
       },
     ]
   },
