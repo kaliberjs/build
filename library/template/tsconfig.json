@@ -16,6 +16,7 @@
     "paths": {
       "/*?universal": ["src/*"],
       "/*": ["src/*"]
-    }
+    },
+    "downlevelIteration": true
   }
 }

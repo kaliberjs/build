@@ -162,8 +162,8 @@ is configured to use the following plugins:
 - `postcss-preset-env`                - Use tomorrow’s CSS today.
 - `postcss-modules-values`            - Pass arbitrary values between your module files.
 - `postcss-modules-local-by-default`  - Make :local scope the default.
-- `postcss-modules-scope`             - A CSS Modules transform to extract export statements from local-scope 
-                                        classes. Importing a CSS file into javascript provides an object that 
+- `postcss-modules-scope`             - A CSS Modules transform to extract export statements from local-scope
+                                        classes. Importing a CSS file into javascript provides an object that
                                         contains the original class names as key and locally scoped class names
                                         as value.
 - `postcss-calc`                      - Reduce calc() references whenever it's possible.
@@ -195,6 +195,7 @@ We have also added the following plugins:
 
 - `syntax-dynamic-import`        - Allows us to take advantage of Webpacks support for dynamic
                                    imports.
+- `syntax-optional-chaining`     - Allows usage of optional chaining operator (?.)
 - `transform-decorators-legacy`  - With complex React applications decoraters help to reduce
                                    boilerplate.
 - `transform-class-properties`   - Makes defining the initial state easy.
@@ -292,7 +293,7 @@ They are provided.
 #### reactUniversalPlugin
 
 `node` - Custom plugin that is responsible for spawning a `web` compiler that is used for compiling
-`*.entry.js` and `*.js?universal` resources.
+`*.entry.js`, `*.js?universal` and `*.universal.js` resources.
 
 When it encounters a universal resource, the resource is duplicated and compiled by both the `node`
 and the `web` compiler. It's quite performant because it reuses any non-js module that was already

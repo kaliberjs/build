@@ -7,7 +7,7 @@ import advanced from '/content/advanced/index.raw.md'
 import templateRenderers from '/content/template-renderers/index.raw.md'
 import importantChanges from '/content/important-changes/index.raw.md'
 import server from '/content/server/index.raw.md'
-import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress, dynamicImport, loadingEntries, polyfills, rollbarErrorReporting } from '/content/how-to'
+import { basicAuth, serverSideRendering, pageInSubDirectory, isomorphicJavascript, mailTemplates, redirects, singlePageApplication, staticSite, wordpress, dynamicImport, loadingEntries, polyfills, rollbarErrorReporting, webWorkers } from '/content/how-to'
 import Menu from '/Menu'
 import Content from '/Content'
 import PublicPath from '/PublicPath'
@@ -33,6 +33,7 @@ const pages = [
     ['loading-entries', 'Loading entries', loadingEntries],
     ['polyfills', 'Polyfills', polyfills],
     ['rollbar-error-reporting', 'Rollbar error reporting', rollbarErrorReporting],
+    ['webworkers', 'Web workers', webWorkers],
   ]],
   ['template-renderers', 'Template renderers', templateRenderers],
   ['server', 'Server', server],
@@ -53,7 +54,7 @@ const flattenedPages = pages.reduce(
   []
 )
 
-export default class App extends Component {
+export class App extends Component {
 
   state = {
     pageInfo: []

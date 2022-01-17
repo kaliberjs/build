@@ -1,7 +1,9 @@
 import head from '/partials/head'
 import shared from '/partials/shared'
 import '/partials/Test?universal'
+import '/partials/Test.universal'
 import SharedComponent from '/partials/SharedComponent?universal'
+import SharedComponentC from '/partials/SharedComponent.universal'
 import './index.css'
 
 export default (
@@ -9,6 +11,7 @@ export default (
     <body>
       {shared}
       <SharedComponent />
+      <SharedComponentC />
       Test
       <div>not red</div>
       <test-element>
