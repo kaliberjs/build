@@ -22,7 +22,6 @@ export function findComponents({ componentName }) {
 
   const findComponentCache = getFindComponentCache()
   const components = findComponentCache[componentName] || []
-  if (!components.length) console.warn(`Could not find any component with name '${componentName}', dit you render it to the page?`)
   return components
 
   function getFindComponentCache() {
