@@ -23,7 +23,11 @@ const messages = {
 
 module.exports = {
   ruleName: 'css-global',
-  ruleInteraction: null,
+  ruleInteraction: {
+    'layout-related-properties': {
+      childAllowDecl: decl => isCustomProperty(decl)
+    },
+  },
   cssRequirements: null,
   messages,
   create(config) {
@@ -35,6 +39,7 @@ module.exports = {
 }
 
 function isInCssGlobal(root) { return matchesFile(root, filename => filename.includes('/cssGlobal/')) }
+function isCustomProperty({ prop }) { return prop.startsWith('--') }
 
 function checkAtRules({ originalRoot, report }) {
   const inCssGlobal = isInCssGlobal(originalRoot)

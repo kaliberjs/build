@@ -85,4 +85,19 @@ test('css-global', {
       },
     ],
   },
+  'layout-related-properties': {
+    valid: [
+      {
+        title: 'valid - allow custom properties in child selectors',
+        code: `
+          .parent {
+            & > .child{
+              --x: 0;
+            }
+          }
+        `,
+      },
+    ],
+    invalid: [],
+  }
 })
