@@ -284,9 +284,11 @@ module.exports = function build({ watch }) {
         },
 
         {
-          test: /\.css$/,
+          resource: {
+            test: /\.css$/,
+            or: [{ exclude: /node_modules/ }, ...compileWithBabel],
+          },
           loaders: ['json-loader', cssLoader],
-          exclude: /node_modules/
         },
 
         {
