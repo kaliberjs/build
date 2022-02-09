@@ -155,6 +155,18 @@ A note on arrays: we merge the `default` configuration with the current staging'
 
 If this is the case for you, it is best to define arrays in each staging's configuration and not in `default`.
 
+#### Error reporting
+While in production, you're probably curious what server errors may occur, or you have a support ticket stating a page is broken. This error is by default reported to by a `console.error` but it is possible to report these errors to somewhere else by adding a `reportError` function to the config of your project.
+
+```js
+module.exports = {
+  kaliber: {
+    reportError: (err) => {
+      reportToRollbar(error) // Or any other error reporting system
+    }
+  }
+}
+```
 #### universal
 
 One problem with universal rendering is that React contexts do cross the client / server gap. A context defined in server rendered code is not useable in client side code. Any values passed from `server` to `client` must be passed using props.

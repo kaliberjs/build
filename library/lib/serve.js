@@ -8,7 +8,7 @@ const morgan = require('morgan')
 
 const templateRenderers = require('./getTemplateRenderers')
 
-const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/' } = {} } = require('@kaliber/config')
+const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/', reportError } = {} } = require('@kaliber/config')
 
 const recognizedTemplates = Object.keys(templateRenderers)
 const blockedTemplateFiles = recognizedTemplates.reduce(
@@ -59,6 +59,8 @@ app.use((err, req, res, next) => {
   if (!err) return next()
 
   console.error(err)
+  if (reportError) reportError(err)
+
   const response = res.status(500)
   if (isProduction) {
     findFile(req.path, internalServerError)
