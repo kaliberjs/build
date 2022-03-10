@@ -19,6 +19,7 @@ test('layout-related-properties', {
               grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
               grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
               justify-self: 0; align-self: 0;
+              order: 0;
             }
           }
         `,
@@ -101,6 +102,7 @@ test('layout-related-properties', {
             grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
             grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
             justify-self: 0; align-self: 0;
+            order: 0;
             max-width: 0; min-width: 0; max-height: 0; min-height: 0;
           }
         `,
@@ -113,6 +115,7 @@ test('layout-related-properties', {
           'grid', 'grid-area', 'grid-column', 'grid-row',
           'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
           'justify-self', 'align-self',
+          'order',
           'max-width', 'min-width', 'max-height', 'min-height',
         ])
       },
@@ -133,6 +136,7 @@ test('layout-related-properties', {
               grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
               grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
               justify-self: 0; align-self: 0;
+              order: 0;
             }
           }
         `,
@@ -145,6 +149,7 @@ test('layout-related-properties', {
           'grid', 'grid-area', 'grid-column', 'grid-row',
           'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
           'justify-self', 'align-self',
+          'order',
         ])
       },
       {
