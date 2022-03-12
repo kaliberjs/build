@@ -138,6 +138,7 @@ test('naming-policy', {
             grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
             grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
             justify-self: 0; align-self: 0;
+            order: 0;
           }
 
           .component_rootTest {
@@ -149,6 +150,7 @@ test('naming-policy', {
             grid: 0; grid-area: 0; grid-column: 0; grid-row: 0;
             grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
             justify-self: 0; align-self: 0;
+            order: 0;
           }
         `,
       },

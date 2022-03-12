@@ -4,7 +4,7 @@ const {
   withRootRules, withNestedRules,
   isPseudoElement,
 } = require('../../machinery/ast')
-const { flexChildProps, gridChildProps } = require('../../machinery/css')
+const { flexChildProps, gridChildProps, flexOrGridChildProps } = require('../../machinery/css')
 
 const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
 const intrinsicProps = ['width', 'height', 'max-width', 'min-width', 'max-height', 'min-height']
@@ -25,6 +25,7 @@ const layoutRelatedProps = [ // only allowed in child
   'justify-self', 'align-self',
   ...flexChildProps,
   ...gridChildProps,
+  ...flexOrGridChildProps,
   ...allowedInRootAndChild,
 ]
 const layoutRelatedPropsWithValues = extractPropsWithValues(layoutRelatedProps)
@@ -36,9 +37,9 @@ const messages = {
     `move to a nested selector in a another root rule, if you are forced by a third party ` +
     `library, you can rename your selector to \`_rootXyz\` or \`component_rootXyz\`` + (
       intrinsicProps.includes(prop)
-      ? `\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
+        ? `\nif you are trying to define an intrinsic ${prop}, make sure you set the unit to ` +
         `one of \`${intrinsicUnits.join('`, `')}\` and add \`!important\``
-      : ''
+        : ''
     ),
   'nested - only layout related props in nested':  prop =>
     `illegal non-layout related prop\n` +
