@@ -5,3 +5,4 @@ local*
 *.log
 gh-pages/
 .babelcache
+.kaliber-eval
