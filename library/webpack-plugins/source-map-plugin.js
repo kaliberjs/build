@@ -31,7 +31,6 @@ module.exports = function sourceMapPlugin({ sourceRoot }) {
 
               const [startComment, endComment] = name.endsWith('.css') ? ['/*', ' */'] : ['//', '']
               assets[name] = new ConcatSource(asset, `\n${startComment}# sourceMappingURL=${path.basename(name)}.map${endComment}\n`)
-              // TODO: test if adding the sourceRoot creates problems in regular source maps
               assets[name + '.map'] = new RawSource(JSON.stringify({ ...map, sourceRoot: `${sourceRoot}/` }))
             }
           })
