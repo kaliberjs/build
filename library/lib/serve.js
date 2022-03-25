@@ -59,14 +59,14 @@ app.use((err, req, res, next) => {
   if (!err) return next()
 
   console.error(err)
-  if (reportError) reportError(err)
+  if (reportError) reportError(err, req)
 
   const response = res.status(500)
   if (isProduction) {
     findFile(req.path, internalServerError)
       .then(file => file ? response.sendFile(file) : next())
       .catch(next)
-  } else response.send(`<pre>${err.toString()}</pre>`)
+  } else response.send(`<pre><title style='display: block;'>${err.stack || err.toString()}</title><pre>`)
 })
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))

@@ -143,11 +143,11 @@ module.exports = function templatePlugin(renderers) {
                 try {
                   const files = isFunction
                     ? [
-                      [srcExt, createDynamicTemplate(path.basename(outputName), templateExt, map)],
-                      [templateExt, new RawSource(source)]
+                      [srcExt, createDynamicTemplate(path.basename(outputName), templateExt)],
+                      [templateExt, asset]
                     ]
                     : [
-                      [targetExt, await createStaticTemplate(source, map)]
+                      [targetExt, await createStaticTemplate(name, source, map)]
                     ]
 
                   files.forEach(([ext, result]) => {
@@ -169,26 +169,22 @@ module.exports = function templatePlugin(renderers) {
   }
 }
 
-async function createStaticTemplate(source, map) {
-  return new RawSource(await evalInFork(source, map))
+async function createStaticTemplate(name, source, map) {
+  return new RawSource(await evalInFork(name, source, map))
 }
 
-function createDynamicTemplate(name, ext, map) {
+function createDynamicTemplate(name, ext) {
   return new RawSource(
-    `|const createMap = () => JSON.parse(${JSON.stringify((JSON.stringify(map)))})
-     |
-     |const { withSourceMappedError } = require('@kaliber/build/lib/node-utils')
-     |
-     |const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
-     |const { template, renderer } = withSourceMappedError(createMap, () => envRequire('./${name}${ext}'))
+    `|const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
+     |const { template, renderer } = envRequire('./${name}${ext}')
      |
      |Object.assign(render, template)
      |
      |module.exports = render
      |
      |function render(props) {
-     |  return withSourceMappedError(createMap, () => renderer(template(props)))
+     |  return renderer(template(props))
      |}
-     |`.split(/^[ \t]*\|/m).join('')
+     |`.replace(/^[ \t]*\|/gm, '')
   )
 }

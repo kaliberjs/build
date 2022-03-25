@@ -161,8 +161,8 @@ While in production, you're probably curious what server errors may occur, or yo
 ```js
 module.exports = {
   kaliber: {
-    reportError: (err) => {
-      reportToRollbar(error) // Or any other error reporting system
+    reportError: (err, req) => {
+      reportToRollbar(err, req) // Or any other error reporting system
     }
   }
 }
