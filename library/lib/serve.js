@@ -59,7 +59,7 @@ app.use((err, req, res, next) => {
   if (!err) return next()
 
   console.error(err)
-  if (reportError) reportError(err)
+  if (reportError) reportError(err, req)
 
   const response = res.status(500)
   if (isProduction) {
