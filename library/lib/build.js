@@ -311,7 +311,8 @@ module.exports = function build({ watch }) {
         },
 
         {
-          test: /(\.js|\.mjs)$/
+          test: /(\.js|\.mjs)$/,
+          type: 'javascript/auto',
         },
 
         {
