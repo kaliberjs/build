@@ -70,6 +70,7 @@
     "dot-location": ["warn", "property"],
     "eol-last": "warn",
     "eqeqeq": "warn",
+    "key-spacing": "warn",
     "keyword-spacing": "warn",
     "new-parens": "warn",
     "no-array-constructor": "warn",
