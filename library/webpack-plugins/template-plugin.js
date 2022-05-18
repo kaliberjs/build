@@ -93,8 +93,9 @@ module.exports = function templatePlugin(renderers) {
         */
         compilation.hooks.chunkAsset.tap(p, (chunk, file) => {
           if (!chunk.entryModule) return
+          const rootModule = chunk.entryModule.rootModule || chunk.entryModule
           const { module } =
-            chunk.entryModule.dependencies.find(x =>
+            rootModule.dependencies.find(x =>
               x.module && x.module.request.endsWith('?template-source')
             ) || {}
           if (!module) return

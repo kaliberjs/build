@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@kaliber/build": "*",
+    "@kaliber/elasticsearch": "^1.5.1",
     "express-basic-auth": "^1.2.0",
     "firebase": "^8.7.0",
     "firebase-admin": "^9.2.0",
