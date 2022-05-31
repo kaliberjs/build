@@ -2,6 +2,11 @@
 *::before,
 *::after {
   margin: 0;
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
 }
 
 p,
@@ -11,16 +16,62 @@ h3,
 h4,
 h5,
 h6 {
-  margin: 0;
-  &:not(:last-child) { padding-bottom: 0.8333em; }
+  font: inherit;
 }
 
-address { font-style: normal; }
+button,
+input,
+optgroup,
+select,
+textarea {
+  padding: 0;
+  border: 0;
+  color: currentColor;
+  vertical-align: middle;
+  background: none;
+  font: inherit;
+  appearance: none;
+}
+
+select::-ms-expand {
+  display: none;
+}
 
 button {
-  background-color: transparent;
-  padding: 0;
-  border: none;
+  touch-action: manipulation; /* Fix iOS: disable double tab zoom */
+
+  &:not([disabled]) {
+    cursor: pointer;
+  }
+}
+
+label {
   cursor: pointer;
-  color: currentColor;
+}
+
+address { font: inherit; }
+
+ol,
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
 }

@@ -2,5 +2,7 @@
   --font-family-base: 'Barlow', sans-serif;
   --font-weight-base-400: 400;
 
-  --font-size-md: 18px;
+  --font-size-18: 18px;
+  --font-size-24: 24px;
+  --font-size-40: 40px;
 }

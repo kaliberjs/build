@@ -51,9 +51,9 @@ html {
 }
 
 body {
-  color: var(--color-gray-90);
+  color: var(--color-gray-900);
   font-family: var(--font-family-base);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-18);
   font-weight: var(--font-weight-base-400);
   line-height: 1.7;
 }

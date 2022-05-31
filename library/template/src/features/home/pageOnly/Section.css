@@ -1,0 +1,4 @@
+.component {
+  background-color: var(--color-gray-700);
+  padding: var(--size-40) 0;
+}

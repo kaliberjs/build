@@ -28,12 +28,12 @@ test('layout-related-properties', {
         title: 'allow `calc`',
         code: `
           :root {
-            --container-md: 10px;
+            --container-max-width-md: 10px;
           }
 
           .good {
             @media (--viewport-md) {
-              max-width: calc(var(--container-md) / 2) !important;
+              max-width: calc(var(--container-max-width-md) / 2) !important;
             }
           }`,
       },

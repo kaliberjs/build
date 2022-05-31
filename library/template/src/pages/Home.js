@@ -1,16 +1,19 @@
-import { Intro, IntroLink } from '/components/home/Intro'
-import { Section } from '/components/home/pageOnly/Section'
-import { ContentContainer } from '/components/home/pageOnly/ContentContainer'
+import { Intro, IntroLink } from '/features/home/Intro'
+import { Section } from '/features/home/pageOnly/Section'
+import { ContainerMd } from '/features/pageOnly/Container'
+import Footer from '/features/pageOnly/Footer.universal'
 
 export function Home() {
   return (
     <Section>
-      <ContentContainer size='md'>
+      <ContainerMd>
         <Intro>
           <p>@kaliber/build</p>
           <IntroLink to='https://kaliberjs.github.io/build/' target='_blank'>Documentatie</IntroLink>
         </Intro>
-      </ContentContainer>
+      </ContainerMd>
+
+      <Footer />
     </Section>
   )
 }

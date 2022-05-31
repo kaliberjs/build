@@ -1,5 +1,5 @@
 :root {
-  --container-sm: 480px;
-  --container-md: 768px;
-  --container-lg: 1024px;
+  --container-max-width-sm: 480px;
+  --container-max-width-md: 768px;
+  --container-max-width-lg: 1024px;
 }

@@ -1,4 +1,4 @@
-import { LinkText } from '/components/buildingBlocks/Link'
+import { LinkText } from '/features/buildingBlocks/Link'
 import styles from './Intro.css'
 import logo from './logo.svg'
 

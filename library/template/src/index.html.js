@@ -5,7 +5,7 @@ import javascript from '@kaliber/build/lib/javascript'
 import polyfill from '@kaliber/build/lib/polyfill'
 import rollbar from '@kaliber/build/lib/rollbar'
 import config from '@kaliber/config'
-import App from '/App?universal'
+import App from '/App'
 
 Index.routes = {
   match(location) {
