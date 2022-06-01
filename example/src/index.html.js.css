@@ -2,6 +2,11 @@
 
 @custom-selector :--enter :hover, :focus;
 
+body {
+  --responsive-px-start: 375;
+  --responsive-px-end: 1200;
+}
+
 .test {
   color: var(--color-green);
   z-index: 100000;

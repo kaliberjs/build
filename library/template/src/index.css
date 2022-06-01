@@ -7,6 +7,9 @@ html {
 }
 
 body {
+  --responsive-size-start: 375px;
+  --responsive-size-end: 1200px;
+
   color: var(--color-gray-90);
   font-family: var(--font-family-base);
   font-size: var(--font-size-md);

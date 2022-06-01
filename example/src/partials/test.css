@@ -10,14 +10,15 @@
   color: white;
   background: var(--color-green);
   padding: calc(30px - 25px);
+  font-size: responsive-px(16px, 32px);
   display: flex;
 
   &:--enter {
     color: black;
   }
-
+ 
   @media (--breakpoint) {
-    background-color: #BADA55;
+    background-color: #BADA55; 
     @apply --test-apply;
   }
 }

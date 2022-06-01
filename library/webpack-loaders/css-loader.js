@@ -47,6 +47,7 @@ function createPlugins(
 
         require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace }),
         require('../postcss-plugins/postcss-kaliber-scoped')(),
+        require('../postcss-plugins/postcss-responsive-size-function')(),
       ].filter(Boolean)
     ),
     isProduction && require('cssnano')({ preset: ['default', { svgo: false, cssDeclarationSorter: false }] })

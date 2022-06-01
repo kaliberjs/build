@@ -6,3 +6,4 @@ local*
 gh-pages/
 .babelcache
 .kaliber-eval
+.DS_Store
