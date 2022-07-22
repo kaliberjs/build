@@ -12,7 +12,9 @@ export function ComponentServerWrapper({ componentName, props, renderedComponent
 
       {/* Use render blocking script to remove the container and supply the correct  comment nodes.
           This ensures the page is never rendered with the intermediate structure */}
-      <script dangerouslySetInnerHTML={{ __html: restructureDomNodes(componentInfo) }} />
+      <script dangerouslySetInnerHTML={{
+        __html: restructureDomNodes(componentInfo).replace(/<\/?script>/gi, '')
+      }} />
     </>
   )
 }
