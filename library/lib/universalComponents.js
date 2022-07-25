@@ -1,4 +1,5 @@
 import ReactDom from 'react-dom'
+import { safeJsonStringify } from '@kaliber/safe-json-stringify'
 
 const containerMarker = 'data-kaliber-component-container'
 
@@ -83,10 +84,11 @@ function groupComponentsByName(allComponents) {
 }
 
 function restructureDomNodes(componentInfo) {
+  const safeComponentInfo = safeJsonStringify(componentInfo)
   return `|var d=document,s=d.currentScript,p=s.parentNode,c=s.previousSibling;
           |p.setAttribute('${containerMarker}','');                             // set marker on container so we can retrieve nodes that contain components
           |p.replaceChild(d.createComment('start'),c);                          // replace kaliber-component-container element with a 'start' comment
-          |p.insertBefore(d.createComment(JSON.stringify(${componentInfo})),s); // create a comment containing the component info
+          |p.insertBefore(d.createComment(${safeComponentInfo}),s);             // create a comment containing the component info
           |Array.from(c.childNodes).forEach(x=>{p.insertBefore(x,s)});          // insert all children from the kaliber-component-container element
           |p.replaceChild(d.createComment('end'),s);                            // create an 'end' comment
           |`.replace(/^\s*\|/gm, '').replace(/\s*\/\/[^;]*?$/gm, '').replace(/\n/g, '')
