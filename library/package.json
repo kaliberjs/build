@@ -29,6 +29,7 @@
     "@babel/runtime": "^7.11.2",
     "@kaliber/config": "^0.0.8",
     "@kaliber/eslint-plugin": "*",
+    "@kaliber/safe-json-stringify": "^1.1.0",
     "ansi-regex": "^5.0.0",
     "babel-loader": "^8.0.6",
     "cache-loader": "^4.1.0",
