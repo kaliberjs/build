@@ -23,7 +23,7 @@ export default (
       {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
       {/*
         this will output: 
-        <script defer src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,es2015,es2016,es2017,fetch" crossorigin="anonymous" />
+        <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default,es2015,es2016,es2017,fetch" crossorigin="anonymous" />
       */}
     </head>
     <body />
