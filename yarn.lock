@@ -1445,6 +1445,11 @@
   resolved "https://registry.yarnpkg.com/@kaliber/elasticsearch/-/elasticsearch-1.5.1.tgz#90076100d6c2ae25ffa286dad9030ef4fb85346d"
   integrity sha512-0VI6V1RW+h1zZAMPYZtgp73TUPWPutiaKQnmmA7G7TMCOoFlLfQAuG+P+Kutc7k0wu7bNmy3aU4qc39mvd/3rA==
 
+"@kaliber/safe-json-stringify@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@kaliber/safe-json-stringify/-/safe-json-stringify-1.1.0.tgz#5373ed05afe135ab306c64b12125f43ac6d79f4a"
+  integrity sha512-15rvQi6XphQUD9TeChGDyDrrwu4HOLw6OFYshSPbA/D3XcvmgmVZ9TNb80G1RCxqsP7PW99X8blLmZM/Wjl8Lg==
+
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz#7619c2eb21b25483f6d167548b4cfd5a7488c3d5"
