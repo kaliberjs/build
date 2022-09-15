@@ -224,3 +224,15 @@ export function useClientConfig() {
 ```
 
 This allows you to only specify the `ClientConfigProvider` at the root of your server rendered application and use the context in clients.
+
+#### symlinks
+
+When you develop libraries that use peer dependencies this setting can help as it prevents webpack from resolving symlinks during resolution of libraries.
+
+```js
+module.exports = {
+  kaliber: {
+    symlinks: false
+  }
+}
+```
