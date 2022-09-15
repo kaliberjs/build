@@ -236,3 +236,22 @@ module.exports = {
   }
 }
 ```
+
+#### webpackLoaders
+
+In rare cases you need an additional loader for a file type that is unknown. In most cases the use of templates (`*.xyz.js`) is sufficient.
+
+```js
+module.exports = {
+  kaliber: {
+    webpackLoaders: [
+      {
+        test: /\.ext$/,
+        loaders: [{ loader: 'ext-loader' }]
+      },
+    ],
+  }
+}
+```
+
+Note that these loaders are loaded after the `raw` loader and before all other loaders.

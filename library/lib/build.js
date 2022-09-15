@@ -48,7 +48,14 @@ const templateRenderers = require('./getTemplateRenderers')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const { kaliber: { compileWithBabel: userDefinedcompileWithBabel = [], publicPath = '/', symlinks = true } = {} } = require('@kaliber/config')
+const {
+  kaliber: {
+    compileWithBabel: userDefinedcompileWithBabel = [],
+    publicPath = '/',
+    symlinks = true,
+    webpackLoaders: userDefinedWebpackLoaders = [],
+  } = {}
+} = require('@kaliber/config')
 
 const recognizedTemplates = Object.keys(templateRenderers)
 
@@ -271,6 +278,8 @@ module.exports = function build({ watch }) {
           test: /\.raw\.[^.]+$/,
           loaders: [rawLoader]
         },
+
+        ...userDefinedWebpackLoaders,
 
         {
           type: 'json',
