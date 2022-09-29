@@ -32,8 +32,14 @@ const isProduction = process.env.NODE_ENV === 'production'
 const notCached = ['html', 'txt', 'json', 'xml']
 
 if (isProduction) app.use(morgan('combined'))
-// hsts-headers are sent by our loadbalancer
-app.use(helmet(Object.assign({ hsts: false, contentSecurityPolicy: false }, helmetOptions)))
+app.use(helmet(Object.assign(
+  {
+    hsts: false, // hsts-headers are sent by our loadbalancer
+    contentSecurityPolicy: false,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  },
+  helmetOptions
+)))
 app.use(compression())
 app.set('trust proxy', true)
 serveMiddleware && app.use(...[].concat(serveMiddleware))
