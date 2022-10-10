@@ -68,18 +68,13 @@ const babelLoader = {
     cacheDirectory: './.babelcache/',
     cacheCompression: false,
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
+    presets: ['@babel/preset-react'],
     plugins: [
       '@babel/syntax-dynamic-import',
       '@babel/syntax-optional-chaining',
       ['@babel/proposal-decorators', { legacy: true }],
       '@babel/proposal-class-properties',
-      '@babel/proposal-object-rest-spread',
-      '@babel/transform-async-to-generator',
-      ['@babel/transform-runtime', {
-        'helpers': false,
-        'regenerator': true
-      }]
+      '@babel/plugin-proposal-nullish-coalescing-operator',
     ]
   }
 }
