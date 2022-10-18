@@ -244,7 +244,15 @@
     "react/jsx-tag-spacing": "warn",
     "react/jsx-uses-react": "warn",
     "react/jsx-uses-vars": "warn",
-    // "react/jsx-wrap-multilines": "warn", // needs better config to fit our needs
+    "react/jsx-wrap-multilines": ["warn", {
+      "declaration": "parens-new-line",
+      "assignment": "parens-new-line",
+      "return": "parens-new-line",
+      "arrow": "ignore",
+      "condition": "ignore",
+      "logical": "ignore",
+      "prop": "ignore"
+    }],
     "react/no-danger-with-children": "warn",
     "react/no-deprecated": "warn",
     "react/no-direct-mutation-state": "warn",
