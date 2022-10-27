@@ -5,6 +5,7 @@ const { access } = require('fs')
 const { parsePath } = require('history')
 const { resolve } = require('path')
 const morgan = require('morgan')
+// const crypto = require('crypto')
 
 const templateRenderers = require('./getTemplateRenderers')
 
@@ -32,6 +33,10 @@ const isProduction = process.env.NODE_ENV === 'production'
 const notCached = ['html', 'txt', 'json', 'xml']
 
 if (isProduction) app.use(morgan('combined'))
+// app.use((req, res, next) => {
+//   res.locals.requestNonce = crypto.randomBytes(16).toString('hex')
+//   next()
+// })
 app.use(helmet(Object.assign(
   {
     hsts: false, // hsts-headers are sent by our loadbalancer
@@ -146,7 +151,8 @@ function serveIndexWithRouting(req, res, file) {
   return Promise.resolve(routes)
     .then(routes => (routes && routes.match(location, req)) || { status: 200, data: null })
     .then(({ status, headers, data }) =>
-      Promise.resolve(template({ location, data })).then(html => [status, headers, html])
+      Promise.resolve(template({ location, data/*, requestNonce: res.locals.requestNonce*/ }))
+        .then(html => [status, headers, html])
     )
     .then(([ status, headers, html ]) => res.status(status).set(headers).send(html))
 }

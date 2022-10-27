@@ -1,6 +1,10 @@
 module.exports = {
   kaliber: {
-    compileWithBabel: [/node_modules\/subscribe-ui-event/, /@kaliber\/elasticsearch/],
+    compileWithBabel: [
+      /subscribe-ui-event/,
+      /@kaliber\/elasticsearch/,
+      // /@kaliber\/build\/lib\/RequestNonce/
+    ],
     templateRenderers: {
       xml: '/xmlRenderer',
       mjml: '/mjml-renderer',
@@ -10,7 +14,7 @@ module.exports = {
     universal: {
       clientWrapper: '/wrapper/Client',
       serverWrapper: '/wrapper/Server',
-    }
+    },
   },
   client: {
     someConfigKey: true

@@ -18,6 +18,7 @@ import '/test.entry.css'
 import { FunctionComponent, FunctionComponentContainer } from './test/FunctionComponent'
 import FunctionComponentC from './test/FunctionComponent.universal'
 import FunctionComponentU from '/test/FunctionComponentApp?universal'
+// import { RequestNonceProvider } from '@kaliber/build/lib/RequestNonce'
 
 main.routes = {
   match: ({ pathname }, request) =>
@@ -45,11 +46,13 @@ function getMessage() {
   }
 }
 
-export default function main({ location, data }) {
+export default function main({ location, data/*, requestNonce*/ }) {
   if (!data) return null
+  // console.log({ requestNonce })
   return (
+    // <RequestNonceProvider value={requestNonce}>
     <html lang='en'>
-      {head('Rendered on server')}
+      {head('Rendered on server'/*, requestNonce*/)}
 
       <body>
         <div className={styles.background} />
@@ -101,5 +104,6 @@ export default function main({ location, data }) {
         </FunctionComponentContainer>
       </body>
     </html>
+    // </RequestNonceProvider>
   )
 }

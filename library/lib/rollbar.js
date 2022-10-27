@@ -12,8 +12,9 @@ const defaultOptions = {
   autoInstrument: { log: process.env.NODE_ENV === 'production' },
 }
 
-export default function rollbar(options, nonSerializableRollbarConfig = '/* no non-serializable config */') {
+export default function rollbar(options, nonSerializableRollbarConfig = '/* no non-serializable config */'/*, requestNonce*/) {
   const config = JSON.stringify(merge(defaultOptions, options))
   const __html = `var _rollbarConfig = ${config};${nonSerializableRollbarConfig};${snippet}`
+  // console.log({ cspHashRollbar: require('crypto').createHash('sha256').update(__html).digest('base64') })
   return <script dangerouslySetInnerHTML={{ __html }} />
 }
