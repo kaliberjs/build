@@ -18,17 +18,21 @@
 
 const { RawSource } = require('webpack-sources')
 const { SyncHook } = require('tapable')
+const { createGetHooks } = require('../lib/webpack-utils')
 
 const p = 'chunk-manifest-plugin'
 
-module.exports = function chunkManifestPlugin({ filename }) {
+const getHooks = createGetHooks(() => ({
+  chunkManifest: new SyncHook(['chunkAssets'])
+}))
+chunkManifestPlugin.getHooks = getHooks
+
+module.exports = chunkManifestPlugin
+function chunkManifestPlugin({ filename }) {
   return {
     apply: compiler => {
 
       compiler.hooks.compilation.tap(p, compilation => {
-        if (compilation.hooks.chunkManifest) throw new Error('Hook `chunkManifest` already in use')
-        compilation.hooks.chunkManifest = new SyncHook(['chunkAssets'])
-
         const chunkAssets = {}
         compilation.hooks.chunkAsset.tap(p, (chunk, filename, _) => {
 
@@ -49,7 +53,7 @@ module.exports = function chunkManifestPlugin({ filename }) {
 
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {
           const chunkManifest = sortGroups(chunkAssets)
-          compilation.hooks.chunkManifest.call(chunkManifest)
+          getHooks(compilation).chunkManifest.call(chunkManifest)
           compilation.assets[filename] = new RawSource(JSON.stringify(chunkManifest, null, 2))
 
           function sortGroups(chunkAssets) {

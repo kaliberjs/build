@@ -9,7 +9,7 @@
 
   Usage from other plugins:
 
-  compiler.hooks.makeAdditionalEntries.tapAsync('plugin-name', (compilation, createEntries, callback) => {
+  makeAdditionalEntries.getHooks(compiler).makeAdditionalEntries.tapAsync('plugin-name', (compilation, createEntries, callback) => {
 
     // if you want to add new entries
     createEntries({ name: path }, callback)
@@ -23,25 +23,29 @@
 
   and
 
-  compiler.hooks.claimEntries.tap('plugin-name', entries => {
+  makeAdditionalEntries.getHooks(compiler).claimEntries.tap('plugin-name', entries => {
     return unclaimedEntries
   })
 */
 
-const SingleEntryDependency = require('webpack/lib/dependencies/SingleEntryDependency')
+const EntryDependency = require('webpack/lib/dependencies/EntryDependency')
 const { AsyncSeriesHook, SyncWaterfallHook } = require('tapable')
 const { createDependency } = require('webpack/lib/SingleEntryPlugin')
+const { createGetHooks } = require('../lib/webpack-utils')
 
 const p = 'make-additional-entries'
 
-module.exports = function makeAdditionalEntries() {
+const getHooks = createGetHooks(() => ({
+  claimEntries: new SyncWaterfallHook(['entries']),
+  makeAdditionalEntries: new AsyncSeriesHook(['compilation', 'addEntries']),
+}))
+makeAdditionalEntries.getHooks = getHooks
+
+module.exports = makeAdditionalEntries
+
+function makeAdditionalEntries() {
   return {
     apply: compiler => {
-
-      if (compiler.hooks.claimEntries) throw new Error('Hook `claimEntries` already in use')
-      compiler.hooks.claimEntries = new SyncWaterfallHook(['entries'])
-      if (compiler.hooks.makeAdditionalEntries) throw new Error('Hook `makeAdditionalEntries` already in use')
-      compiler.hooks.makeAdditionalEntries = new AsyncSeriesHook(['compilation', 'addEntries'])
 
       const entriesToMake = {}
 
@@ -52,14 +56,17 @@ module.exports = function makeAdditionalEntries() {
       compiler.hooks.entryOption.tap(p, (context, entries) => {
         if (typeof entries === 'object' && !Array.isArray(entries)) {
           const originalEntries = Object.assign({}, entries)
-          Object.assign(entriesToMake, compiler.hooks.claimEntries.call(originalEntries))
+          Object.assign(
+            entriesToMake,
+            getHooks(compiler).claimEntries.call(originalEntries)
+          )
           return true
         }
       })
 
-      // make sure the SingleEntryDependency has a factory
+      // make sure the EntryDependency has a factory
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
-        compilation.dependencyFactories.set(SingleEntryDependency, normalModuleFactory)
+        compilation.dependencyFactories.set(EntryDependency, normalModuleFactory)
       })
 
       /*
@@ -73,7 +80,7 @@ module.exports = function makeAdditionalEntries() {
           .then(makeAdditionalEntries)
 
         function makeAdditionalEntries() {
-          return compiler.hooks.makeAdditionalEntries.promise(compilation, addEntries)
+          return getHooks(compiler).makeAdditionalEntries.promise(compilation, addEntries)
         }
 
         function addEntries(entries) {

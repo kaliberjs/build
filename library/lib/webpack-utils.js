@@ -1,6 +1,6 @@
 const ConstDependency = require('webpack/lib/dependencies/ConstDependency')
 const NullFactory = require('webpack/lib/NullFactory')
-const ParserHelpers = require('webpack/lib/ParserHelpers')
+const JavascriptParserHelpers = require('webpack/lib/javascript/JavascriptParserHelpers')
 const Compiler = require('webpack/lib/Compiler')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
@@ -9,6 +9,20 @@ const Stats = require('webpack/lib/Stats')
 module.exports = {
   addBuiltInVariable,
   createChildCompiler,
+  createGetHooks,
+}
+
+function createGetHooks(init) {
+  const hooksMap = new WeakMap()
+
+  return function getHooks(scope) {
+    const hooks = hooksMap.get(scope)
+    if (hooks) return hooks
+
+    return hooksMap
+      .set(scope, init())
+      .get(scope)
+  }
 }
 
 // code copied from ExtendedApiPlugin
@@ -41,16 +55,16 @@ function addBuiltInVariable({
   normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(pluginName, addParserHooks)
 
   function addParserHooks(parser, parserOptions) {
-    parser.hooks.expression.for(variableName).tap(pluginName, ParserHelpers.toConstantDependency(parser, targetLocation))
-    parser.hooks.evaluateTypeof.for(variableName).tap(pluginName, ParserHelpers.evaluateToString(type))
+    parser.hooks.expression.for(variableName).tap(pluginName, JavascriptParserHelpers.toConstantDependency(parser, targetLocation))
+    parser.hooks.evaluateTypeof.for(variableName).tap(pluginName, JavascriptParserHelpers.evaluateToString(type))
   }
 }
 
-function createChildCompiler(pluginName, compiler, options) {
+function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntries, chunkManifestPlugin }) {
   /* from lib/webpack.js */
   options = new WebpackOptionsDefaulter().process(options)
 
-  const childCompiler = new Compiler(options.context)
+  const childCompiler = new Compiler(options.context, { experiments: {} })
   childCompiler.options = options
 
   // instead of using the NodeEnvironmentPlugin
@@ -65,8 +79,7 @@ function createChildCompiler(pluginName, compiler, options) {
 
   // make the chunk manifest available
   childCompiler.hooks.compilation.tap(pluginName, compilation => {
-    if (!compilation.hooks.chunkManifest) throw new Error('Make sure the chunk-manifest-plugin is installed')
-    compilation.hooks.chunkManifest.tap(pluginName, chunkManifest => {
+    chunkManifestPlugin.getHooks(compilation).chunkManifest.tap(pluginName, chunkManifest => {
       compilation._kaliber_chunk_manifest_ = chunkManifest
     })
   })
@@ -79,10 +92,11 @@ function createChildCompiler(pluginName, compiler, options) {
   // Tell the sub compiler to compile
   // Note, we can not use `make` because it's parallel
   // We use `stage: 1` to allow plugins to register new entries right before building
-  if (!compiler.hooks.makeAdditionalEntries) throw new Error('Make sure the make-addition-entries plugin is installed')
-  compiler.hooks.makeAdditionalEntries.tapAsync({ name: pluginName, stage: 1 }, (compilation, _, callback) => {
-    runSubCompilation(childCompiler, compilation, callback)
-  })
+  // if (!compiler.hooks.makeAdditionalEntries) throw new Error('Make sure the make-addition-entries plugin is installed')
+  makeAdditionalEntries.getHooks(compiler).makeAdditionalEntries
+    .tapAsync({ name: pluginName, stage: 1 }, (compilation, _, callback) => {
+      runSubCompilation(childCompiler, compilation, callback)
+    })
 
   return childCompiler
 }

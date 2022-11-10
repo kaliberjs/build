@@ -3,6 +3,8 @@
   are sent when compilation completes.
 */
 const ansiRegex = require('ansi-regex')
+const mergeCssPlugin = require('./merge-css-plugin')
+const websocketCommunicationPlugin = require('./websocket-communication-plugin')
 
 const p = 'hot-css-replacement-plugin'
 
@@ -13,11 +15,12 @@ module.exports = function hotCssReplacementPlugin() {
       let send
       let cssChunkHashes
 
-      compiler.hooks.websocketSendAvailable.tap(p, x => { send = x })
+      websocketCommunicationPlugin.getHooks(compiler)
+        .websocketSendAvailable.tap(p, x => { send = x })
 
       compiler.hooks.compilation.tap(p, compilation => {
         cssChunkHashes = {}
-        compilation.hooks.chunkCssHashes.tap(p, (chunkName, cssHashes) => {
+        mergeCssPlugin.getHooks(compilation).chunkCssHashes.tap(p, (chunkName, cssHashes) => {
           cssChunkHashes[chunkName] = cssHashes
         })
       })

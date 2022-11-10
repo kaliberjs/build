@@ -3,6 +3,8 @@ const { RawSource } = require('webpack-sources')
 const { relative } = require('path')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const RawModule = require('webpack/lib/RawModule')
+const makeAdditionalEntries = require('./make-additional-entries-plugin')
+const chunkManifestPlugin = require('./chunk-manifest-plugin')
 
 /*
   The idea is simple:
@@ -22,12 +24,14 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
 
+      // TODO: we might need to close the compiler
       const webCompiler = createWebCompiler(compiler, webCompilerOptions)
 
       // when the webCompiler starts compiling add the recorded client entries
-      webCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
-        return addEntries(clientEntries)
-      })
+      makeAdditionalEntries.getHooks(webCompiler)
+        .makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
+          return addEntries(clientEntries)
+        })
 
       // check the parent compiler before creating a module, it might have already
       // been processed
@@ -74,10 +78,10 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
       })
 
       // we claim entries ending with `entry.js` and `.universal.js` and record them as client entries for the web compiler
-      compiler.hooks.claimEntries.tap(p, entries => {
+      makeAdditionalEntries.getHooks(compiler).claimEntries.tap(p, entries => {
         const [claimed, unclaimed] = Object.keys(entries).reduce(
           ([claimed, unclaimed], name) => {
-            const entry = entries[name]
+            const { import: [entry] } = entries[name]
             if (entry.endsWith('.entry.js') || entry.endsWith('.universal.js')) claimed[name] = entry
             else unclaimed[name] = entry
 
@@ -181,7 +185,7 @@ function getJavascriptChunkNames(chunk, compiler) {
 
 function createWebCompiler(compiler, options) {
 
-  const webCompiler = createChildCompiler(p, compiler, options)
+  const webCompiler = createChildCompiler(p, compiler, options, { makeAdditionalEntries, chunkManifestPlugin })
 
   // push the client loader when appropriate
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {

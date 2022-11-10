@@ -1,5 +1,7 @@
 const { addBuiltInVariable, createChildCompiler } = require('../lib/webpack-utils')
 const { relative } = require('path')
+const makeAdditionalEntries = require('./make-additional-entries-plugin')
+const chunkManifestPlugin = require('./chunk-manifest-plugin')
 
 /*
   The idea is simple:
@@ -32,12 +34,14 @@ function webWorkerPlugin(webWorkerCompilerOptions) {
       // keep a record of web worker entries for additional compiler runs (watch)
       const claimedEntries = {}
 
-      const subCompiler = createChildCompiler(p, compiler, webWorkerCompilerOptions)
+      // TODO: we might need to close the compiler
+      const subCompiler = createChildCompiler(p, compiler, webWorkerCompilerOptions, { makeAdditionalEntries, chunkManifestPlugin })
 
       // when the subCompiler starts compiling add the recorded client entries
-      subCompiler.hooks.makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
-        return addEntries(claimedEntries)
-      })
+      makeAdditionalEntries.getHooks(subCompiler)
+        .makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
+          return addEntries(claimedEntries)
+        })
 
       /*
         When a module marked with `?webworker` has been resolved, add the `web-worker-client-loader` to it's

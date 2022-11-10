@@ -39,7 +39,6 @@ const noKaliberConfigPlugin = require('../webpack-plugins/no-kaliber-config-plug
 const absolutePathResolverPlugin = require('../webpack-resolver-plugins/absolute-path-resolver-plugin')
 const fragmentResolverPlugin = require('../webpack-resolver-plugins/fragment-resolver-plugin')
 
-const ExtendedAPIPlugin = require('webpack/lib/ExtendedAPIPlugin')
 const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const TimeFixPlugin = require('time-fix-plugin') // https://github.com/webpack/watchpack/issues/25
 const TerserPlugin = require('terser-webpack-plugin')
@@ -160,7 +159,7 @@ module.exports = function build({ watch }) {
       ].filter(Boolean),
       optimization: {
         minimize: false,
-        namedChunks: false,
+        chunkIds: 'named',
         splitChunks: false
       },
       resolve: resolveOptions(),
@@ -169,7 +168,7 @@ module.exports = function build({ watch }) {
       plugins: [
         ...pluginsOptions().all(),
         ...pluginsOptions().node()
-      ]
+      ],
     }
   }
 
@@ -192,9 +191,9 @@ module.exports = function build({ watch }) {
         minimize: isProduction,
         minimizer: [
           new TerserPlugin({
-            cache: true,
+            // cache: true, // TODO: removed
             parallel: true,
-            sourceMap: true
+            // sourceMap: true // TODO: tied to devtools option
           })
         ],
         splitChunks: {
@@ -210,7 +209,7 @@ module.exports = function build({ watch }) {
       plugins: [
         ...pluginsOptions().all(),
         ...pluginsOptions().web()
-      ]
+      ],
     }
   }
 
@@ -231,9 +230,9 @@ module.exports = function build({ watch }) {
         minimize: isProduction,
         minimizer: [
           new TerserPlugin({
-            cache: true,
+            // cache: true,
             parallel: true,
-            sourceMap: true
+            // sourceMap: true
           })
         ],
         namedChunks: false,
@@ -275,7 +274,7 @@ module.exports = function build({ watch }) {
 
         {
           test: /\.raw\.[^.]+$/,
-          loaders: [rawLoader]
+          use: [rawLoader]
         },
 
         ...userDefinedWebpackLoaders,
@@ -283,39 +282,43 @@ module.exports = function build({ watch }) {
         {
           type: 'json',
           test: /\.json$/,
-          loaders: []
+          use: []
         },
 
         {
           test: /\.entry\.css$/,
-          loaders: [cssLoaderGlobalScope]
+          use: [cssLoaderGlobalScope]
         },
 
         {
           resource: {
-            test: /\.css$/,
-            or: [{ exclude: /node_modules/ }, ...compileWithBabel],
+            and: [
+              /\.css$/,
+              { or: [{ not: [/node_modules/] }, ...compileWithBabel] },
+            ],
           },
-          loaders: ['json-loader', cssLoader],
+          use: ['json-loader', cssLoader],
         },
 
         {
           test: /\.css$/,
-          loaders: [cssLoaderMinifyOnly]
+          use: [cssLoaderMinifyOnly]
         },
 
         {
           test: /\.js$/,
           resourceQuery: /transpiled-javascript-string/,
-          loaders: [rawLoader, babelLoader]
+          use: [rawLoader, babelLoader]
         },
 
         {
           resource: {
-            test: /(\.html\.js|\.js|\.mjs)$/,
-            or: [{ exclude: /node_modules/ }, ...compileWithBabel],
+            and: [
+              /(\.html\.js|\.js|\.mjs)$/,
+              { or: [{ not: [/node_modules/] }, ...compileWithBabel] },
+            ],
           },
-          loaders: [babelLoader]
+          use: [babelLoader]
         },
 
         {
@@ -326,12 +329,12 @@ module.exports = function build({ watch }) {
         {
           test: /\.svg$/,
           resourceQuery: /fragment/,
-          loaders: ['fragment-loader']
+          use: ['fragment-loader']
         },
 
         {
           test: /\.svg$/,
-          loaders: [
+          use: [
             urlLoader,
             imageLoader
           ]
@@ -339,7 +342,7 @@ module.exports = function build({ watch }) {
 
         {
           test: /\.(jpe?g|png|gif)$/,
-          loaders: [
+          use: [
             urlLoader,
             'cache-loader',
             isProduction && imageLoader,
@@ -348,7 +351,7 @@ module.exports = function build({ watch }) {
         },
 
         {
-          loader: fileLoader
+          use: [fileLoader]
         }
 
       ] }]
@@ -374,7 +377,7 @@ module.exports = function build({ watch }) {
       node: () => [
         watch && websocketCommunicationPlugin(),
         new TimeFixPlugin(),
-        new ExtendedAPIPlugin(),
+        // new ExtendedAPIPlugin(),
         configLoaderPlugin(),
         watchContextPlugin(),
         reactUniversalPlugin(webOptions()),  // claims .entry.js

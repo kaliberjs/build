@@ -8,7 +8,7 @@
 
   It also adds a 'chunkCssHashes' hook which can be used by plugins to record the css hash of a chunk:
 
-  compilation.hooks.chunkCssHashes.tap('plugin-name', (chunkName, cssHashes) => {
+  mergeCssPlugin.getHooks(compilation).chunkCssHashes.tap('plugin-name', (chunkName, cssHashes) => {
     ...
   })
 */
@@ -16,17 +16,20 @@
 const crypto = require('crypto')
 const { ConcatSource, RawSource } = require('webpack-sources')
 const { SyncHook } = require('tapable')
-const { addBuiltInVariable } = require('../lib/webpack-utils')
+const { addBuiltInVariable, createGetHooks } = require('../lib/webpack-utils')
 
 const p = 'merge-css-plugin'
 
-module.exports = function mergeCssPlugin() {
+const getHooks = createGetHooks(() => ({
+  chunkCssHashes: new SyncHook(['chunkName', 'cssHashes'])
+}))
+mergeCssPlugin.getHooks = getHooks
+
+module.exports = mergeCssPlugin
+function mergeCssPlugin() {
   return {
     apply: compiler => {
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
-
-        if (compilation.hooks.chunkCssHashes) throw new Error('Hook `chunkCssHashes` already in use')
-        compilation.hooks.chunkCssHashes = new SyncHook(['chunkName', 'cssHashes'])
 
         const newChunksWithCssAssets = {}
         const chunkCssHashes = new Map()
@@ -98,7 +101,7 @@ module.exports = function mergeCssPlugin() {
               .map(({ cssHash }) => cssHash)
 
             chunkCssHashes.set(chunk, cssHashes)
-            compilation.hooks.chunkCssHashes.call(chunk.name, cssHashes)
+            mergeCssPlugin.getHooks(compilation).chunkCssHashes.call(chunk.name, cssHashes)
           })
         })
 

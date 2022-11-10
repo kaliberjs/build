@@ -3,7 +3,7 @@
 
   Plugins can get hold of the `send` method by adding the following hook:
 
-  compiler.hooks.websocketSendAvailable.tap('plugin-name', send => {
+  websocketCommunicationPlugin.getHooks(compiler).websocketSendAvailable.tap('plugin-name', send => {
     ...
   })
 
@@ -15,17 +15,21 @@
 const net = require('net')
 const ws = require('ws')
 const { SyncHook } = require('tapable')
-const { addBuiltInVariable } = require('../lib/webpack-utils')
+const { addBuiltInVariable, createGetHooks } = require('../lib/webpack-utils')
 
 const p = 'websocket-communication-plugin'
 
-module.exports = function websocketCommunicationPlugin() {
+const getHooks = createGetHooks(() => ({
+  websocketSendAvailable: new SyncHook(['send'])
+}))
+websocketCommunicationPlugin.getHooks = getHooks
+
+module.exports = websocketCommunicationPlugin
+
+function websocketCommunicationPlugin() {
 
   return {
     apply: compiler => {
-      if (compiler.hooks.websocketSendAvailable) throw new Error('Hook `websocketSendAvailable` already in use')
-      compiler.hooks.websocketSendAvailable = new SyncHook(['send'])
-
       const freePort = findFreePort()
       const webSocketServer = freePort.then(startWebSocketServer)
 
@@ -35,7 +39,7 @@ module.exports = function websocketCommunicationPlugin() {
 
       // provide the send function
       compiler.hooks.environment.tap(p, () => {
-        compiler.hooks.websocketSendAvailable.call(send)
+        getHooks(compiler).websocketSendAvailable.call(send)
       })
 
       // wait for a free port before we start compiling
