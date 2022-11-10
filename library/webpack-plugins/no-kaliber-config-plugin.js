@@ -2,11 +2,12 @@ const p = 'no-kaliber-config-plugin'
 
 module.exports = function noKaliberConfigPlugin() {
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply(compiler) {
       // provide a friendly error if @kaliber/config is loaded
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
         normalModuleFactory.hooks.afterResolve.tap(p, data => {
-          const { rawRequest } = data
+          const { rawRequest } = data.createData
 
           if (rawRequest === '@kaliber/config') throw new Error(
             '@kaliber/config\n' +
@@ -17,8 +18,6 @@ module.exports = function noKaliberConfigPlugin() {
             'implement this safely.\n' +
             '------'
           )
-
-          return data
         })
       })
     }

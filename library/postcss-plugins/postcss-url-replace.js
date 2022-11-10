@@ -5,12 +5,13 @@ const postcss = require('postcss')
 */
 module.exports = postcss.plugin(
   'postcss-url-replace',
-  ({ replace }) => {
+  ({ replace, counter }) => {
 
-    return styles => {
+    return async styles => {
       const results = []
-
+      console.trace(counter, 'before walk')
       styles.walkDecls(decl => {
+        console.log(counter, 'walk')
 
         const urlPattern = /(\burl\(\s*['"]?)([^"')]+)(["']?\s*\))/g
 
@@ -28,13 +29,13 @@ module.exports = postcss.plugin(
 
           const [ , before, old, after] = match
           parts.push(Promise.resolve(before))
-
-          parts.push(Promise.resolve(replace(old, decl.source.input.file)).then((replacement = old) => replacement))
+          console.log('replace')
+          parts.push(replace(old, decl.source.input.file).then((replacement = old) => replacement))
 
           parts.push(Promise.resolve(after))
           lastIndex = urlPattern.lastIndex
         }
-
+        console.log(counter, lastIndex, parts.length)
         // If we had a match, push the remainder of the result as a part and join the result
         // once all promises resolve.
         if (lastIndex) {
@@ -49,8 +50,10 @@ module.exports = postcss.plugin(
           )
         }
       })
-
-      return Promise.all(results)
+      console.log(counter, 'waiting for results')
+      const x = await Promise.all(results)
+      console.log(counter, 'results', x)
+      return x
     }
   }
 )

@@ -20,6 +20,7 @@ const p = 'react-universal-plugin'
 module.exports = function reactUniversalPlugin(webCompilerOptions) {
 
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
@@ -42,6 +43,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
           const { path } = data.resourceResolveData
           if (!path.endsWith('.js') && !path.endsWith('.json')) {
             const parentCompilationModule = compilation.findModule(data.request)
+            // console.log({ path, data, hasModuleInParent: typeof parentCompilationModule })
             if (parentCompilationModule) {
               const { dependencyTemplates, moduleTemplates } = webCompilation
 
@@ -89,7 +91,6 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
           },
           [{}, {}]
         )
-
         Object.assign(clientEntries, claimed)
 
         return unclaimed
@@ -108,35 +109,45 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
         normalModuleFactory.hooks.beforeResolve.tap(p, data => {
-          if (!data) return data
-
-          if (data.dependencies.some(x => x instanceof ImportDependency)) return
-
-          return data
+          if (data && data.dependencies.some(x => x instanceof ImportDependency)) return false
         })
 
         normalModuleFactory.hooks.afterResolve.tap(p, data => {
-          const { loaders, resourceResolveData: { query, path } } = data
+          const { loaders, resourceResolveData: { query, path } } = data.createData
 
           if (query === '?universal') {
-            loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-server-loader') })
+            loaders.push({
+              loader: require.resolve('../webpack-loaders/react-universal-server-loader'),
+              type: undefined,
+              ident: 'added by react-universal-plugin because of ?universal',
+              options: {},
+            })
 
             const name = relative(compiler.context, path)
             if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
           }
 
           if (path.endsWith('.universal.js') && query !== '?original') {
-            loaders.push({ loader: require.resolve('../webpack-loaders/react-containerless-universal-server-loader') })
+            loaders.push({
+              loader: require.resolve('../webpack-loaders/react-containerless-universal-server-loader'),
+              type: undefined,
+              ident: 'added by react-universal-plugin because of .universal.js',
+              options: {},
+            })
 
             const name = relative(compiler.context, path)
             if (!clientEntries[name]) clientEntries[name] = './' + name + '?containerless-universal-client'
           }
 
           if (path.endsWith('.entry.js')) {
-            data.loaders = [{ loader: require.resolve('../webpack-loaders/ignore-content-loader') }]
-          }
+            data.createData.loaders = [{
+              loader: require.resolve('../webpack-loaders/ignore-content-loader'),
+              type: undefined,
+              ident: 'added by react-universal-plugin because of .entry.js',
+              options: {},
 
-          return data
+            }]
+          }
         })
       })
 
@@ -158,7 +169,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
         })
 
         compilation.hooks.additionalChunkAssets.tap(p, chunks => {
-          const entryManifest = chunks
+          const entryManifest = Array.from(chunks)
             .filter(x => x.name)
             .reduce((result, x) => {
               const names = getJavascriptChunkNames(x, compiler)
@@ -190,15 +201,13 @@ function createWebCompiler(compiler, options) {
   // push the client loader when appropriate
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
     normalModuleFactory.hooks.afterResolve.tap(p, data => {
-      const { loaders, resourceResolveData: { query } } = data
+      const { loaders, resourceResolveData: { query } } = data.createData
 
       if (query === '?universal-client')
         loaders.push({ loader: require.resolve('../webpack-loaders/react-universal-client-loader') })
 
       if (query === '?containerless-universal-client')
         loaders.push({ loader: require.resolve('../webpack-loaders/react-containerless-universal-client-loader') })
-
-      return data
     })
   })
 

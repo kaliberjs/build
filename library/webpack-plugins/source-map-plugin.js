@@ -10,6 +10,7 @@ const p = 'source-map-plugin'
 
 module.exports = function sourceMapPlugin({ sourceRoot }) {
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
       compiler.hooks.compilation.tap(p, compilation => {
 
@@ -24,7 +25,6 @@ module.exports = function sourceMapPlugin({ sourceRoot }) {
             const asset = assets[name]
             const map = asset.map()
             if (map) {
-
               // make sure sources in the source map are timestamped, this helps with hot reloading
               const now = Date.now()
               map.sources = map.sources.map(source => path.relative(sourceRoot, source) + (source.includes('?') ? '&' : '?') + now)

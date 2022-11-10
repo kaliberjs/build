@@ -19,6 +19,7 @@
 const { RawSource } = require('webpack-sources')
 const path = require('path')
 const { evalInFork } = require('../lib/node-utils')
+const { WebpackError } = require('webpack')
 
 const p = 'template-plugin'
 const isFunctionKey = `${p} - export is function`
@@ -47,6 +48,7 @@ module.exports = function templatePlugin(renderers) {
   }
 
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
 
       /*
@@ -56,16 +58,19 @@ module.exports = function templatePlugin(renderers) {
       */
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
         normalModuleFactory.hooks.afterResolve.tap(p, data => {
-          const { loaders, resourceResolveData: { query, path } } = data
+          const { loaders, resourceResolveData: { query, path } } = data.createData
           const renderInfo = getRenderInfo(path)
 
           if (renderInfo && query !== '?template-source') {
             const { renderer } = renderInfo
             const templateLoader = require.resolve('../webpack-loaders/template-loader')
-            loaders.push({ loader: templateLoader, options: { renderer } })
+            loaders.push({
+              loader: templateLoader,
+              options: { renderer },
+              type: undefined,
+              ident: 'added by webWorkerPlugin because of ?webworker',
+            })
           }
-
-          return data
         })
 
         /*
@@ -92,12 +97,16 @@ module.exports = function templatePlugin(renderers) {
           Add `isFunction` asset info to templates
         */
         compilation.hooks.chunkAsset.tap(p, (chunk, file) => {
+          // console.log('template - chunkAsset', { file, entryModule: chunk.entryModule })
           if (!chunk.entryModule) return
           const rootModule = chunk.entryModule.rootModule || chunk.entryModule
-          const { module } =
-            rootModule.dependencies.find(x =>
-              x.module && x.module.request.endsWith('?template-source')
-            ) || {}
+          const dependency =
+            rootModule.dependencies.find(x => {
+              const module = compilation.moduleGraph.getModule(x)
+
+              return module && module.request.endsWith('?template-source')
+            }) || {}
+          const module = compilation.moduleGraph.getModule(dependency)
           if (!module) return
           const assetInfo = compilation.assetsInfo.get(file)
           assetInfo[isFunctionKey] = module.buildInfo[isFunctionKey]
@@ -118,7 +127,7 @@ module.exports = function templatePlugin(renderers) {
         compilation.hooks.optimizeAssets.tapPromise(p, async assets => {
           const renders = []
 
-          const chunksByName = compilation.chunks.reduce(
+          const chunksByName = Array.from(compilation.chunks).reduce(
             (result, chunk) => ((result[chunk.name] = chunk), result),
             {}
           )
@@ -142,6 +151,7 @@ module.exports = function templatePlugin(renderers) {
             renders.push(
               Promise.resolve().then(async () => { // no await in the body of a `for`
                 try {
+                  /** @type {Array<[string, typeof asset]>} */
                   const files = isFunction
                     ? [
                       [srcExt, createDynamicTemplate(path.basename(outputName), templateExt)],
@@ -157,13 +167,13 @@ module.exports = function templatePlugin(renderers) {
                     assets[filename] = result
                   })
                 } catch (e) {
-                  compilation.errors.push(`Template plugin (${name}): ${e.message}`)
+                  compilation.errors.push(new WebpackError(`Template plugin (${name}): ${e.message}`))
                 }
               })
             )
           }
 
-          return Promise.all(renders)
+          await Promise.all(renders)
         })
       })
     }

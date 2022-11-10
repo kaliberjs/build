@@ -75,7 +75,7 @@ function makeAdditionalEntries() {
         before them.
       */
       compiler.hooks.make.tapPromise(p, compilation => {
-
+        console.log('make-additional-entries', 'add entries')
         return addEntries(entriesToMake)
           .then(makeAdditionalEntries)
 
@@ -88,9 +88,10 @@ function makeAdditionalEntries() {
         }
 
         function addEntry(name, path) {
+          // TODO: misschien kunnen we de DynamicEntryPlugin gebruiken. Die lijkt hier heel erg op
           return new Promise((resolve, reject) => {
             const entry = createDependency(path, name)
-            compilation.addEntry(compiler.context, entry, name, err => err ? reject(err) : resolve())
+            compilation.addEntry(compiler.context, entry, { name }, err => err ? reject(err) : resolve())
           })
         }
       })

@@ -16,7 +16,6 @@
     "deploy.push": "cd gh-pages ; git push ; cd .."
   },
   "dependencies": {
-    "@kaliber/build": "*",
     "@kaliber/safe-json-stringify": "^2.0.1",
     "npm-run-all": "^4.1.2",
     "react-markdown": "^4.3.1",

@@ -16,12 +16,18 @@ module.exports = webWorkerPlugin
 
 // use this plugin for the compile time and server-side renderer
 webWorkerPlugin.handleWebWorkerImports = {
+  /** @param {import('webpack').Compiler} compiler */
   apply(compiler) {
     compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
       normalModuleFactory.hooks.afterResolve.tap(p, data => {
-        const { resourceResolveData: { query }, loaders } = data
-        if (query === '?webworker') loaders.push({ loader: webworkerClientLoaderPath })
-        return data
+        const { resourceResolveData: { query }, loaders } = data.createData
+
+        if (query === '?webworker') loaders.push({
+          loader: webworkerClientLoaderPath,
+          options: {},
+          type: undefined,
+          ident: 'added by webWorkerPlugin because of ?webworker',
+        })
       })
     })
   }
@@ -30,6 +36,7 @@ webWorkerPlugin.handleWebWorkerImports = {
 function webWorkerPlugin(webWorkerCompilerOptions) {
 
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
       // keep a record of web worker entries for additional compiler runs (watch)
       const claimedEntries = {}
@@ -50,15 +57,18 @@ function webWorkerPlugin(webWorkerCompilerOptions) {
       compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
 
         normalModuleFactory.hooks.afterResolve.tap(p, data => {
-          const { loaders, resourceResolveData: { query, path } } = data
+          const { loaders, resourceResolveData: { query, path } } = data.createData
 
           if (query === '?webworker') {
-            loaders.push({ loader: webworkerClientLoaderPath })
+            loaders.push({
+              loader: webworkerClientLoaderPath,
+              type: undefined,
+              ident: 'added by webWorkerPlugin because of ?webworker',
+              options: {},
+            })
             const name = relative(compiler.context, path)
             if (!claimedEntries[name]) claimedEntries[name] = './' + name
           }
-
-          return data
         })
       })
 

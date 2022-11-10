@@ -3,6 +3,7 @@ process.traceDeprecation = true
 process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled rejection of:\n', p, '\nReason:\n', reason)
 })
+Error.stackTraceLimit = 20
 
 let caseSensitive = false
 try {
@@ -69,8 +70,8 @@ const babelLoader = {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: ['@babel/preset-react'],
     plugins: [
-      '@babel/plugin-proposal-class-properties',
-      ['@babel/plugin-proposal-decorators', { legacy: true }],
+      ['@babel/plugin-proposal-decorators', { 'version': 'legacy' }],
+      ['@babel/plugin-proposal-class-properties', { 'loose': true }],
       '@babel/plugin-proposal-export-namespace-from',
       '@babel/plugin-proposal-nullish-coalescing-operator',
       '@babel/plugin-proposal-object-rest-spread',
@@ -422,6 +423,12 @@ module.exports = function build({ watch }) {
       if (err) {
         console.error(err.stack || err)
         if (err.details) console.error(err.details)
+        function getErrors(compilation) {
+          return compilation.errors.concat(compilation.children.flatMap(getErrors))
+        }
+        if (stats.hasErrors()) getErrors(stats.compilation).forEach(err => {
+          console.error(err)
+        })
         if (!watch) process.exit(1)
         return
       }
