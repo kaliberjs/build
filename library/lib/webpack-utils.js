@@ -5,6 +5,7 @@ const Compiler = require('webpack/lib/Compiler')
 const WebpackOptionsApply = require('webpack/lib/WebpackOptionsApply')
 const WebpackOptionsDefaulter = require('webpack/lib/WebpackOptionsDefaulter')
 const Stats = require('webpack/lib/Stats')
+const { RuntimeModule } = require('webpack')
 
 module.exports = {
   addBuiltInVariable,
@@ -30,41 +31,50 @@ function addBuiltInVariable({
   compilation, normalModuleFactory, pluginName,
   variableName, type, abbreviation, createValue
 }) {
+  const { mainTemplate } = compilation
+  const targetLocation = `${mainTemplate.requireFn}.${abbreviation}`
+
+  compilation.hooks.runtimeRequirementInTree
+    .for(targetLocation)
+    .tap(pluginName, chunk => {
+      const x = new RuntimeModule(abbreviation, RuntimeModule.STAGE_ATTACH)
+      x.generate = () => `${targetLocation} = ${JSON.stringify(createValue(x.chunk))};`
+      compilation.addRuntimeModule( chunk, x )
+      return true
+    })
 
   compilation.dependencyFactories.set(ConstDependency, new NullFactory())
   compilation.dependencyTemplates.set(ConstDependency, new ConstDependency.Template())
 
-  const { mainTemplate } = compilation
+  // mainTemplate.hooks.globalHash.tap(pluginName, () => true)
+  // mainTemplate.hooks.requireExtensions.tap(pluginName, (source, chunk, hash) => {
+  //   const value = JSON.stringify(createValue(chunk))
+  //   const code = [
+  //     source,
+  //     '',
+  //     `// ${variableName}`,
+  //     `${targetLocation} = ${value};`
+  //   ]
 
-  const targetLocation = `${mainTemplate.requireFn}.${abbreviation}`
-
-  mainTemplate.hooks.globalHash.tap(pluginName, () => true)
-  mainTemplate.hooks.requireExtensions.tap(pluginName, (source, chunk, hash) => {
-    const value = JSON.stringify(createValue(source, chunk, hash))
-    const code = [
-      source,
-      '',
-      `// ${variableName}`,
-      `${targetLocation} = ${value};`
-    ]
-
-    return code.join('\n')
-  })
+  //   return code.join('\n')
+  // })
 
   normalModuleFactory.hooks.parser.for('javascript/auto').tap(pluginName, addParserHooks)
   normalModuleFactory.hooks.parser.for('javascript/dynamic').tap(pluginName, addParserHooks)
+  normalModuleFactory.hooks.parser.for('javascript/esm').tap(pluginName, addParserHooks)
 
   function addParserHooks(parser, parserOptions) {
-    parser.hooks.expression.for(variableName).tap(pluginName, JavascriptParserHelpers.toConstantDependency(parser, targetLocation))
+    parser.hooks.expression.for(variableName).tap(pluginName, JavascriptParserHelpers.toConstantDependency(parser, targetLocation, [targetLocation]))
     parser.hooks.evaluateTypeof.for(variableName).tap(pluginName, JavascriptParserHelpers.evaluateToString(type))
   }
 }
 
-function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntries, chunkManifestPlugin }) {
+function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntries, chunkManifestPlugin }, name) {
   /* from lib/webpack.js */
   options = new WebpackOptionsDefaulter().process(options)
 
-  const childCompiler = new Compiler(options.context, { experiments: {} })
+  console.log('**', name)
+  const childCompiler = new Compiler(options.context, { experiments: {} }, name)
   childCompiler.options = options
 
   // instead of using the NodeEnvironmentPlugin

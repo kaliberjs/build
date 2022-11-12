@@ -21,7 +21,7 @@ function createHotReloadClient() {
     <script
       key='stylesheet_hotCssReplacementClient'
       dangerouslySetInnerHTML={{
-      __html: `(${hotCssReplacementClient})(${port}, ${JSON.stringify(cssHashes)}, '${chunkName}', '${publicPath}')`
+        __html: `(${hotCssReplacementClient})(${port}, ${JSON.stringify(cssHashes)}, '${chunkName}', '${publicPath}')`
       }}
     />
   )

@@ -9,7 +9,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 function createPlugins(
   { minifyOnly, globalScopeBehaviour, cssGlobalFiles },
-  { resolveForImport, resolveForUrlReplace, resolveForImportExportParser, counter }
+  { resolveForImport, resolveForUrlReplace, resolveForImportExportParser }
 ) {
 
   return [
@@ -45,28 +45,25 @@ function createPlugins(
         require('postcss-calc')(),
         require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
-        require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace, counter }),
+        require('../postcss-plugins/postcss-url-replace')({ replace: resolveForUrlReplace }),
         require('../postcss-plugins/postcss-kaliber-scoped')(),
       ].filter(Boolean)
     ),
     isProduction && require('cssnano')({ preset: ['default', { svgo: false, cssDeclarationSorter: false }] })
   ].filter(Boolean)
 }
-let counter = 0
+
 /** @type {import('webpack').LoaderDefinitionFunction} */
 module.exports = function CssLoader(source, map) {
-  counter++
-  const c = counter
   const self = this
   const callback = this.async()
 
   const loaderOptions = this.getOptions() || {}
   const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
-  console.log(counter, this.resource, 'css-loader - typeof _compilation', typeof this._compilation)
-  const cssGlobalFiles = cachedFindCssGlobalFiles(this, counter)
+  const cssGlobalFiles = cachedFindCssGlobalFiles(this)
   cssGlobalFiles.forEach(x => this.addDependency(x))
 
-  const plugins = getPlugins(counter, this, { minifyOnly, globalScopeBehaviour, cssGlobalFiles })
+  const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour, cssGlobalFiles })
   const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
@@ -83,7 +80,6 @@ module.exports = function CssLoader(source, map) {
   const result = postcss(plugins).process(source, options)
   result
     .then(({ css, map, messages }) => {
-      console.log(c, 'warnings', result.warnings())
       throwErrorForWarnings(filename, result.warnings())
 
       messages
@@ -107,36 +103,31 @@ module.exports = function CssLoader(source, map) {
   function emitAndCallback({ css, map, value }) {
     self.emitFile(filename, css, map)
     const cssHash = require('crypto').createHash('md5').update(css).digest('hex')
-    console.log(c, 'done')
     callback(null, value(cssHash))
   }
 }
 
-function getPlugins(counter, loaderContext, { minifyOnly, globalScopeBehaviour, cssGlobalFiles }) {
-  const key = `plugins${minifyOnly ? '-minifyOnly' : ''}${globalScopeBehaviour ? '-globalScope' : ''}`
-
-  return cachedInConmpilation(counter, loaderContext, key, () => {
-    const handlers = createHandlers(counter, loaderContext)
-    const plugins = createPlugins({ minifyOnly, globalScopeBehaviour, cssGlobalFiles }, handlers)
-    return plugins
-  })
+function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour, cssGlobalFiles }) {
+  // TODO: change this in the normal build as well. It is an error
+  const handlers = createHandlers(loaderContext)
+  const plugins = createPlugins({ minifyOnly, globalScopeBehaviour, cssGlobalFiles }, handlers)
+  return plugins
 }
 
 /** @param {import('webpack').LoaderContext<any>} loaderContext */
-function createHandlers(counter, loaderContext) {
+function createHandlers(loaderContext) {
   return {
-    counter,
     resolveForImport: (id, basedir, importOptions) => resolve(basedir, id),
     resolveForUrlReplace: (url, file) => isDependency(url)
-      ? resolveAndExecute(counter + '_urlReplace', dirname(file), url)
+      ? resolveAndExecute(dirname(file), url)
       : Promise.resolve(url),
-    resolveForImportExportParser: (url, file) => resolveAndExecute(counter + '_importExport', dirname(file), url),
+    resolveForImportExportParser: (url, file) => resolveAndExecute(dirname(file), url),
   }
 
-  async function resolveAndExecute(counter, context, request) {
+  async function resolveAndExecute(context, request) {
     const resolved = await resolve(context, request)
     const source = await loadModule(resolved)
-    return executeModuleAt(counter, resolved, source)
+    return executeModuleAt(resolved, source)
   }
 
   async function resolve(context, request) {
@@ -151,9 +142,9 @@ function createHandlers(counter, loaderContext) {
     })
   }
 
-  function executeModuleAt(counter, url, source) {
+  function executeModuleAt(url, source) {
     const key = `module-${url}`
-    return cachedInConmpilation(counter, loaderContext, key, () => {
+    return cachedInConmpilation(loaderContext, key, () => {
 
       const sandbox = {
         module: {},
@@ -165,16 +156,13 @@ function createHandlers(counter, loaderContext) {
   }
 }
 
-function cachedFindCssGlobalFiles(loaderContext, counter) {
-  return cachedInConmpilation(counter, loaderContext, 'global-css-files', () =>
+function cachedFindCssGlobalFiles(loaderContext) {
+  return cachedInConmpilation(loaderContext, 'global-css-files', () =>
     findCssGlobalFiles(loaderContext.rootContext)
   )
 }
 
-function cachedInConmpilation(counter, loaderContext, key, f) {
-  if (!loaderContext._compilation) {
-    console.log(counter, loaderContext.resource, 'missing compilation', key)
-  }
+function cachedInConmpilation(loaderContext, key, f) {
   const c = loaderContext._compilation
   const cache = c.kaliberCache || (c.kaliberCache = {})
   if (cache[key]) return cache[key]

@@ -438,6 +438,10 @@ module.exports = function build({ watch }) {
         chunksSort: 'name',
         assetsSort: 'name',
         modulesSort: 'name',
+        children: true,
+        errorDetails: true,
+        timings: true,
+        logging: 'verbose',
         excludeModules: (name, module) => !module.external
       }))
 

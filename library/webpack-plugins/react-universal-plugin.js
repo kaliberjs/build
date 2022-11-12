@@ -43,7 +43,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
           const { path } = data.resourceResolveData
           if (!path.endsWith('.js') && !path.endsWith('.json')) {
             const parentCompilationModule = compilation.findModule(data.request)
-            // console.log({ path, data, hasModuleInParent: typeof parentCompilationModule })
+            // console.log(path, 'reusable', Boolean(parentCompilationModule))
             if (parentCompilationModule) {
               const { dependencyTemplates, moduleTemplates } = webCompilation
 
@@ -160,7 +160,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
           variableName: '__webpack_js_chunk_information__',
           abbreviation: 'jci',
           type: 'object',
-          createValue: (source, chunk, hash) => {
+          createValue: (chunk) => {
             // get the manifest from the client compilation
             const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
             const javascriptChunkNames = getJavascriptChunkNames(chunk, compiler)
@@ -196,7 +196,7 @@ function getJavascriptChunkNames(chunk, compiler) {
 
 function createWebCompiler(compiler, options) {
 
-  const webCompiler = createChildCompiler(p, compiler, options, { makeAdditionalEntries, chunkManifestPlugin })
+  const webCompiler = createChildCompiler(p, compiler, options, { makeAdditionalEntries, chunkManifestPlugin }, 'web')
 
   // push the client loader when appropriate
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {

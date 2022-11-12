@@ -97,7 +97,6 @@ module.exports = function templatePlugin(renderers) {
           Add `isFunction` asset info to templates
         */
         compilation.hooks.chunkAsset.tap(p, (chunk, file) => {
-          // console.log('template - chunkAsset', { file, entryModule: chunk.entryModule })
           if (!chunk.entryModule) return
           const rootModule = chunk.entryModule.rootModule || chunk.entryModule
           const dependency =
@@ -133,7 +132,7 @@ module.exports = function templatePlugin(renderers) {
           )
 
           for (const name in assets) {
-            const entry = compiler.options.entry[name]
+            const { import: [entry] = [] } = compiler.options.entry[name] || {}
             const renderInfo = getRenderInfo(entry)
             if (!entry || !renderInfo) continue
 

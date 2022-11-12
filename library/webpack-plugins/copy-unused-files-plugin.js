@@ -20,7 +20,8 @@ module.exports = function copyUnusedFilesPlugin() {
         const chunk = {
           name: 'unused file',
           ids: ['_'],
-          files: []
+          files: [],
+          auxiliaryFiles: [],
         }
         compilation.chunks.push(chunk)
 

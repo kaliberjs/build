@@ -9,11 +9,11 @@ module.exports = FragmentLoader
 
 function FragmentLoader(source) {
 
-  const options =  (this.resourceQuery && loaderUtils.parseQuery(this.resourceQuery)) || {}
-  const fragment = (x => x ? '#' + x : '')(options.fragment)
+  const options =  new URLSearchParams(this.resourceQuery.slice(1))
+  const fragment = (x => x ? '#' + x : '')(options.get('fragment'))
 
   const hash = loaderUtils.getHashDigest(source)
-  const { ext } = path.parse(this.resourcePath);
+  const { ext } = path.parse(this.resourcePath)
   const outputPath = hash + ext
 
   this.emitFile(outputPath, source)

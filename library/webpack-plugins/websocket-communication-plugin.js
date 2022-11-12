@@ -54,7 +54,7 @@ function websocketCommunicationPlugin() {
           variableName: '__webpack_websocket_port__',
           abbreviation: 'wsp',
           type: 'number',
-          createValue: (source, chunk, hash) => port
+          createValue: (chunk) => port
         })
       })
     }

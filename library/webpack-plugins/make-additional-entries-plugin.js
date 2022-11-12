@@ -75,7 +75,6 @@ function makeAdditionalEntries() {
         before them.
       */
       compiler.hooks.make.tapPromise(p, compilation => {
-        console.log('make-additional-entries', 'add entries')
         return addEntries(entriesToMake)
           .then(makeAdditionalEntries)
 

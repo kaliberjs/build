@@ -35,33 +35,56 @@ function mergeCssPlugin() {
         const chunkCssHashes = new Map()
 
         // extract css assets
-        compilation.hooks.beforeModuleAssets.tap(p, () => {
+        compilation.hooks.beforeRuntimeRequirements.tap(p, () => {
           const cssAssetChunks = {}
 
           // determine all css assets and record the chunks they're used in
           compilation.chunks.forEach(chunk => {
             const modules = chunk.getModules().sort(({ index: a }, { index: b }) => a - b)
             modules.forEach(({ buildInfo: { assets = {} } }) => {
-              Object.keys(assets).filter(x => x.endsWith('.css')).forEach(assetName => {
-                const chunks = cssAssetChunks[assetName]
-                if (chunks) chunks.push(chunk)
-                else cssAssetChunks[assetName] = [chunk]
-              })
+              Object.entries(assets)
+                .filter(([assetName]) => assetName.endsWith('.css'))
+                .forEach(([assetName, asset]) => {
+                  const assetChunks = cssAssetChunks[assetName]
+                  if (assetChunks) assetChunks.chunks.push(chunk)
+                  else cssAssetChunks[assetName] = { asset, chunks: [chunk] }
+                })
             })
           })
 
           // group the css assets that are used in the same chunks
           Object.keys(cssAssetChunks).forEach(assetName => {
-            const chunks = cssAssetChunks[assetName]
+            const { chunks, asset } = cssAssetChunks[assetName]
             const name = chunks.map(x => x.name).join(', ')
 
-            const { assetNames } = newChunksWithCssAssets[name] || {}
-            if (assetNames) assetNames.push(assetName)
-            else newChunksWithCssAssets[name] = { chunks, assetNames: [assetName] }
+            const { assets } = newChunksWithCssAssets[name] || {}
+            if (assets) assets.push({ assetName, asset })
+            else newChunksWithCssAssets[name] = { chunks, assets: [{ assetName, asset }] }
+          })
+
+          // add hashes for the assets
+          Object.keys(newChunksWithCssAssets).forEach(chunkName => {
+            const newChunk = newChunksWithCssAssets[chunkName]
+            const { assets } = newChunk
+            const hash = crypto.createHash('md5')
+            assets.forEach(({ asset }) => {
+              asset.updateHash(hash)
+            })
+            newChunk.hash = hash.digest('hex')
+          })
+
+          compilation.chunks.forEach(chunk => {
+            const cssHashes = Object.keys(newChunksWithCssAssets)
+              .map(name => newChunksWithCssAssets[name])
+              .filter(({ chunks }) => chunks.includes(chunk))
+              .sort(({ chunks: a }, { chunks: b }) => b.length - a.length)
+              .map(({ hash }) => hash)
+            chunkCssHashes.set(chunk, cssHashes)
+            mergeCssPlugin.getHooks(compilation).chunkCssHashes.call(chunk.name, cssHashes)
           })
         })
 
-        /*
+        /* TODO: comments kloppen niet meer
           {
             ['chunk1.name, ..., chunkN.name']: {
               chunks: [chunk1, ..., chunkN],
@@ -76,33 +99,12 @@ function mergeCssPlugin() {
 
           Object.keys(newChunksWithCssAssets).forEach(chunkName => {
             const newChunk = newChunksWithCssAssets[chunkName]
-            const { assetNames } = newChunk
-            const hash = crypto.createHash('md5')
-            const assets = assetNames.map(x => {
-              const asset = compilation.assets[x]
-              asset.updateHash(hash)
-              return asset
-            })
+            const { assets } = newChunk
+            const assetNames = assets.map(x => x.assetName)
             assetsToRemove.push(...assetNames)
-
-            const cssHash = hash.digest('hex')
-
-            newChunk.cssHash = cssHash
-            newChunk.assets = assets
           })
 
           assetsToRemove.forEach(x => { delete compilation.assets[x] })
-
-          compilation.chunks.forEach(chunk => {
-            const cssHashes = Object.keys(newChunksWithCssAssets)
-              .map(name => newChunksWithCssAssets[name])
-              .filter(({ chunks }) => chunks.includes(chunk))
-              .sort(({ chunks: a }, { chunks: b }) => b.length - a.length)
-              .map(({ cssHash }) => cssHash)
-
-            chunkCssHashes.set(chunk, cssHashes)
-            mergeCssPlugin.getHooks(compilation).chunkCssHashes.call(chunk.name, cssHashes)
-          })
         })
 
         // make sure the __webpack_css_chunk_hashes__ is available in modules
@@ -112,7 +114,7 @@ function mergeCssPlugin() {
           variableName: '__webpack_css_chunk_hashes__',
           abbreviation: 'cch',
           type: 'array',
-          createValue: (source, chunk, hash) => chunkCssHashes.get(chunk) || []
+          createValue: (chunk) => chunkCssHashes.get(chunk) || []
         })
 
         // merge css assets
@@ -137,13 +139,13 @@ function mergeCssPlugin() {
 
           // create css assets
           Object.keys(newChunksWithCssAssets).forEach(chunkName => {
-            const { chunks, assets, cssHash } = newChunksWithCssAssets[chunkName]
+            const { chunks, assets, hash } = newChunksWithCssAssets[chunkName]
 
-            const chunkCssName = cssHash + '.css'
+            const chunkCssName = hash + '.css'
 
             chunks.forEach(chunk => { chunk.files.push(chunkCssName) })
 
-            compilation.assets[chunkCssName] = new ConcatSource(...assets.map(createValidSource))
+            compilation.assets[chunkCssName] = new ConcatSource(...assets.map(x => createValidSource(x.asset)))
           })
         })
       })

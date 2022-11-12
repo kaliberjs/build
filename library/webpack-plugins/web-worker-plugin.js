@@ -42,7 +42,7 @@ function webWorkerPlugin(webWorkerCompilerOptions) {
       const claimedEntries = {}
 
       // TODO: we might need to close the compiler
-      const subCompiler = createChildCompiler(p, compiler, webWorkerCompilerOptions, { makeAdditionalEntries, chunkManifestPlugin })
+      const subCompiler = createChildCompiler(p, compiler, webWorkerCompilerOptions, { makeAdditionalEntries, chunkManifestPlugin }, 'webWorker')
 
       // when the subCompiler starts compiling add the recorded client entries
       makeAdditionalEntries.getHooks(subCompiler)
@@ -81,7 +81,7 @@ function webWorkerPlugin(webWorkerCompilerOptions) {
           variableName: '__webpack_web_worker_chunk_manifest__',
           abbreviation: 'wwci',
           type: 'object',
-          createValue: (source, chunk, hash) => {
+          createValue: (chunk) => {
             // get the manifest from the child compilation
             const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
             return manifest
