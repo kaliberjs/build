@@ -31,8 +31,7 @@ function addBuiltInVariable({
   compilation, normalModuleFactory, pluginName,
   variableName, type, abbreviation, createValue
 }) {
-  const { mainTemplate } = compilation
-  const targetLocation = `${mainTemplate.requireFn}.${abbreviation}`
+  const targetLocation = `__webpack_require__.${abbreviation}`
 
   compilation.hooks.runtimeRequirementInTree
     .for(targetLocation)
@@ -73,19 +72,28 @@ function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntr
   /* from lib/webpack.js */
   options = new WebpackOptionsDefaulter().process(options)
 
-  console.log('**', name)
-  const childCompiler = new Compiler(options.context, { experiments: {} }, name)
+  const special = {
+    experiments: {
+      backCompat: false, // https://www.tines.com/blog/understanding-why-our-build-got-15x-slower-with-webpack-5
+    }
+  }
+  const childCompiler = new Compiler(options.context, special, name)
   childCompiler.options = options
+
+  // This is probably a good idea, but it breaks stuff - add the following to css-loader to see if the cache is properly used: console.log('css-loader', filename)
+  // childCompiler.cache = compiler.cache
+  childCompiler.root = compiler.root
 
   // instead of using the NodeEnvironmentPlugin
   childCompiler.inputFileSystem = compiler.inputFileSystem
   childCompiler.outputFileSystem = compiler.outputFileSystem
   childCompiler.watchFileSystem = compiler.watchFileSystem
+  childCompiler.intermediateFileSystem = compiler.intermediateFileSystem
 
   options.plugins.forEach(plugin => { plugin.apply(childCompiler) })
   childCompiler.hooks.environment.call()
   childCompiler.hooks.afterEnvironment.call()
-  childCompiler.options = new WebpackOptionsApply().process(options, childCompiler)
+  childCompiler.options = new WebpackOptionsApply().process(options, childCompiler) // TODO: I recall reading about plugins called before or after something something. Allowing them to alter configuration, so this might need to move elsewhere
 
   // make the chunk manifest available
   childCompiler.hooks.compilation.tap(pluginName, compilation => {
@@ -107,12 +115,12 @@ function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntr
     .tapAsync({ name: pluginName, stage: 1 }, (compilation, _, callback) => {
       runSubCompilation(childCompiler, compilation, callback)
     })
-
+  childCompiler.name = name
   return childCompiler
 }
 
 function runSubCompilation(subCompiler, compilation, callback) {
-  const startTime = Date.now()
+  // const startTime = Date.now()
   subCompiler.compile((err, subCompilation) => {
     if (err) return finish(err)
 
@@ -132,8 +140,8 @@ function runSubCompilation(subCompiler, compilation, callback) {
     }
 
     const stats = new Stats(compilation)
-    stats.startTime = startTime
-    stats.endTime = Date.now()
+    // stats.startTime = startTime
+    // stats.endTime = Date.now()
 
     subCompiler.hooks.done.callAsync(stats, callback)
   }

@@ -28,7 +28,7 @@ module.exports = function hotCssReplacementPlugin() {
         if (stats.hasErrors()) sendErrors(stats.toJson('errors-only').errors)
         else send({ type: 'done', hash: stats.hash, cssChunkHashes })
       })
-      //compiler.hooks.failed.tap(p, err => { console.log('==========\n', typeof err, '\n==============') || sendErrors([err.message]) })
+      compiler.hooks.failed.tap(p, err => { sendErrors([err.message]) })
 
       function sendErrors(errors) {
         send({ type: 'failed', errors: errors.map(e => e.replace(ansiRegex(), '')) })

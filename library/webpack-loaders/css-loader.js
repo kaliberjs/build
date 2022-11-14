@@ -41,7 +41,7 @@ function createPlugins(
 
         // no support for css-modules feature 'composes'
         !globalScopeBehaviour && require('postcss-modules-local-by-default')(),
-        require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[hash]' : '[folder]-[name]-[local]__[hash]') }),
+        require('postcss-modules-scope')({ generateScopedName: genericNames(isProduction ? '[contenthash]' : '[folder]-[name]-[local]__[contenthash]') }),
         require('postcss-calc')(),
         require('../postcss-plugins/postcss-import-export-parser')({ loadExports: resolveForImportExportParser }),
 
@@ -65,6 +65,7 @@ module.exports = function CssLoader(source, map) {
 
   const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour, cssGlobalFiles })
   const filename = relative(this.rootContext, this.resourcePath)
+  // console.log('css-loader', filename)
   const options = {
     from: this.resourcePath,
     to: this.resourcePath,

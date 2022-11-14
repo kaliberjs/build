@@ -19,7 +19,8 @@
 const { RawSource } = require('webpack-sources')
 const path = require('path')
 const { evalInFork } = require('../lib/node-utils')
-const { WebpackError } = require('webpack')
+const { WebpackError, NormalModule } = require('webpack')
+const ModuleDependency = require('webpack/lib/dependencies/ModuleDependency')
 
 const p = 'template-plugin'
 const isFunctionKey = `${p} - export is function`
@@ -97,18 +98,20 @@ module.exports = function templatePlugin(renderers) {
           Add `isFunction` asset info to templates
         */
         compilation.hooks.chunkAsset.tap(p, (chunk, file) => {
-          if (!chunk.entryModule) return
-          const rootModule = chunk.entryModule.rootModule || chunk.entryModule
-          const dependency =
-            rootModule.dependencies.find(x => {
-              const module = compilation.moduleGraph.getModule(x)
+          const entryModules = Array.from(compilation.chunkGraph.getChunkEntryModulesIterable(chunk))
+          entryModules.forEach(entryModule => {
+            if (!(entryModule instanceof NormalModule)) return
 
-              return module && module.request.endsWith('?template-source')
-            }) || {}
-          const module = compilation.moduleGraph.getModule(dependency)
-          if (!module) return
-          const assetInfo = compilation.assetsInfo.get(file)
-          assetInfo[isFunctionKey] = module.buildInfo[isFunctionKey]
+            const dependency = entryModule.dependencies.find(x =>
+              x instanceof ModuleDependency && x.request.endsWith('?template-source')
+            )
+
+            const module = dependency && compilation.moduleGraph.getModule(dependency)
+            if (!module) return
+
+            const assetInfo = compilation.assetsInfo.get(file)
+            assetInfo[isFunctionKey] = module.buildInfo[isFunctionKey]
+          })
         })
 
         /*
@@ -162,7 +165,7 @@ module.exports = function templatePlugin(renderers) {
 
                   files.forEach(([ext, result]) => {
                     const filename = outputName + ext
-                    if (filename !== name) (x => x && x.files.push(filename))(chunksByName[name])
+                    if (filename !== name) (x => x && x.files.add(filename))(chunksByName[name])
                     assets[filename] = result
                   })
                 } catch (e) {

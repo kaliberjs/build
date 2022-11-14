@@ -23,7 +23,7 @@ module.exports = function copyUnusedFilesPlugin() {
           files: [],
           auxiliaryFiles: [],
         }
-        compilation.chunks.push(chunk)
+        compilation.chunks.add(chunk)
 
         const filesCopied = Promise.all(
           walkSync(context).map(filePath => {

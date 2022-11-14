@@ -5,6 +5,7 @@ const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const RawModule = require('webpack/lib/RawModule')
 const makeAdditionalEntries = require('./make-additional-entries-plugin')
 const chunkManifestPlugin = require('./chunk-manifest-plugin')
+const { Compilation, NormalModule } = require('webpack')
 
 /*
   The idea is simple:
@@ -36,6 +37,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
 
       // check the parent compiler before creating a module, it might have already
       // been processed
+      /** @type {import('webpack').Compilation} */
       let compilation
       compiler.hooks.compilation.tap(p, c => { compilation = c })
       webCompiler.hooks.compilation.tap(p, (webCompilation, { normalModuleFactory }) => {
@@ -45,35 +47,44 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
             const parentCompilationModule = compilation.findModule(data.request)
             // console.log(path, 'reusable', Boolean(parentCompilationModule))
             if (parentCompilationModule) {
-              const { dependencyTemplates, moduleTemplates } = webCompilation
+              // buffersSerializer
+              // const { dependencyTemplates, runtimeTemplate } = webCompilation
+              // console.log('>->', parentCompilationModule.getSourceTypes())
+              // console.log('>->', parentCompilationModule.source(dependencyTemplates, runtimeTemplate, 'javascript'))
+              // parentCompilationModule.source
+              // if (!(parentCompilationModule instanceof NormalModule)) return console.error('TODO: write error here')
+              // parentCompilationModule.chunk - nope, need chunk in webCompilation
+              // compilation.codeGenerationResults.getSource(parentCompilationModule, runtime, type)
 
-              const generated = parentCompilationModule.generator.generate(
-                parentCompilationModule,
-                dependencyTemplates,
-                moduleTemplates.javascript.runtimeTemplate
-              )
+              // const generated = parentCompilationModule.generator.generate(
+              //   parentCompilationModule,
+              //   {
+              //     dependencyTemplates,
+              //     runtimeTemplate: com
+              //   }
+              // )
 
-              const result = new RawModule(generated.source(), data.request, data.rawRequest)
-              result.updateCacheModule = function updateCacheModule(module) {
-                result.sourceStr = module.source().source()
-              }
-              result.dependencies = parentCompilationModule.dependencies.slice()
+              // const result = new RawModule(generated.source(), data.request, data.rawRequest)
+              // result.updateCacheModule = function updateCacheModule(module) {
+              //   result.sourceStr = module.source().source()
+              // }
+              // result.dependencies = parentCompilationModule.dependencies.slice()
 
-              // These values are set by plugins like HarmonyDetectionParserPlugin and should be made available
-              // on the raw module
-              let { buildInfo = {}, buildMeta = {} } = result
-              Object.defineProperty(result, 'buildInfo', {
-                get() { return { ...parentCompilationModule.buildInfo, ...buildInfo, assets: {}, assetsInfo: [] } },
-                set(x) { buildInfo = x }
-              })
-              Object.defineProperty(result, 'buildMeta', {
-                get() { return { ...parentCompilationModule.buildMeta, ...buildMeta } },
-                set(x) { buildMeta = x }
-              })
-              Object.defineProperty(result, 'exportsArgument', { get() { return parentCompilationModule.exportsArgument } })
-              Object.defineProperty(result, 'moduleArgument', { get() { return parentCompilationModule.moduleArgument } })
+              // // These values are set by plugins like HarmonyDetectionParserPlugin and should be made available
+              // // on the raw module
+              // let { buildInfo = {}, buildMeta = {} } = result
+              // Object.defineProperty(result, 'buildInfo', {
+              //   get() { return { ...parentCompilationModule.buildInfo, ...buildInfo, assets: {}, assetsInfo: [] } },
+              //   set(x) { buildInfo = x }
+              // })
+              // Object.defineProperty(result, 'buildMeta', {
+              //   get() { return { ...parentCompilationModule.buildMeta, ...buildMeta } },
+              //   set(x) { buildMeta = x }
+              // })
+              // Object.defineProperty(result, 'exportsArgument', { get() { return parentCompilationModule.exportsArgument } })
+              // Object.defineProperty(result, 'moduleArgument', { get() { return parentCompilationModule.moduleArgument } })
 
-              return result
+              // return result
             }
           }
         })
@@ -163,29 +174,36 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
           createValue: (chunk) => {
             // get the manifest from the client compilation
             const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
-            const javascriptChunkNames = getJavascriptChunkNames(chunk, compiler)
+            const javascriptChunkNames = getJavascriptChunkNames(chunk, compilation, compiler)
             return { javascriptChunkNames, manifest }
           }
         })
 
-        compilation.hooks.additionalChunkAssets.tap(p, chunks => {
-          const entryManifest = Array.from(chunks)
-            .filter(x => x.name)
-            .reduce((result, x) => {
-              const names = getJavascriptChunkNames(x, compiler)
-              return names.length ? { ...result, [x.name]: names } : result
-            }, {})
+        compilation.hooks.processAssets.tap(
+          { name: p, stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
+          assets => {
+            const entryManifest = Array.from(compilation.chunks)
+              .filter(x => x.name)
+              .reduce((result, x) => {
+                const names = getJavascriptChunkNames(x, compilation, compiler)
+                return names.length ? { ...result, [x.name]: names } : result
+              }, {})
 
-          compilation.assets['entry-manifest.json'] = new RawSource(JSON.stringify(entryManifest, null, 2))
-        })
+            compilation.assets['entry-manifest.json'] = new RawSource(JSON.stringify(entryManifest, null, 2))
+          }
+        )
       })
     }
   }
 }
 
-function getJavascriptChunkNames(chunk, compiler) {
+/**
+ * @param {import('webpack').Chunk} chunk
+ * @param {import('webpack').Compiler} compiler
+ */
+function getJavascriptChunkNames(chunk, compilation, compiler) {
   // find universal modules in the current chunk (client chunk names) and grab their filenames (uniquely)
-  return chunk.getModules()
+  return compilation.chunkGraph.getChunkModules(chunk)
     .filter(x => x.resource && (
       x.resource.endsWith('?universal') ||
       x.resource.endsWith('.entry.js') ||

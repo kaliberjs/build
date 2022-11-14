@@ -15,6 +15,11 @@ try {
   if (!caseSensitive) throw new Error(`@kaliber/build will not run on a filesystem that is case-insensitive`)
 }
 
+console.log('Loading babel-loader...')
+console.time('Loaded in')
+require('babel-loader')
+console.timeEnd('Loaded in')
+
 const findYarnWorkspaceRoot = require('find-yarn-workspace-root')
 const fs = require('fs-extra')
 const nodeExternals = require('webpack-node-externals')
@@ -114,6 +119,7 @@ const imageSizeLoader = {
   options: { useImageMagick: true }
 }
 
+// TODO: https://webpack.js.org/guides/asset-modules/
 const urlLoader = {
   loader: 'url-loader',
   options: { limit: 5000, esModule: false }
@@ -144,12 +150,15 @@ module.exports = function build({ watch }) {
   function nodeOptions() {
     return {
       mode,
-      target: 'node',
+      name: 'node',
+      target: 'node16',
+      // profile: true,
       context: srcDir,
       devtool: false,
+      // cache?
       output: {
         filename: '[name]',
-        chunkFilename: '[name]-[hash].js',
+        chunkFilename: '[name]-[contenthash].js',
         path: outputPath,
         publicPath,
         libraryTarget: 'commonjs2'
@@ -167,22 +176,27 @@ module.exports = function build({ watch }) {
       resolveLoader: resolveLoaderOptions(),
       module: moduleOptions(),
       plugins: [
-        ...pluginsOptions().all(),
-        ...pluginsOptions().node()
+        ...pluginsOptions('node').all(),
+        ...pluginsOptions('node').node()
       ],
+      // stats: 'verbose',
+      experiments: {
+        backCompat: false, // https://www.tines.com/blog/understanding-why-our-build-got-15x-slower-with-webpack-5
+      }
     }
   }
 
   function webOptions() {
     return {
       mode,
+      name: 'web',
       target: 'web',
       context: srcDir,
       devtool: false,
       entry: false,
       output: {
-        filename: '[id].[hash].js',
-        chunkFilename: '[id].[hash].js',
+        filename: '[id].[contenthash].js',
+        chunkFilename: '[id].[contenthash].js',
         path: outputPath,
         publicPath
       },
@@ -208,22 +222,24 @@ module.exports = function build({ watch }) {
         unsafeCache: false
       }, moduleOptions()),
       plugins: [
-        ...pluginsOptions().all(),
-        ...pluginsOptions().web()
+        ...pluginsOptions('web').all(),
+        ...pluginsOptions('web').web()
       ],
+      // stats: 'verbose',
     }
   }
 
   function webWorkerOptions() {
     return {
       mode,
+      name: 'webworker',
       target: 'webworker',
       context: srcDir,
       devtool: false,
       entry: false,
       output: {
-        filename: '[id].[hash].js',
-        chunkFilename: '[id].[hash].js',
+        filename: '[id].[contenthash].js',
+        chunkFilename: '[id].[contenthash].js',
         path: outputPath,
         publicPath
       },
@@ -245,9 +261,10 @@ module.exports = function build({ watch }) {
         unsafeCache: false
       }, moduleOptions()),
       plugins: [
-        ...pluginsOptions().all(),
-        ...pluginsOptions().webWorker()
-      ]
+        ...pluginsOptions('webWorker').all(),
+        ...pluginsOptions('webWorker').webWorker()
+      ],
+      // stats: 'verbose',
     }
   }
 
@@ -359,10 +376,10 @@ module.exports = function build({ watch }) {
     }
   }
 
-  function pluginsOptions() {
+  function pluginsOptions(context) {
     return {
       all: () => [
-        ProgressBarPlugin(),
+        new webpack.ProgressPlugin({ profile: true, activeModules: true }), // TODO: remove
         makeAdditionalEntriesPlugin(),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
@@ -377,7 +394,7 @@ module.exports = function build({ watch }) {
       ].filter(Boolean),
       node: () => [
         watch && websocketCommunicationPlugin(),
-        new TimeFixPlugin(),
+        // new TimeFixPlugin(),
         // new ExtendedAPIPlugin(),
         configLoaderPlugin(),
         watchContextPlugin(),
@@ -433,17 +450,17 @@ module.exports = function build({ watch }) {
         return
       }
 
-      console.log(stats.toString({
-        colors: true,
-        chunksSort: 'name',
-        assetsSort: 'name',
-        modulesSort: 'name',
-        children: true,
-        errorDetails: true,
-        timings: true,
-        logging: 'verbose',
-        excludeModules: (name, module) => !module.external
-      }))
+      // console.log(stats.toString({
+      //   colors: true,
+      //   chunksSort: 'name',
+      //   assetsSort: 'name',
+      //   modulesSort: 'name',
+      //   children: true,
+      //   errorDetails: true,
+      //   timings: true,
+      //   logging: 'verbose',
+      //   excludeModules: (name, module) => !module.external
+      // }))
 
       if (!watch && stats.hasErrors()) process.exitCode = 2
     }

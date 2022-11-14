@@ -17,6 +17,7 @@ const crypto = require('crypto')
 const { ConcatSource, RawSource } = require('webpack-sources')
 const { SyncHook } = require('tapable')
 const { addBuiltInVariable, createGetHooks } = require('../lib/webpack-utils')
+const { Compilation } = require('webpack')
 
 const p = 'merge-css-plugin'
 
@@ -28,6 +29,7 @@ mergeCssPlugin.getHooks = getHooks
 module.exports = mergeCssPlugin
 function mergeCssPlugin() {
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
       compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
 
@@ -40,8 +42,11 @@ function mergeCssPlugin() {
 
           // determine all css assets and record the chunks they're used in
           compilation.chunks.forEach(chunk => {
-            const modules = chunk.getModules().sort(({ index: a }, { index: b }) => a - b)
-            modules.forEach(({ buildInfo: { assets = {} } }) => {
+            const modules = compilation.chunkGraph.getChunkModules(chunk)
+              .map(module => ({ module, index: compilation.moduleGraph.getPreOrderIndex(module) }))
+              .sort(({ index: a }, { index: b }) => a - b)
+
+            modules.forEach(({ module: { buildInfo: { assets = {} } } }) => {
               Object.entries(assets)
                 .filter(([assetName]) => assetName.endsWith('.css'))
                 .forEach(([assetName, asset]) => {
@@ -118,36 +123,38 @@ function mergeCssPlugin() {
         })
 
         // merge css assets
-        compilation.hooks.additionalChunkAssets.tap(p, chunks => {
+        compilation.hooks.processAssets.tap(
+          { name: p, stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
+          assets => {
+            const { chunks } = compilation
+            // remove any css entry chunk assets
+            chunks.forEach(({ name }) => {
+              if (name && name.endsWith('.css')) delete compilation.assets[name]
+            })
 
-          // remove any css entry chunk assets
-          chunks.forEach(({ name }) => {
-            if (name && name.endsWith('.css')) delete compilation.assets[name]
+            // create a manifest
+            const manifest = Array.from(chunks).reduce(
+              (result, chunk) => {
+                const cssHashes = chunkCssHashes.get(chunk) || []
+                if (!cssHashes.length) return result
+                result[chunk.name] = cssHashes.map(hash => hash + '.css')
+                return result
+              },
+              {}
+            )
+            compilation.assets['css-manifest.json'] = new RawSource(JSON.stringify(manifest, null, 2))
+
+            // create css assets
+            Object.keys(newChunksWithCssAssets).forEach(chunkName => {
+              const { chunks, assets, hash } = newChunksWithCssAssets[chunkName]
+
+              const chunkCssName = hash + '.css'
+
+              chunks.forEach(chunk => { chunk.files.add(chunkCssName) })
+
+              compilation.assets[chunkCssName] = new ConcatSource(...assets.map(x => createValidSource(x.asset)))
+            })
           })
-
-          // create a manifest
-          const manifest = chunks.reduce(
-            (result, chunk) => {
-              const cssHashes = chunkCssHashes.get(chunk) || []
-              if (!cssHashes.length) return result
-              result[chunk.name] = cssHashes.map(hash => hash + '.css')
-              return result
-            },
-            {}
-          )
-          compilation.assets['css-manifest.json'] = new RawSource(JSON.stringify(manifest, null, 2))
-
-          // create css assets
-          Object.keys(newChunksWithCssAssets).forEach(chunkName => {
-            const { chunks, assets, hash } = newChunksWithCssAssets[chunkName]
-
-            const chunkCssName = hash + '.css'
-
-            chunks.forEach(chunk => { chunk.files.push(chunkCssName) })
-
-            compilation.assets[chunkCssName] = new ConcatSource(...assets.map(x => createValidSource(x.asset)))
-          })
-        })
       })
     }
   }

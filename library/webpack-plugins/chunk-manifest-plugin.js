@@ -19,6 +19,7 @@
 const { RawSource } = require('webpack-sources')
 const { SyncHook } = require('tapable')
 const { createGetHooks } = require('../lib/webpack-utils')
+const { Compilation } = require('webpack')
 
 const p = 'chunk-manifest-plugin'
 
@@ -30,6 +31,7 @@ chunkManifestPlugin.getHooks = getHooks
 module.exports = chunkManifestPlugin
 function chunkManifestPlugin({ filename }) {
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
 
       compiler.hooks.compilation.tap(p, compilation => {
@@ -51,29 +53,32 @@ function chunkManifestPlugin({ filename }) {
           })
         })
 
-        compilation.hooks.additionalChunkAssets.tap(p, chunks => {
-          const chunkManifest = sortGroups(chunkAssets)
-          getHooks(compilation).chunkManifest.call(chunkManifest)
-          compilation.assets[filename] = new RawSource(JSON.stringify(chunkManifest, null, 2))
+        compilation.hooks.processAssets.tap(
+          { name: p, stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
+          assets => {
+            const chunkManifest = sortGroups(chunkAssets)
+            getHooks(compilation).chunkManifest.call(chunkManifest)
+            assets[filename] = new RawSource(JSON.stringify(chunkManifest, null, 2))
 
-          function sortGroups(chunkAssets) {
-            return Object.keys(chunkAssets).reduce(
-              (result, key) => {
-                const group = []
+            function sortGroups(chunkAssets) {
+              return Object.keys(chunkAssets).reduce(
+                (result, key) => {
+                  const group = []
 
-                chunkAssets[key].group.forEach(x => {
-                  if (chunkAssets[x].hasRuntime) group.unshift(x)
-                  else group.push(x)
-                })
+                  chunkAssets[key].group.forEach(x => {
+                    if (chunkAssets[x].hasRuntime) group.unshift(x)
+                    else group.push(x)
+                  })
 
-                return Object.assign(result, {
-                  [key]: Object.assign({}, chunkAssets[key], { group })
-                })
-              },
-              {}
-            )
+                  return Object.assign(result, {
+                    [key]: Object.assign({}, chunkAssets[key], { group })
+                  })
+                },
+                {}
+              )
+            }
           }
-        })
+        )
       })
     }
   }
