@@ -13,9 +13,16 @@ module.exports = {
   createGetHooks,
 }
 
+/**
+ * @template T
+ * @param {() => T} init
+ */
 function createGetHooks(init) {
   const hooksMap = new WeakMap()
 
+  /**
+   * @returns {T}
+   */
   return function getHooks(scope) {
     const hooks = hooksMap.get(scope)
     if (hooks) return hooks
@@ -36,9 +43,9 @@ function addBuiltInVariable({
   compilation.hooks.runtimeRequirementInTree
     .for(targetLocation)
     .tap(pluginName, chunk => {
-      const x = new RuntimeModule(abbreviation, RuntimeModule.STAGE_ATTACH)
-      x.generate = () => `${targetLocation} = ${JSON.stringify(createValue(x.chunk))};`
+      const x = new DynamicRuntimeModule(abbreviation, targetLocation, createValue)
       compilation.addRuntimeModule( chunk, x )
+      console.log('attached', variableName, 'to', chunk.name)
       return true
     })
 
@@ -63,12 +70,30 @@ function addBuiltInVariable({
   normalModuleFactory.hooks.parser.for('javascript/esm').tap(pluginName, addParserHooks)
 
   function addParserHooks(parser, parserOptions) {
-    parser.hooks.expression.for(variableName).tap(pluginName, JavascriptParserHelpers.toConstantDependency(parser, targetLocation, [targetLocation]))
+    parser.hooks.expression.for(variableName).tap(pluginName, expr => {
+      console.log('parser expression for', variableName)//, expr)
+      return JavascriptParserHelpers.toConstantDependency(parser, targetLocation, [targetLocation])(expr)
+    })
     parser.hooks.evaluateTypeof.for(variableName).tap(pluginName, JavascriptParserHelpers.evaluateToString(type))
   }
 }
 
-function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntries, chunkManifestPlugin }, name) {
+class DynamicRuntimeModule extends RuntimeModule {
+  constructor(name, targetLocation, createValue) {
+    super(name, RuntimeModule.STAGE_TRIGGER)
+    this.name = name
+    this.targetLocation = targetLocation
+    this.createValue = createValue
+  }
+
+  generate() {
+    console.log('generate', this.name, 'to', this.chunk.name)
+    return `${this.targetLocation} = ${JSON.stringify(this.createValue(this.chunk))};`
+  }
+}
+
+
+function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntriesPlugin }, name) {
   /* from lib/webpack.js */
   options = new WebpackOptionsDefaulter().process(options)
 
@@ -84,6 +109,14 @@ function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntr
   // childCompiler.cache = compiler.cache
   childCompiler.root = compiler.root
 
+  // childCompiler.cache.hooks.get.tapAsync(pluginName, (id, etag, handlers, callback) => {
+  //   if (id.endsWith('.css')) {
+  //     compiler.cache.hooks.get.callAsync(id, etag, handlers, callback)
+  //   } else {
+  //     callback(null, undefined)
+  //   }
+  // })
+
   // instead of using the NodeEnvironmentPlugin
   childCompiler.inputFileSystem = compiler.inputFileSystem
   childCompiler.outputFileSystem = compiler.outputFileSystem
@@ -95,26 +128,15 @@ function createChildCompiler(pluginName, compiler, options, { makeAdditionalEntr
   childCompiler.hooks.afterEnvironment.call()
   childCompiler.options = new WebpackOptionsApply().process(options, childCompiler) // TODO: I recall reading about plugins called before or after something something. Allowing them to alter configuration, so this might need to move elsewhere
 
-  // make the chunk manifest available
-  childCompiler.hooks.compilation.tap(pluginName, compilation => {
-    chunkManifestPlugin.getHooks(compilation).chunkManifest.tap(pluginName, chunkManifest => {
-      compilation._kaliber_chunk_manifest_ = chunkManifest
-    })
-  })
-
   // before we compile, make sure the timestamps (important for caching and changed by watch) are updated
   compiler.hooks.beforeCompile.tap(pluginName, params => {
     childCompiler.fileTimestamps = compiler.fileTimestamps
     childCompiler.contextTimestamps = compiler.contextTimestamps
   })
-  // Tell the sub compiler to compile
-  // Note, we can not use `make` because it's parallel
-  // We use `stage: 1` to allow plugins to register new entries right before building
-  // if (!compiler.hooks.makeAdditionalEntries) throw new Error('Make sure the make-addition-entries plugin is installed')
-  makeAdditionalEntries.getHooks(compiler).makeAdditionalEntries
-    .tapAsync({ name: pluginName, stage: 1 }, (compilation, _, callback) => {
-      runSubCompilation(childCompiler, compilation, callback)
-    })
+  // Tell the sub compiler to compile after all entries are added
+  makeAdditionalEntriesPlugin.getHooks(compiler).afterAdditionalEntries.tapAsync(pluginName, (compilation, callback) => {
+    runSubCompilation(childCompiler, compilation, callback)
+  })
   childCompiler.name = name
   return childCompiler
 }

@@ -37,6 +37,8 @@ function websocketCommunicationPlugin() {
 
       let port
 
+      // TODO: we use hooks that might be copied to a child compiler, either use an alternative or check if the current compiler is the same like this `if (compilation.compiler !== compiler) return;`
+
       // provide the send function
       compiler.hooks.environment.tap(p, () => {
         getHooks(compiler).websocketSendAvailable.call(send)
@@ -46,7 +48,7 @@ function websocketCommunicationPlugin() {
       compiler.hooks.beforeCompile.tapPromise(p, params => freePort.then(found => { port = found }))
 
       // make sure the __webpack_websocket_port__ is available in modules
-      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
 
         addBuiltInVariable({
           compilation, normalModuleFactory,

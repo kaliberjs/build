@@ -45,6 +45,7 @@ export function hydrate(
     container = createContainer({ eventTarget: insertBefore.parentNode }),
   },
 ) {
+  console.log('hydrate')
   // Move the rendered nodes to a container before hydrating
   nodes.forEach((x) => { container.appendChild(x) })
 

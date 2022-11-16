@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Rendered on server</title>
+  <script defer="" src="/runtime.a41bd7f889da8e372e50.js"></script>
+  <script defer="" src="/test/test.entry.js.efa8c456302a9f9b3374.js"></script>
+
+  <script defer=""
+    src="/vendors-node_modules_ansi-regex_index_js-node_modules_react-dom_index_js.b911eaacbb01ece9aa8f.js"></script>
+  <script defer="" src="/partials/Test.js.5d39a457543c306ef0de.js"></script>
+
+
+  <script defer="" src="/vendors-node_modules_firebase_app_dist_index_esm_js.b77c5af03cf3ac70be16.js"></script>
+  <script defer="" src="/vendors-node_modules_gsap_index_js.c443999f31888eafc51b.js"></script>
+
+  <script defer=""
+    src="/vendors-node_modules_firebase_database_dist_index_esm_js-node_modules_react-stickynode_dist_S-11e8df.d54b4d644366eefd7706.js"></script>
+
+  <script defer=""
+  src="/wrapper_Client_js-library_lib_hot-module-replacement-client_js-library_lib_universalComponents_js.705a8fac8126ff3c752e.js"></script>
+
+  <script defer="" src="/partials/Test.universal.js.bb49a27ea0f95daed775.js"></script>
+  <script defer="" src="/test/Test2.js.503971f9bb6787fcd677.js"></script>
+  <script defer="" src="/test/Test2.universal.js.cf4817296a8cfb5944a5.js"></script>
+  <script defer="" src="/partials/SharedComponent.js.2c780a43eac6726d3e5b.js"></script>
+  <script defer="" src="/partials/SharedComponent.universal.js.49ebd33c15a573a2678c.js"></script>
+  <script defer="" src="/partials/NotRendered.js.edb8c3d8edd87a8cf361.js"></script>
+  <script defer="" src="/partials/NotRendered.universal.js.b2ab52b74cfffbb676f6.js"></script>
+  <script defer="" src="/test/FunctionComponent.universal.js.ef93355908d4d00ffecc.js"></script>
+  <script defer="" src="/test/FunctionComponentApp.js.e0b5c216d4d58c3b5f66.js"></script>
+</head>
+
+<body>
+  <div class="src-index-html-js-background__e56d35225c4a3344ff57cb6ef94eb5c5"></div>
+  <p class="src-index-html-js-test2__b43f20340bfd88fc38e36734f2c8417a">
+    Test{&quot;pathname&quot;:&quot;/&quot;}<br />request hostname: &quot;localhost&quot;<br />message: test from
+    firebase</p>
+  <div data-componentid="partials_SharedComponent_js" data-props="{}">
+    <div data-reactroot="">`I&#x27;m a shared component` (
+      <!-- -->I&#x27;m shared!
+      <!-- -->)
+    </div>
+  </div>
+  <kaliber-component-container>
+    <div>`I&#x27;m a shared component` (
+      <!-- -->I&#x27;m shared!
+      <!-- -->)
+    </div>
+  </kaliber-component-container>
+  <script>
+    var d = document, s = d.currentScript, p = s.parentNode, c = s.previousSibling;
+    p.setAttribute('data-kaliber-component-container', '');
+    p.replaceChild(d.createComment('start'), c);
+    p.insertBefore(d.createComment("{\"componentName\":\"partials_SharedComponent_universal_js\",\"props\":{\"clientConfigContext\":{}}}"), s);
+    Array.from(c.childNodes).forEach(x => { p.insertBefore(x, s) });
+    p.replaceChild(d.createComment('end'), s);
+  </script>
+  <span class="src-index-html-js-test__ee44a0d96cd24083939ab3368cd882f1">Something</span>
+  <h1>1.</h1>
+  <div data-componentid="test_Test2_js" data-props="{&quot;name&quot;:&quot;1&quot;}">
+    <div data-reactroot="">1
+      <!-- -->: Test2 -
+      <!-- -->unmounted<p>From worker:
+        <!-- -->from first render
+      </p><button type="button">click</button>
+    </div>
+  </div>
+  <kaliber-component-container>
+    <div>2
+      <!-- -->: Test2 -
+      <!-- -->unmounted<p>From worker:
+        <!-- -->from first render
+      </p><button type="button">click</button>
+    </div>
+  </kaliber-component-container>
+  <script>var d = document, s = d.currentScript, p = s.parentNode, c = s.previousSibling; p.setAttribute('data-kaliber-component-container', ''); p.replaceChild(d.createComment('start'), c); p.insertBefore(d.createComment("{\"componentName\":\"test_Test2_universal_js\",\"props\":{\"clientConfigContext\":{},\"name\":\"2\"}}"), s); Array.from(c.childNodes).forEach(x => { p.insertBefore(x, s) }); p.replaceChild(d.createComment('end'), s);</script>
+  <h1>2.</h1>
+  <div data-componentid="test_Test2_js" data-props="{&quot;name&quot;:&quot;3&quot;}">
+    <div data-reactroot="">3
+      <!-- -->: Test2 -
+      <!-- -->unmounted<p>From worker:
+        <!-- -->from first render
+      </p><button type="button">click</button>
+    </div>
+  </div>
+  <kaliber-component-container>
+    <div>4
+      <!-- -->: Test2 -
+      <!-- -->unmounted<p>From worker:
+        <!-- -->from first render
+      </p><button type="button">click</button>
+    </div>
+  </kaliber-component-container>
+  <script>var d = document, s = d.currentScript, p = s.parentNode, c = s.previousSibling; p.setAttribute('data-kaliber-component-container', ''); p.replaceChild(d.createComment('start'), c); p.insertBefore(d.createComment("{\"componentName\":\"test_Test2_universal_js\",\"props\":{\"clientConfigContext\":{},\"name\":\"4\"}}"), s); Array.from(c.childNodes).forEach(x => { p.insertBefore(x, s) }); p.replaceChild(d.createComment('end'), s);</script>
+  <div data-componentid="partials_Test_js"
+    data-props="{&quot;soep&quot;:&quot;kip&quot;,&quot;initialMessage&quot;:&quot;test from firebase&quot;,&quot;clientConfig&quot;:{&quot;someConfigKey&quot;:true,&quot;firebase&quot;:{&quot;apiKey&quot;:&quot;AIzaSyAYIef76akRozOxAq-ppHLllBjJRyp0Zy0&quot;,&quot;databaseURL&quot;:&quot;https://test-fae90.firebaseio.com&quot;}}}">
+    <img src="/e6b0b1493f27ca95d7ef459adc76eed1.jpg" />
+    <div class="sticky-outer-wrapper">
+      <div class="sticky-inner-wrapper" style="position:relative;top:0px">
+        <p>I am compiled with babel!</p>
+      </div>
+    </div>
+    <pre>this is test.raw.txt
+<!-- -->function checkIgnore(isUncaught, args, payload) { // eslint-disable-line no-unused-vars
+  return window.navigator.userAgent &amp;&amp; window.navigator.userAgent.indexOf(&#x27;Chrome&#x27;) !== -1
+}
+</pre>kip<span class="partials-test-test__2cef8453ca398d175b67bf35d5580269">0
+      <!-- --> -
+      <!-- -->test from firebase
+    </span><span class="partials-test2-test2__5373b698c24256380bcb6aca40979ba9">Test2</span>
+    <p>asyncValue: </p><br />I&#x27;m shared!<br />
+    <p>Client config:</p>
+    <pre>{
+  &quot;someConfigKey&quot;: true,
+  &quot;firebase&quot;: {
+    &quot;apiKey&quot;: &quot;AIzaSyAYIef76akRozOxAq-ppHLllBjJRyp0Zy0&quot;,
+    &quot;databaseURL&quot;: &quot;https://test-fae90.firebaseio.com&quot;
+  }
+}</pre>
+  </div>
+  <kaliber-component-container><img src="/e6b0b1493f27ca95d7ef459adc76eed1.jpg" />
+    <div class="sticky-outer-wrapper">
+      <div class="sticky-inner-wrapper" style="position:relative;top:0px">
+        <p>I am compiled with babel!</p>
+      </div>
+    </div>
+    <pre>this is test.raw.txt
+<!-- -->function checkIgnore(isUncaught, args, payload) { // eslint-disable-line no-unused-vars
+  return window.navigator.userAgent &amp;&amp; window.navigator.userAgent.indexOf(&#x27;Chrome&#x27;) !== -1
+}
+</pre>kip<span class="partials-test-test__2cef8453ca398d175b67bf35d5580269">0
+      <!-- --> -
+      <!-- -->test from firebase
+    </span><span class="partials-test2-test2__5373b698c24256380bcb6aca40979ba9">Test2</span>
+    <p>asyncValue: </p><br />I&#x27;m shared!<br />
+    <p>Client config:</p>
+    <pre>{
+  &quot;someConfigKey&quot;: true,
+  &quot;firebase&quot;: {
+    &quot;apiKey&quot;: &quot;AIzaSyAYIef76akRozOxAq-ppHLllBjJRyp0Zy0&quot;,
+    &quot;databaseURL&quot;: &quot;https://test-fae90.firebaseio.com&quot;
+  }
+}</pre>
+  </kaliber-component-container>
+  <script>var d = document, s = d.currentScript, p = s.parentNode, c = s.previousSibling; p.setAttribute('data-kaliber-component-container', ''); p.replaceChild(d.createComment('start'), c); p.insertBefore(d.createComment("{\"componentName\":\"partials_Test_universal_js\",\"props\":{\"clientConfigContext\":{},\"soep\":\"kip\",\"initialMessage\":\"test from firebase\",\"clientConfig\":{\"someConfigKey\":true,\"firebase\":{\"apiKey\":\"AIzaSyAYIef76akRozOxAq-ppHLllBjJRyp0Zy0\",\"databaseURL\":\"https:\u002F\u002Ftest-fae90.firebaseio.com\"}}}}"), s); Array.from(c.childNodes).forEach(x => { p.insertBefore(x, s) }); p.replaceChild(d.createComment('end'), s);</script>
+  Test static message, wrapped with universal wrapper: &quot;Works!&quot; Test static message, wrapped with universal
+  wrapper: &quot;Works!&quot;<br /><br />
+  <div class="src-index-html-js-multipleBackground__c17a5c7cf6251ec45a47cb0c8b01f6e9">multiple backgrounds</div>
+  <div class="src-index-html-js-svgBackground__f157be48e44c099fc13a90b489e8de91">svg background</div><img alt=""
+    src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iODZweCIgaGVpZ2h0PSIyOXB4IiB2aWV3Qm94PSIwIDAgODYgMjkiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDQzLjIgKDM5MDY5KSAtIGh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaCAtLT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGRlZnM+PC9kZWZzPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBvbHlnb24gaWQ9InBhdGgyNTEyIiBmaWxsPSIjRkYwMEFBIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHBvaW50cz0iMCAyOC4zNDYyNSA4NS4wMzg3NCAyOC4zNDYyNSA4NS4wMzg3NCAwIDAgMCI+PC9wb2x5Z29uPgogICAgPC9nPgo8L3N2Zz4K" />
+  public svg
+  (data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iODZweCIgaGVpZ2h0PSIyOXB4IiB2aWV3Qm94PSIwIDAgODYgMjkiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDQzLjIgKDM5MDY5KSAtIGh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaCAtLT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGRlZnM+PC9kZWZzPgogICAgPGcgaWQ9IlBhZ2UtMSIgc3Ryb2tlPSJub25lIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPHBvbHlnb24gaWQ9InBhdGgyNTEyIiBmaWxsPSIjRkYwMEFBIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHBvaW50cz0iMCAyOC4zNDYyNSA4NS4wMzg3NCAyOC4zNDYyNSA4NS4wMzg3NCAwIDAgMCI+PC9wb2x5Z29uPgogICAgPC9nPgo8L3N2Zz4K)<img
+    alt="" class="src-index-html-js-clip__11a048c94890ed06de4f90736afcc66a"
+    src="data:image/jpeg;base64,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" /><img
+    alt="" class="src-index-html-js-clip2__2b8d098c9a9d0703faa20274de7b541d"
+    src="data:image/jpeg;base64,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" /><svg
+    width="0" height="0">
+    <defs>
+      <clipPath id="myClip">
+        <circle cx="100" cy="100" r="40"></circle>
+        <circle cx="60" cy="60" r="40"></circle>
+      </clipPath>
+    </defs>
+  </svg>
+  <hr />
+  <div class="test-FunctionComponent-componentContainer__7b8fb79da9a621dd8e64155a314cbbba">
+    <h1>Function component</h1>
+    <p>1 / Non-universal</p>
+    <p>first 0</p>
+    <p> 0</p>
+    <p><button type="button">click - 0</button></p>
+  </div>
+  <div class="test-FunctionComponent-componentContainer__7b8fb79da9a621dd8e64155a314cbbba">
+    <kaliber-component-container>
+      <h1>Function component</h1>
+      <p>2
+        <!-- --> /
+        <!-- -->Containerless Universal
+      </p>
+      <p>first
+        <!-- -->0
+      </p>
+      <p>
+        <!-- -->0
+      </p>
+      <p><button type="button">click -
+          <!-- -->0
+        </button></p>
+    </kaliber-component-container>
+    <script>var d = document, s = d.currentScript, p = s.parentNode, c = s.previousSibling; p.setAttribute('data-kaliber-component-container', ''); p.replaceChild(d.createComment('start'), c); p.insertBefore(d.createComment("{\"componentName\":\"test_FunctionComponent_universal_js\",\"props\":{\"clientConfigContext\":{},\"prop1\":\"2\",\"prop2\":\"Containerless Universal\"}}"), s); Array.from(c.childNodes).forEach(x => { p.insertBefore(x, s) }); p.replaceChild(d.createComment('end'), s);</script>
+  </div>
+  <div class="test-FunctionComponent-componentContainer__7b8fb79da9a621dd8e64155a314cbbba">
+    <div data-componentid="test_FunctionComponentApp_js"
+      data-props="{&quot;prop1&quot;:&quot;3&quot;,&quot;prop2&quot;:&quot;Universal&quot;}">
+      <h1>Function component</h1>
+      <p>3
+        <!-- --> /
+        <!-- -->Universal
+      </p>
+      <p>first
+        <!-- -->0
+      </p>
+      <p>
+        <!-- -->0
+      </p>
+      <p><button type="button">click -
+          <!-- -->0
+        </button></p>
+    </div>
+  </div>
+</body>
+
+</html>

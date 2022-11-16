@@ -57,7 +57,7 @@ module.exports = function templatePlugin(renderers) {
         file name. It will not do this to resources that have been marked with `?template-source`
         as it would cause infinite loops
       */
-      compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
         normalModuleFactory.hooks.afterResolve.tap(p, data => {
           const { loaders, resourceResolveData: { query, path } } = data.createData
           const renderInfo = getRenderInfo(path)
@@ -69,7 +69,7 @@ module.exports = function templatePlugin(renderers) {
               loader: templateLoader,
               options: { renderer },
               type: undefined,
-              ident: 'added by webWorkerPlugin because of ?webworker',
+              ident: 'added by template-plugin because it is a template',
             })
           }
         })
@@ -92,7 +92,7 @@ module.exports = function templatePlugin(renderers) {
         }
       })
 
-      compiler.hooks.compilation.tap(p, compilation => {
+      compiler.hooks.thisCompilation.tap(p, compilation => {
 
         /*
           Add `isFunction` asset info to templates

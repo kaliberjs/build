@@ -25,7 +25,7 @@ module.exports = function hotModuleReplacementPlugin() {
         if (stats.hasErrors()) sendErrors(stats.toJson('errors-only').errors)
         else send({ type: 'done', hash: stats.hash })
       })
-      compiler.hooks.failed.tap(p, err => { sendErrors([err.message]) })
+      // compiler.hooks.failed.tap(p, err => { sendErrors([err.message]) })
 
       function sendErrors(errors) {
         send({ type: 'failed', errors: errors.map(({ loc, message }) => `(${loc}) ${message.replace(ansiRegex(), '')}`) })

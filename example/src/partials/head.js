@@ -11,10 +11,10 @@ export default function (title) {
   return (
     <head>
       <title>{title}</title>
-      {stylesheet}
-      {rollbar({}, `_rollbarConfig.checkIgnore = ${rollbarCheckIgnore}`)}
-      {rollbar()}
-      {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])}
+      {/* {stylesheet} */}
+      {/* {rollbar({}, `_rollbarConfig.checkIgnore = ${rollbarCheckIgnore}`)} */}
+      {/* {rollbar()} */}
+      {/* {polyfill(['default', 'es2015', 'es2016', 'es2017', 'fetch'])} */}
       {javascript}
     </head>
   )

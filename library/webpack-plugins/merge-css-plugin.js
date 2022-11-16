@@ -31,7 +31,7 @@ function mergeCssPlugin() {
   return {
     /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
-      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
 
         const newChunksWithCssAssets = {}
         const chunkCssHashes = new Map()

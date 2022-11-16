@@ -8,6 +8,7 @@ function getSharedChunkFileNames({ javascriptChunkNames, manifest }) {
   const sharedChunks = []
 
   javascriptChunkNames.forEach(javascriptChunkName => {
+    // console.log({ javascriptChunkName, manifest })
     const chunkManifest = manifest[javascriptChunkName]
     chunkManifest.group.forEach(x => addFilename(manifest[x]))
     addFilename(chunkManifest)

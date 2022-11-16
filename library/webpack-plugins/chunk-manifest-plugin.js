@@ -34,17 +34,19 @@ function chunkManifestPlugin({ filename }) {
     /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
 
-      compiler.hooks.compilation.tap(p, compilation => {
+      compiler.hooks.thisCompilation.tap(p, compilation => {
         const chunkAssets = {}
         compilation.hooks.chunkAsset.tap(p, (chunk, filename, _) => {
 
-          /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === 'HotModuleReplacementPlugin') return
-          if (filename.includes('hot-update')) return
-
+          // /* remove if https://github.com/webpack/webpack/issues/7828 is resolved */ if (chunk === 'HotModuleReplacementPlugin') return
+          if (filename.includes('hot-update')) {
+            console.log('This statement is still relevant')
+            return
+          }
           const groups = [...chunk.groupsIterable]
           const isShared = groups.length > 1
           const [group] = groups
-
+          console.log('chunk manifest plugin - setting chunk asset', filename)
           chunkAssets[chunk.name || `unnamed-${chunk.id}`] = Object.assign({
             filename,
             hasRuntime: chunk.hasRuntime(),
@@ -57,6 +59,7 @@ function chunkManifestPlugin({ filename }) {
           { name: p, stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
           assets => {
             const chunkManifest = sortGroups(chunkAssets)
+            console.log('providing chunk manifest for', compiler.name)//, chunkManifest)
             getHooks(compilation).chunkManifest.call(chunkManifest)
             assets[filename] = new RawSource(JSON.stringify(chunkManifest, null, 2))
 

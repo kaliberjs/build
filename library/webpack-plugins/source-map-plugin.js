@@ -12,7 +12,7 @@ module.exports = function sourceMapPlugin({ sourceRoot }) {
   return {
     /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
-      compiler.hooks.compilation.tap(p, compilation => {
+      compiler.hooks.thisCompilation.tap(p, compilation => {
 
         // make sure webpack stuff keeps their source maps
         compilation.hooks.buildModule.tap(p, module => {

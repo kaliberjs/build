@@ -3,7 +3,7 @@ const { RawSource } = require('webpack-sources')
 const { relative } = require('path')
 const ImportDependency = require('webpack/lib/dependencies/ImportDependency')
 const RawModule = require('webpack/lib/RawModule')
-const makeAdditionalEntries = require('./make-additional-entries-plugin')
+const makeAdditionalEntriesPlugin = require('./make-additional-entries-plugin')
 const chunkManifestPlugin = require('./chunk-manifest-plugin')
 const { Compilation, NormalModule } = require('webpack')
 
@@ -23,6 +23,35 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
   return {
     /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
+
+      // TEST FOR WEBWORKER
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
+
+        normalModuleFactory.hooks.beforeResolve.tap(p, data => {
+          if (data.request.endsWith('?webworker')) {
+            return false
+          }
+          // const { loaders, resourceResolveData: { query, path } } = data.createData
+          // if (query === '?webworker') {
+          //   console.log('Found webworker in', compiler.name, path, query)
+          // }
+          // if (data && data.dependencies.some(x => x instanceof ImportDependency)) return false
+        })
+
+        normalModuleFactory.hooks.afterResolve.tap(p, data => {
+          const { loaders, resourceResolveData: { query, path } } = data.createData
+          // TODO: lots of lodash and core-js modules here
+          // console.log(compiler.name, 'normalModuleFactory - afterResolve', path, query)
+          if (query === '?webworker') {
+            console.log('Found webworker in', compiler.name, path, query)
+          }
+        })
+      })
+
+
+
+
+
       // keep a record of client entries for additional compiler runs (watch)
       const clientEntries = {}
 
@@ -30,81 +59,83 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
       const webCompiler = createWebCompiler(compiler, webCompilerOptions)
 
       // when the webCompiler starts compiling add the recorded client entries
-      makeAdditionalEntries.getHooks(webCompiler)
-        .makeAdditionalEntries.tapPromise(p, (compilation, addEntries) => {
-          return addEntries(clientEntries)
-        })
+      makeAdditionalEntriesPlugin.getHooks(webCompiler).additionalEntries.tap(p, () => {
+        // console.log('adding client entries', clientEntries)
+        return clientEntries
+      })
 
       // check the parent compiler before creating a module, it might have already
       // been processed
       /** @type {import('webpack').Compilation} */
-      let compilation
-      compiler.hooks.compilation.tap(p, c => { compilation = c })
-      webCompiler.hooks.compilation.tap(p, (webCompilation, { normalModuleFactory }) => {
-        normalModuleFactory.hooks.createModule.tap(p, data => {
-          const { path } = data.resourceResolveData
-          if (!path.endsWith('.js') && !path.endsWith('.json')) {
-            const parentCompilationModule = compilation.findModule(data.request)
-            // console.log(path, 'reusable', Boolean(parentCompilationModule))
-            if (parentCompilationModule) {
-              // buffersSerializer
-              // const { dependencyTemplates, runtimeTemplate } = webCompilation
-              // console.log('>->', parentCompilationModule.getSourceTypes())
-              // console.log('>->', parentCompilationModule.source(dependencyTemplates, runtimeTemplate, 'javascript'))
-              // parentCompilationModule.source
-              // if (!(parentCompilationModule instanceof NormalModule)) return console.error('TODO: write error here')
-              // parentCompilationModule.chunk - nope, need chunk in webCompilation
-              // compilation.codeGenerationResults.getSource(parentCompilationModule, runtime, type)
+      // let compilation
+      // compiler.hooks.compilation.tap(p, c => { compilation = c })
+      let chunkManifest = null
+      webCompiler.hooks.thisCompilation.tap(p, (webCompilation, { normalModuleFactory }) => {
 
-              // const generated = parentCompilationModule.generator.generate(
-              //   parentCompilationModule,
-              //   {
-              //     dependencyTemplates,
-              //     runtimeTemplate: com
-              //   }
-              // )
 
-              // const result = new RawModule(generated.source(), data.request, data.rawRequest)
-              // result.updateCacheModule = function updateCacheModule(module) {
-              //   result.sourceStr = module.source().source()
-              // }
-              // result.dependencies = parentCompilationModule.dependencies.slice()
-
-              // // These values are set by plugins like HarmonyDetectionParserPlugin and should be made available
-              // // on the raw module
-              // let { buildInfo = {}, buildMeta = {} } = result
-              // Object.defineProperty(result, 'buildInfo', {
-              //   get() { return { ...parentCompilationModule.buildInfo, ...buildInfo, assets: {}, assetsInfo: [] } },
-              //   set(x) { buildInfo = x }
-              // })
-              // Object.defineProperty(result, 'buildMeta', {
-              //   get() { return { ...parentCompilationModule.buildMeta, ...buildMeta } },
-              //   set(x) { buildMeta = x }
-              // })
-              // Object.defineProperty(result, 'exportsArgument', { get() { return parentCompilationModule.exportsArgument } })
-              // Object.defineProperty(result, 'moduleArgument', { get() { return parentCompilationModule.moduleArgument } })
-
-              // return result
-            }
-          }
+        // make the chunk manifest available
+        chunkManifestPlugin.getHooks(webCompilation).chunkManifest.tap(p, x => {
+          chunkManifest = x
         })
+
+        // normalModuleFactory.hooks.createModule.tap(p, data => {
+        //   const { path } = data.resourceResolveData
+        //   if (!path.endsWith('.js') && !path.endsWith('.json')) {
+        //     // const parentCompilationModule = compilation.findModule(data.request)
+        //     // console.log(path, 'reusable', Boolean(parentCompilationModule))
+        //     // if (parentCompilationModule) {
+        //     // buffersSerializer
+        //     // const { dependencyTemplates, runtimeTemplate } = webCompilation
+        //     // console.log('>->', parentCompilationModule.getSourceTypes())
+        //     // console.log('>->', parentCompilationModule.source(dependencyTemplates, runtimeTemplate, 'javascript'))
+        //     // parentCompilationModule.source
+        //     // if (!(parentCompilationModule instanceof NormalModule)) return console.error('TODO: write error here')
+        //     // parentCompilationModule.chunk - nope, need chunk in webCompilation
+        //     // compilation.codeGenerationResults.getSource(parentCompilationModule, runtime, type)
+
+        //     // const generated = parentCompilationModule.generator.generate(
+        //     //   parentCompilationModule,
+        //     //   {
+        //     //     dependencyTemplates,
+        //     //     runtimeTemplate: com
+        //     //   }
+        //     // )
+
+        //     // const result = new RawModule(generated.source(), data.request, data.rawRequest)
+        //     // result.updateCacheModule = function updateCacheModule(module) {
+        //     //   result.sourceStr = module.source().source()
+        //     // }
+        //     // result.dependencies = parentCompilationModule.dependencies.slice()
+
+        //     // // These values are set by plugins like HarmonyDetectionParserPlugin and should be made available
+        //     // // on the raw module
+        //     // let { buildInfo = {}, buildMeta = {} } = result
+        //     // Object.defineProperty(result, 'buildInfo', {
+        //     //   get() { return { ...parentCompilationModule.buildInfo, ...buildInfo, assets: {}, assetsInfo: [] } },
+        //     //   set(x) { buildInfo = x }
+        //     // })
+        //     // Object.defineProperty(result, 'buildMeta', {
+        //     //   get() { return { ...parentCompilationModule.buildMeta, ...buildMeta } },
+        //     //   set(x) { buildMeta = x }
+        //     // })
+        //     // Object.defineProperty(result, 'exportsArgument', { get() { return parentCompilationModule.exportsArgument } })
+        //     // Object.defineProperty(result, 'moduleArgument', { get() { return parentCompilationModule.moduleArgument } })
+
+        //     // return result
+        //     // }
+        //   }
+        // })
       })
 
       // we claim entries ending with `entry.js` and `.universal.js` and record them as client entries for the web compiler
-      makeAdditionalEntries.getHooks(compiler).claimEntries.tap(p, entries => {
-        const [claimed, unclaimed] = Object.keys(entries).reduce(
-          ([claimed, unclaimed], name) => {
-            const { import: [entry] } = entries[name]
-            if (entry.endsWith('.entry.js') || entry.endsWith('.universal.js')) claimed[name] = entry
-            else unclaimed[name] = entry
+      compiler.hooks.entryOption.tap({ name: p, before: 'react-universal-plugin' }, (context, entries) => {
+        Object.entries(entries).forEach(([name, entry]) => {
+          const [path] = entry.import
+          if (!path.endsWith('.entry.js') && !path.endsWith('.universal.js')) return
 
-            return [claimed, unclaimed]
-          },
-          [{}, {}]
-        )
-        Object.assign(clientEntries, claimed)
-
-        return unclaimed
+          delete entries[name]
+          clientEntries[name] = entry
+        })
       })
 
       /*
@@ -117,7 +148,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
         When a module marked with `.universal.js` has been resolved, add the `react-containerless-universal-server-loader` to it's
         loaders and add the module marked with `?continerless-universal-client` as client entry.
       */
-      compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
 
         normalModuleFactory.hooks.beforeResolve.tap(p, data => {
           if (data && data.dependencies.some(x => x instanceof ImportDependency)) return false
@@ -135,10 +166,10 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
             })
 
             const name = relative(compiler.context, path)
-            if (!clientEntries[name]) clientEntries[name] = './' + name + '?universal-client'
+            if (!clientEntries[name]) clientEntries[name] = { import: ['./' + name + '?universal-client'] }
           }
-
           if (path.endsWith('.universal.js') && query !== '?original') {
+            console.log('found universal')
             loaders.push({
               loader: require.resolve('../webpack-loaders/react-containerless-universal-server-loader'),
               type: undefined,
@@ -147,12 +178,15 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
             })
 
             const name = relative(compiler.context, path)
-            if (!clientEntries[name]) clientEntries[name] = './' + name + '?containerless-universal-client'
+            if (!clientEntries[name]) {
+              console.log('adding to client entry', name)
+              clientEntries[name] = { import: ['./' + name + '?containerless-universal-client'] }
+            }
           }
 
           if (path.endsWith('.entry.js')) {
             data.createData.loaders = [{
-              loader: require.resolve('../webpack-loaders/ignore-content-loader'),
+              loader: require.resolve('../webpack-loaders/ignore-content-loader'), // TODO: there might be a build-in way
               type: undefined,
               ident: 'added by react-universal-plugin because of .entry.js',
               options: {},
@@ -163,7 +197,7 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
       })
 
       // make sure the __webpack_js_chunk_information__ is available in modules
-      compiler.hooks.compilation.tap(p, (compilation, { normalModuleFactory }) => {
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
 
         addBuiltInVariable({
           compilation, normalModuleFactory,
@@ -172,10 +206,9 @@ module.exports = function reactUniversalPlugin(webCompilerOptions) {
           abbreviation: 'jci',
           type: 'object',
           createValue: (chunk) => {
-            // get the manifest from the client compilation
-            const [{ _kaliber_chunk_manifest_: manifest }] = compilation.children
+            // console.log('providing javascript manifest', chunkManifest)
             const javascriptChunkNames = getJavascriptChunkNames(chunk, compilation, compiler)
-            return { javascriptChunkNames, manifest }
+            return { javascriptChunkNames, manifest: chunkManifest }
           }
         })
 
@@ -214,7 +247,7 @@ function getJavascriptChunkNames(chunk, compilation, compiler) {
 
 function createWebCompiler(compiler, options) {
 
-  const webCompiler = createChildCompiler(p, compiler, options, { makeAdditionalEntries, chunkManifestPlugin }, 'web')
+  const webCompiler = createChildCompiler(p, compiler, options, { makeAdditionalEntriesPlugin, chunkManifestPlugin }, 'web')
 
   // push the client loader when appropriate
   webCompiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {

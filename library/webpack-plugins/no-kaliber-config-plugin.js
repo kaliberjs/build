@@ -5,7 +5,7 @@ module.exports = function noKaliberConfigPlugin() {
     /** @param {import('webpack').Compiler} compiler */
     apply(compiler) {
       // provide a friendly error if @kaliber/config is loaded
-      compiler.hooks.normalModuleFactory.tap(p, normalModuleFactory => {
+      compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
         normalModuleFactory.hooks.afterResolve.tap(p, data => {
           const { rawRequest } = data.createData
 

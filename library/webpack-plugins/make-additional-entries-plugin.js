@@ -9,59 +9,46 @@
 
   Usage from other plugins:
 
-  makeAdditionalEntries.getHooks(compiler).makeAdditionalEntries.tapAsync('plugin-name', (compilation, createEntries, callback) => {
-
-    // if you want to add new entries
-    createEntries({ name: path }, callback)
-
-    // If you don't want to create entries
-    callback()
-
-    // when you need to signal an error
-    callback(err)
+  makeAdditionalEntries.getHooks(compiler).additionalEntries.tap('plugin-name', () => {
+    return entries
   })
 
   and
 
-  makeAdditionalEntries.getHooks(compiler).claimEntries.tap('plugin-name', entries => {
-    return unclaimedEntries
+  makeAdditionalEntries.getHooks(compiler).afterAdditionalEntries.tap('plugin-name', (compilation) => {
+    ...
   })
 */
 
 const EntryDependency = require('webpack/lib/dependencies/EntryDependency')
-const { AsyncSeriesHook, SyncWaterfallHook } = require('tapable')
+const { AsyncSeriesHook, SyncWaterfallHook, AsyncHook, Hook, AsyncParallelHook, SyncHook, SyncBailHook } = require('tapable')
 const { createDependency } = require('webpack/lib/SingleEntryPlugin')
 const { createGetHooks } = require('../lib/webpack-utils')
+const { EntryOptionPlugin, EntryPlugin } = require('webpack')
 
 const p = 'make-additional-entries'
 
 const getHooks = createGetHooks(() => ({
-  claimEntries: new SyncWaterfallHook(['entries']),
-  makeAdditionalEntries: new AsyncSeriesHook(['compilation', 'addEntries']),
+  additionalEntries: new SyncBailHook(),
+  /** @type {AsyncParallelHook<[import('webpack').Compilation]>} */
+  afterAdditionalEntries: new AsyncParallelHook(['compiler']),
 }))
 makeAdditionalEntries.getHooks = getHooks
 
-module.exports = makeAdditionalEntries
+module.exports = makeAdditionalEntries // rename to entries
 
 function makeAdditionalEntries() {
   return {
+    /** @param {import('webpack').Compiler} compiler */
     apply: compiler => {
+      const hooks = getHooks(compiler)
 
       const entriesToMake = {}
 
-      /*
-        claim the entries in the `entry` if it's object shaped and allow other plugins
-        to claim certain entries, any leftover entries are added using this plugin
-      */
+      /* Claim the entries in the `entry` */
       compiler.hooks.entryOption.tap(p, (context, entries) => {
-        if (typeof entries === 'object' && !Array.isArray(entries)) {
-          const originalEntries = Object.assign({}, entries)
-          Object.assign(
-            entriesToMake,
-            getHooks(compiler).claimEntries.call(originalEntries)
-          )
-          return true
-        }
+        Object.assign(entriesToMake, entries)
+        return true
       })
 
       // make sure the EntryDependency has a factory
@@ -74,24 +61,34 @@ function makeAdditionalEntries() {
         Note that plugins can depend on entries created in plugins registered
         before them.
       */
-      compiler.hooks.make.tapPromise(p, compilation => {
-        return addEntries(entriesToMake)
-          .then(makeAdditionalEntries)
+      compiler.hooks.make.tapPromise(p, async compilation => {
+        await addEntries(entriesToMake)
 
-        function makeAdditionalEntries() {
-          return getHooks(compiler).makeAdditionalEntries.promise(compilation, addEntries)
+        const additionalEntries = hooks.additionalEntries.call()
+        if (additionalEntries) await addEntries(additionalEntries)
+
+        await hooks.afterAdditionalEntries.promise(compilation)
+
+        async function addEntries(entries) {
+          return Promise.all(Object.entries(entries).map(([name, entry]) => addEntry(name, entry)))
         }
 
-        function addEntries(entries) {
-          return Promise.all(Object.keys(entries).map(name => addEntry(name, entries[name])))
-        }
-
-        function addEntry(name, path) {
+        async function addEntry(name, entry) {
           // TODO: misschien kunnen we de DynamicEntryPlugin gebruiken. Die lijkt hier heel erg op
-          return new Promise((resolve, reject) => {
-            const entry = createDependency(path, name)
-            compilation.addEntry(compiler.context, entry, { name }, err => err ? reject(err) : resolve())
-          })
+          const options = EntryOptionPlugin.entryDescriptionToOptions(compiler, name, entry)
+          for (const path of entry.import) {
+            await new Promise((resolve, reject) => {
+              compilation.addEntry(
+                compiler.context,
+                EntryPlugin.createDependency(path, options),
+                options,
+                err => {
+                  if (err) reject(err)
+                  else resolve()
+                }
+              )
+            })
+          }
         }
       })
     }
