@@ -5,6 +5,12 @@ const genericNames = require('generic-names')
 const { findCssGlobalFiles } = require('../lib/findCssGlobalFiles')
 const vm = require('vm')
 
+const {
+  kaliber: {
+    nativeCssCustomProperties = false
+  } = {}
+} = require('@kaliber/config')
+
 const isProduction = process.env.NODE_ENV === 'production'
 
 function createPlugins(
@@ -22,7 +28,9 @@ function createPlugins(
         require('postcss-modules-values'),
         require('postcss-preset-env')({
           features: {
-            'custom-properties': { preserve: false, importFrom: cssGlobalFiles },
+            'custom-properties': nativeCssCustomProperties
+              ? false
+              : { preserve: false, importFrom: cssGlobalFiles },
             'custom-media-queries': { preserve: false, importFrom: cssGlobalFiles },
             'custom-selectors': { preserve: false, importFrom: cssGlobalFiles },
             'media-query-ranges': true,
