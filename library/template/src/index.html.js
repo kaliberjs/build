@@ -1,5 +1,6 @@
 import '/reset.css'
 import '/index.css'
+import '/customProperties.css'
 import stylesheet from '@kaliber/build/lib/stylesheet'
 import javascript from '@kaliber/build/lib/javascript'
 import polyfill from '@kaliber/build/lib/polyfill'

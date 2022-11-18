@@ -1,9 +1,0 @@
-:root {
-  --color-green: color-mod(rgb(0, 200, 0) alpha(50%));
-  --color-red: color-mod(rgb(200, 0, 0) alpha(50%));
-  --color-peach: peachpuff;
-}
-
-@custom-media --breakpoint all and (min-width: 768px);
-
-@custom-selector :--enter :hover, :focus;

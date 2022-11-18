@@ -3,7 +3,6 @@
 @custom-selector :--enter :hover, :focus;
 
 .test {
-  color: var(--color-green);
   z-index: 100000;
 }
 

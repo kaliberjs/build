@@ -1,0 +1,7 @@
+/* Only works with kaliber.nativeCssCustomProperties: false */
+
+:root {
+  --color-peach: peachpuff;
+  --color-green: green;
+  --color-red: color-mod(rgb(200, 0, 0) alpha(50%));
+}

@@ -1,4 +1,5 @@
 import './global.css'
+import './customProperties.css'
 import 'normalize.css'
 import head from '/partials/head'
 import Test from './partials/Test?universal'
