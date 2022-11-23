@@ -4,6 +4,7 @@
 
 .test {
   z-index: 100000;
+  color: var(--color-green);
 }
 
 .test:--enter {

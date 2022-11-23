@@ -8,10 +8,10 @@ module.exports = {
       mapping: '/mapping-renderer',
     },
     universal: {
-    clientWrapper: '/wrapper/Client',
+      clientWrapper: '/wrapper/Client',
       serverWrapper: '/wrapper/Server',
     },
-    nativeCssCustomProperties: true
+    cssNativeCustomProperties: true
   },
   client: {
     someConfigKey: true
