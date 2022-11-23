@@ -54,6 +54,7 @@ const {
     publicPath = '/',
     symlinks = true,
     webpackLoaders: userDefinedWebpackLoaders = [],
+    cssNativeCustomProperties = false,
   } = {}
 } = require('@kaliber/config')
 
@@ -86,11 +87,12 @@ const babelLoader = {
 
 const cssLoaderGlobalScope = {
   loader: 'css-loader',
-  options: { globalScopeBehaviour: true }
+  options: { globalScopeBehaviour: true, nativeCustomProperties: cssNativeCustomProperties }
 }
 
 const cssLoader = {
-  loader: 'css-loader'
+  loader: 'css-loader',
+  options: { nativeCustomProperties: cssNativeCustomProperties }
 }
 
 const cssLoaderMinifyOnly = {

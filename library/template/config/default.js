@@ -4,7 +4,7 @@ module.exports = {
     only use this for configuration that is the same across all config environments
   */
   kaliber: {
-    nativeCssCustomProperties: true
+    cssNativeCustomProperties: true
   },
   rollbar: {
     post_client_item: 'get an access token at rollbar.com',
