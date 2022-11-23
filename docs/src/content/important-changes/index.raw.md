@@ -4,6 +4,9 @@
 
 ### Breaking changes
 
+- v0.0.133 - 
+  - When `kaliber.cssNativeCustomProperties` is `true`, custom properties are no longer automatically picked up, but need to be imported.
+  - When `kaliber.cssNativeCustomProperties` is `true`, the `color-mod()` function no longer works in combination with custom properties if used outside of the same `:root` selector.
 - v0.0.77 - css `color()` function is now `color-mod()`
 - v0.0.71 - server side rendered polyfills (`withPolyfill`) have been removed
 - v0.0.63 - `raw` is no longer accepted as a template type
@@ -22,6 +25,7 @@
 
 ### New features
 
+- v0.0.133 - Introduced `kaliber.cssNativeCustomProperties` to enable native custom property behavior
 - v0.0.116 - Introduced `*.universal.js` and context handling across client/server boundary
 - ? - `*.raw.*` sources are now loaded using the `raw-loader`
 - v0.0.58 - `ExtendedAPIPlugin` is now also used in the web compiler

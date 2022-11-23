@@ -256,14 +256,14 @@ module.exports = {
 
 Note that these loaders are loaded after the `raw` loader and before all other loaders.
 
-#### nativeCssCustomProperties
+#### cssNativeCustomProperties
 
 @kaliber/build uses `postcss-preset-env`'s `custom-properties` to enable custom properties for all browsers, but this limits their usability and isn't really needed anymore for modern browsers. You can use this setting to disable this plugin and thus enable native custom properties.
 
 ```js
 module.exports = {
   kaliber: {
-    nativeCssCustomProperties: true
+    cssNativeCustomProperties: true
   }
 }
 ```
@@ -271,4 +271,4 @@ module.exports = {
 This will change some behavior you might rely on:
 
 - Custom properties are no longer automatically picked up, but need to be imported.
-- The `color-mod()` function no longer works in combination with custom properties, outside of the file in which they are declared ([it was dropped from the spec](https://github.com/w3c/csswg-drafts/commit/034b063697c3dadf144504f52e0858a79cd84414)). This gap will be filled by [CSS Color Module Level 5](https://www.w3.org/TR/css-color-5/).
+- The `color-mod()` function no longer works in combination with custom properties if used outside of the same `:root` selector. [It was dropped from the spec](https://github.com/w3c/csswg-drafts/commit/034b063697c3dadf144504f52e0858a79cd84414)), this gap will be filled by [CSS Color Module Level 5](https://www.w3.org/TR/css-color-5/).
