@@ -4,6 +4,9 @@ const messages = {
   'incorrect variable passing': name =>
     `Unexpected JSX attribute passing, expected \`{...{ ${name} }}\``,
 
+  'no setters': name =>
+    `Unexpected JSX attribute name, you should not directly pass \`${name}\` as a prop. Instead, pass an \`onXxx\` handler.`,
+  
   'destructure props':
     `Expected destructured props`,
 }
@@ -16,7 +19,15 @@ module.exports = {
   create(context) {
     return {
       [`FunctionDeclaration`]: reportNonDestructuredProps,
-      [`JSXAttribute`]: reportIncorrectVariablePassing,
+      [`JSXAttribute`](node) {
+        console.log('JSXAttribute')
+        reportIncorrectVariablePassing(node)
+        reportSetterProps(node)
+      },
+      [`JSXSpreadAttribute`](node) {
+        console.log('JSXSpreadAttribute')
+        reportDestructuredSetterProps(node)
+      }
     }
 
     function reportNonDestructuredProps(node) {
@@ -26,6 +37,28 @@ module.exports = {
         message: messages['destructure props'],
         node: props,
       })
+    }
+
+    function reportSetterProps(node) {
+      const { name } = node.name
+
+      if (isSetter(name)) {
+        context.report({
+          message: messages['no setters'](name),
+          node,
+        })
+      }
+    }
+
+    function reportDestructuredSetterProps(node) {
+      node.argument.properties.forEach(x => {
+        if (isSetter(x.value.name)) {
+          context.report({
+            message: messages['no setters'](x.value.name),
+            node,
+          })
+        }
+      }) 
     }
 
     function reportIncorrectVariablePassing(node) {
@@ -43,4 +76,12 @@ module.exports = {
       })
     }
   }
+}
+
+function isSetter(name) {
+  return (
+    name.length >= 4 &&
+    name.startsWith('set') &&
+    name[3] === name[3].toUpperCase()
+  )
 }
