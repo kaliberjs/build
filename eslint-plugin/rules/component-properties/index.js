@@ -20,7 +20,6 @@ module.exports = {
     return {
       [`FunctionDeclaration`]: reportNonDestructuredProps,
       [`JSXAttribute`](node) {
-        console.log('JSXAttribute')
         reportIncorrectVariablePassing(node)
         reportSetterProps(node)
       },
