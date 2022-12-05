@@ -1,4 +1,4 @@
-/* Don't use in combination with kaliber.cssNativeCustomProperties: false */
+/* These properties get dropped with kaliber.cssNativeCustomProperties: false */
 
 :root {
   --color-peach: peachpuff;
