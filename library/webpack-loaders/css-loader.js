@@ -112,7 +112,7 @@ module.exports = function CssLoader(source, map) {
 function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour, nativeCustomProperties, cssGlobalFiles }) {
   const key = `plugins${minifyOnly ? '-minifyOnly' : ''}${globalScopeBehaviour ? '-globalScope' : ''}`
 
-  return cachedInConmpilation(loaderContext, key, () => {
+  return cachedInCompilation(loaderContext, key, () => {
     const handlers = createHandlers(loaderContext)
     const plugins = createPlugins({ minifyOnly, globalScopeBehaviour, nativeCustomProperties, cssGlobalFiles }, handlers)
     return plugins
@@ -149,7 +149,7 @@ function createHandlers(loaderContext) {
 
   function executeModuleAt(url, source) {
     const key = `module-${url}`
-    return cachedInConmpilation(loaderContext, key, () => {
+    return cachedInCompilation(loaderContext, key, () => {
 
       const sandbox = {
         module: {},
@@ -162,12 +162,12 @@ function createHandlers(loaderContext) {
 }
 
 function cachedFindCssGlobalFiles(loaderContext) {
-  return cachedInConmpilation(loaderContext, 'global-css-files', () =>
+  return cachedInCompilation(loaderContext, 'global-css-files', () =>
     findCssGlobalFiles(loaderContext.rootContext)
   )
 }
 
-function cachedInConmpilation(loaderContext, key, f) {
+function cachedInCompilation(loaderContext, key, f) {
   const c = loaderContext._compilation
   const cache = c.kaliberCache || (c.kaliberCache = {})
   if (cache[key]) return cache[key]
