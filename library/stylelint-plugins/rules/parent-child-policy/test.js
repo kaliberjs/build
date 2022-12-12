@@ -61,24 +61,11 @@ test('parent-child-policy', {
         `
       },
       {
-        title: 'allow position: static 1',
-        code: `
-          .test {
-            position: relative;
-
-            & > .relativeToParent {
-              position: static;
-            }
-          }
-        `
-      },
-      {
-        title: 'allow position: static 2',
         code: `
           .parent {
             position: relative;
 
-            & > .child.relativeToParent {
+            & > .child {
               position: static;
             }
           }
@@ -152,16 +139,7 @@ test('parent-child-policy', {
         code: '.bad { & > .test { position: static; } }',
         warnings: [
           messages['missing position relative'],
-          messages['missing relativeToParent className'],
         ]
-      },
-      {
-        code: '.bad { & > .test.relativeToParent { position: static; } }',
-        warnings: [messages['missing position relative']]
-      },
-      {
-        code: '.bad { position: relative; & > .test { position: static; } }',
-        warnings: [messages['missing relativeToParent className']]
       },
       {
         title: '└─ take @media into account',
@@ -322,12 +300,11 @@ test('parent-child-policy', {
       { code: `.good { pointer-events: none; & > * { pointer-events: auto; } }` },
       { code: `.good { &::after { pointer-events: none; } }` },
       {
-        title: 'allow position: static',
         code: `
-          .test {
+          .parent {
             position: relative;
 
-            & > .relativeToParent {
+            & > .child {
               position: static;
             }
           }

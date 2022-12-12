@@ -40,10 +40,6 @@ const messages = {
     'Missing `position: relative;` in parent\n' +
     '`position: static` is only allowed when the containing root rule is set to `position: relative` - ' +
     'add `position-relative` to the containing root rule',
-  'missing relativeToParent className':
-    'Missing `.relativeToParent` className\n' +
-    '`position: static` can only be used when selecting on `.relativeToParent` - ' +
-    'add the `.relativeToParent` className',
 }
 
 // TODO: move errors into the different relations (would allows us to simplify the actual checks)
@@ -191,15 +187,6 @@ function relativeToParent({ root, report }) {
     const result = checkChildParentRelation(rule, childParentRelations.relativeToParent)
     result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
       report(triggerDecl, messages['missing position relative'])
-    })
-    const triggerDecls = findDecls(rule, childParentRelations.relativeToParent.nestedHasOneOf)
-    triggerDecls.forEach(decl => {
-      const selectors = parseSelector(rule)
-      const hasValidSelectors = selectors.every(selector =>
-        selector.some(x => x.type === 'class' && x.value === 'relativeToParent')
-      )
-      if (hasValidSelectors) return
-      report(decl, messages['missing relativeToParent className'])
     })
   })
 }
