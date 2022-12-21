@@ -199,7 +199,8 @@ module.exports = function build({ watch }) {
         ],
         splitChunks: {
           chunks: 'all',
-          minSize: 10000
+          minSize: 10000,
+          maxInitialRequests: 100,
         }
       },
       resolve: resolveOptions(),
