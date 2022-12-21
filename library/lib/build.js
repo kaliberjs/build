@@ -200,12 +200,8 @@ module.exports = function build({ watch }) {
         ],
         splitChunks: {
           chunks: 'all',
-          maxInitialRequests: 4,
-          cacheGroups: {
-            vendors: {
-              reuseExistingChunk: true,
-            },
-          }
+          minSize: 10000,
+          maxInitialRequests: 100,
         }
       },
       resolve: resolveOptions(),
