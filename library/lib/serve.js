@@ -138,14 +138,21 @@ function possibleDirectories(path) {
 
 function serveIndexWithRouting(req, res, file) {
   const envRequire = isProduction ? require : require('import-fresh')
-  const template = envRequire(file)
+  const routeTemplate = envRequire(file)
 
-  const routes = template.routes
+  const routes = routeTemplate.routes
   const location = parsePath(req.url)
 
   return Promise.resolve(routes)
     .then(routes => (routes && routes.match(location, req)) || { status: 200, data: null })
-    .then(({ status, headers, data }) =>
+    .then(data => {
+      if (!routes || !routes.resolveIndex) return [data, routeTemplate]
+
+      const indexLocation = routes.resolveIndex(location, req)
+      const indexPath = resolve(...[target, publicPathDir, indexLocation, indexWithRouting])
+      return [data, envRequire(indexPath)]
+    })
+    .then(([{ status, headers, data }, template]) =>
       Promise.resolve(template({ location, data })).then(html => [status, headers, html])
     )
     .then(([ status, headers, html ]) => res.status(status).set(headers).send(html))
