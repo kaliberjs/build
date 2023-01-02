@@ -70,8 +70,8 @@ const babelLoader = {
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
     presets: ['@babel/preset-react'],
     plugins: [
-      '@babel/plugin-proposal-class-properties',
       ['@babel/plugin-proposal-decorators', { legacy: true }],
+      ['@babel/plugin-proposal-class-properties', { loose: true }],
       '@babel/plugin-proposal-export-namespace-from',
       '@babel/plugin-proposal-nullish-coalescing-operator',
       '@babel/plugin-proposal-object-rest-spread',
