@@ -109,6 +109,16 @@ test('parent-child-policy', {
           }
         `,
       },
+      {
+        title: 'allow layoutClassName when targetted with the direct child selector',
+        code: `
+          .parent {
+            & > .childLayout {
+              margin: 0;
+            }
+          }
+        `,
+      }
     ],
     invalid: [
       {
@@ -291,6 +301,21 @@ test('parent-child-policy', {
         warnings: createMessages('nested - require display flex or grid in parent', [
           'order'
         ])
+      },
+      {
+        title: 'layoutClassName - must be nested in a parent selector',
+        code: `.badLayout { padding: 0; }`,
+        warnings: [messages['layoutClassname - must be nested in a parent selector']]
+      },
+      {
+        title: 'layoutClassName - must be nested in a parent selector',
+        code: `.badLayout:not(:empty) { padding: 0; }`,
+        warnings: [messages['layoutClassname - must be nested in a parent selector']]
+      },
+      {
+        title: 'layoutClassName - must be nested in a parent selector',
+        code: `.badLayout > .test { margin: 0; }`,
+        warnings: [messages['layoutClassname - must be nested in a parent selector']]
       },
     ]
   },
