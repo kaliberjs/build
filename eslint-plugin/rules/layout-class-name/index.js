@@ -17,6 +17,9 @@ const messages = {
     `Unexpected attribute 'className', only native (lower case) elements can have a 'className' - ` +
     `use 'layoutClassName' for manipulating layout`,
 
+  'invalid layoutClassName':
+    (found, expected) => `Unexpected layoutClassName '${found}', expected '${expected}'`,
+  
   'no export base':
     `Unexpected 'export', Base components can not be exported - remove the 'export' keyword`,
 }
@@ -53,6 +56,12 @@ module.exports = {
       },
       [`JSXAttribute[name.name = 'className']`](node) {
         reportClassNameOnCustomComponent(node)
+      },
+      [`JSXAttribute[name.name = 'layoutClassName'] MemberExpression[object.name = 'styles']`](node) {
+        reportInvalidLayoutClassName(node.property, node.property.name)
+      },
+      [`JSXAttribute[name.name = 'layoutClassName'] Literal`](node) {
+        reportInvalidLayoutClassName(node, node.value)
       },
       [`ExportNamedDeclaration > FunctionDeclaration`](node) {
         reportExportedBase(node)
@@ -93,6 +102,16 @@ module.exports = {
       context.report({
         message: messages['no className on custom component'],
         node,
+      })
+    }
+
+    function reportInvalidLayoutClassName(node, className) {
+      const expectedClassName = className.endsWith('Layout') ? className : className + 'Layout'
+
+      if (className === expectedClassName) return
+      context.report({
+        message: messages['invalid layoutClassName'](className, expectedClassName),
+        node: node,
       })
     }
 
