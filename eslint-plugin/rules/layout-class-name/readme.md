@@ -2,8 +2,9 @@
 
 Passing a `className` to a custom component is considered harmful. Components should be treated as a black box. Doing so allows you to change the inner details of a component as long as you keep the public API unchanged. In other words: it does not make sense to give a custom component a `className` because you don't know what is inside.
 
-This however poses a problem when you want to position a custom component. To solve this common use case we introduced `layoutClassName`. As the name suggests, classes used as layout class name should
-only be used to manipulate layout and make no assumptions about the inner structure. When passing a `layoutClassName` you can assume it to be set as `className` on the top level element of the custom component.
+This however poses a problem when you want to position a custom component. To solve this common use case we introduced `layoutClassName`. As the name suggests, classes used as layout class name should only be used to manipulate layout and make no assumptions about the inner structure. When passing a `layoutClassName` you can assume it to be set as `className` on the top level element of the custom component.
+
+In order to track which classes are used as layout classes they must end with the suffix `Layout`. 
 
 Concretely, the following should be refactored as shown:
 
@@ -21,7 +22,7 @@ function MyComponent() {
 function MyComponent() {
   return (
     <div className={styles.component}>
-      <BlackBox layoutClassName={styles.blackBox} />
+      <BlackBox layoutClassName={styles.blackBoxLayout} />
     </div>
   )
 }
@@ -58,6 +59,9 @@ function Test({ layoutClassName }) {
 <div className={styles.test} />
 ```
 ```jsx
+<Test layoutClassName={styles.testLayout} />
+```
+```jsx
 <TestBase className={styles.test} />
 ```
 ```jsx
@@ -89,6 +93,9 @@ function Test({ layoutClassName }) {
 ```
 ```jsx
 <Test className={styles.test} />
+```
+```jsx
+<Test layoutClassName={styles.test} />
 ```
 ```jsx
 export function TestBase() {}
