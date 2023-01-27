@@ -6,9 +6,9 @@ This rule helps you to correctly create these parent / child relationships.
 
 - [Stacking context](#stacking-context)
 - [Position absolute](#position-absolute)
+- [Escape stacking context with absolute children](#escape-stacking-context-with-absolute-children)
 - [Flex and Grid](#flex-and-grid)
 - [Pointer events](#pointer-events)
-- [Relative to parent](#relative-to-parent)
 
 ## Stacking context
 
@@ -68,114 +68,6 @@ When you given an element `position: absolute` the CSS engine will traverse its 
 
 This rule forces you set `position: relative` on the parent element in order to prevent the element from escaping a known context. It ensures we stay true to the black-box principle.
 
-## Relative to parent
-
-In some case you need to allow a child element to escape from it's parents context. An example:
-
-```html
-<ul class='menu'>
-  <li class='menu-item'>
-    Item 1
-    <ul class='menu-submenu'>
-      <li>Sub item 1</li>
-      ...
-    <ul>
-  </li>
-  ...
-</ul>
-```
-
-```css
-.menu {
-  display: flex;
-  position: relative;
-}
-
-.menu-item {
-  &.is-open {
-    & > .menu-submenu {
-      position: absolute;
-      ^^^^^^^^
-      left: 0;
-    }
-  }
-
-  &:not(.is-open) {
-    & > .menu-submenu {
-      display: none;
-    }
-  }
-}
-```
-
-The `position: absolute` property is marked as a problem because it escapes its parent. This means we need to add a `position: relative`.
-
-```css
-.menu-item {
-  position: relative;
-  &.is-open {
-    & > .menu-submenu {
-      position: absolute;
-      ...
-```
-
-While this solves the linting problem, we do not get the effect we wish to achieve: `submenu` rendered on the left of the `menu` while maintaining semantically correct html.
-
-In order for this to work we need to transform the CSS:
-
-```css
-.menu {
-  display: flex;
-  position: relative;
-
-  & > .menu-item.relativeToParent {
-    position: static;
-  }
-}
-
-.menu-item {
-  position: relative;
-  ...
-}
-```
-
-Note that we set `position: static` from the parent. You can also see we included the marker class `.relativeToParent`. If you would not use this exact name you would get another linting error. The reason we require this class is to make sure that the receiver of `position: static` is aware of this breach of containment. We would not want to accidentally break any behavior. As a bonus, you could use it in `menu-item` to toggle (enable / disable) this behavior:
-
-```css
-.menu-item {
-  &:not(.is-open) {
-    & > .menu-submenu {
-      display: none;
-    }
-  }
-
-  &.relativeToParent {
-    position: relative;
-
-    &.is-open {
-      & > .menu-submenu {
-        position: absolute;
-        left: 0;
-      }
-    }
-  }
-}
-```
-
-Note that this also works for removing a stacking context:
-
-```css
-.menu {
-  position: relative;
-  z-index: 0;
-
-  & > .item.relativeToParent {
-    position: static;
-    z-index: auto;
-  }
-}
-```
-
 ### Examples
 
 Examples of *correct* code for this rule:
@@ -214,6 +106,116 @@ Examples of *incorrect* code for this rule:
 .parent {
   &::after {
     position: absolute;
+  }
+}
+```
+
+## Escape stacking context with absolute children
+
+In some case you may need a child element to be relative to an element different from its parent: you want it to escape its parent's stacking context. An example:
+
+```html
+<ul class='menu'>
+  <li class='menu-item'>
+    Item 1
+    <ul class='menu-submenu'>
+      <li>Sub item 1</li>
+      ...
+    <ul>
+  </li>
+  ...
+</ul>
+```
+
+```css
+.menu {
+  display: flex;
+  position: relative;
+}
+
+.menu-item {
+  &.is-open {
+    & > .menu-submenu {
+      position: absolute;
+      ^^^^^^^^
+      left: 0;
+    }
+  }
+
+  &:not(.is-open) {
+    & > .menu-submenu {
+      display: none;
+    }
+  }
+}
+```
+
+The `position: absolute` property is marked as a problem because it escapes its parent's stacking context. This means we need to add a `position: relative`.
+
+```css
+.menu-item {
+  position: relative;
+
+  &.is-open {
+    & > .menu-submenu {
+      position: absolute;
+      left: 0;
+    }
+  }
+```
+
+While this solves the linting problem, we do not get the effect we wish to achieve: `submenu` rendered on the left of the `menu` while maintaining semantically correct html.
+
+In order for this to work we need to transform the CSS:
+
+```css
+.menu {
+  display: flex;
+  position: relative;
+
+  & > .menu-item {
+    position: static;
+  }
+}
+
+.menu-item {
+  position: relative;
+
+  &.is-open {
+    & > .menu-submenu {
+      position: absolute;
+      left: 0;
+    }
+  }
+}
+```
+
+Note that we reset the relative element to `position: static` from its parent. This way we explicitly allow the absolute child to escape this context, one level up to this parent. In order to allow this, you need to add `position: relative` to the parent, creating a _new_ stacking context. If you need the absolute element to escape further, you have to repeat this process:
+
+```css
+.a {
+  position: relative;
+
+  & > .b {
+    position: static;
+  }
+}
+
+.b {
+  position: relative;
+
+  & > .c {
+    position: static;
+  }
+}
+
+.c {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
   }
 }
 ```
