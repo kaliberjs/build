@@ -1,4 +1,8 @@
 .componentContainer {
+  & > * {
+    max-width: var(--breakpoint-sm);
+    margin: auto;
+  }
   & > :nth-child(1) {
     color: purple;
   }

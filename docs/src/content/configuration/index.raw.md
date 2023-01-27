@@ -271,4 +271,4 @@ module.exports = {
 This will change some behavior you might rely on:
 
 - Custom properties are no longer automatically picked up, but need to be imported.
-- The `color-mod()` function no longer works in combination with custom properties if used outside of the same `:root` selector. [It was dropped from the spec](https://github.com/w3c/csswg-drafts/commit/034b063697c3dadf144504f52e0858a79cd84414)), this gap will be filled by [CSS Color Module Level 5](https://www.w3.org/TR/css-color-5/).
+- Support for the `color-mod()` function is dropped. [It was dropped from the spec](https://github.com/w3c/csswg-drafts/commit/034b063697c3dadf144504f52e0858a79cd84414)), this gap will be filled by [CSS Color Module Level 5](https://www.w3.org/TR/css-color-5/).

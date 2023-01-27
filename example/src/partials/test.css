@@ -16,7 +16,7 @@
     color: black;
   }
 
-  @media (--breakpoint) {
+  @media (--breakpoint-sm) {
     background-color: #BADA55;
     @apply --test-apply;
   }

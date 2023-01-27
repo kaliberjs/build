@@ -29,7 +29,6 @@ function createPlugins(
             'nesting-rules': true,
             'hexadecimal-alpha-notation': true,
             'color-functional-notation': true,
-            'color-mod-function': true,
             'font-variant-property': true,
             'all-property': true,
             'any-link-pseudo-class': true,

@@ -1,0 +1,9 @@
+/* When kaliber.cssNativeCustomProperties: false, explicitly import this file in your entry point */
+
+:root {
+  --breakpoint-sm: 540px;
+  --breakpoint-md: 768px;
+}
+
+@custom-media --breakpoint-sm all and (min-width: 540px);
+@custom-media --breakpoint-md all and (min-width: 768px);

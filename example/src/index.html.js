@@ -1,5 +1,6 @@
 import './global.css'
-import './customProperties.css'
+import './cssGlobal/color.css'
+import './cssGlobal/media.css'
 import 'normalize.css'
 import head from '/partials/head'
 import Test from './partials/Test?universal'
