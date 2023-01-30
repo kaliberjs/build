@@ -268,6 +268,4 @@ module.exports = {
 }
 ```
 
-This will change some behavior you might rely on:
-
-- Custom properties are no longer automatically picked up, but need to be imported.
+This means custom properties are no longer automatically picked up, but need to be imported.
