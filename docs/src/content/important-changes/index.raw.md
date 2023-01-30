@@ -6,7 +6,7 @@
 
 - v0.0.133 - 
   - When `kaliber.cssNativeCustomProperties` is `true`, custom properties are no longer automatically picked up, but need to be imported.
-  - Support for the `color-mod()` function is dropped.
+  - Support for the `color-mod()` function is dropped ([it was dropped from the spec](https://github.com/w3c/csswg-drafts/commit/034b063697c3dadf144504f52e0858a79cd84414)). This gap will be filled by [CSS Color Module Level 5](https://www.w3.org/TR/css-color-5/).
 - v0.0.77 - css `color()` function is now `color-mod()`
 - v0.0.71 - server side rendered polyfills (`withPolyfill`) have been removed
 - v0.0.63 - `raw` is no longer accepted as a template type
