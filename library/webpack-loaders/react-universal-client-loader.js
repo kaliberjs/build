@@ -14,12 +14,12 @@ function ReactUniversalClientLoader(source, map, meta) {
 
 function createClientCode({ importPath, id }) {
   return `|import Component from './${importPath}'
-          |import { hydrate } from 'react-dom'
+          |import { hydrateRoot } from 'react-dom/client'
           |
           |const elements = document.querySelectorAll('*[data-componentid="${id}"]')
           |for (let i = 0; i < elements.length; i++) {
           |  const props = JSON.parse(elements[i].dataset.props)
-          |  hydrate(<Component {...props} />, elements[i])
+          |  hydrateRoot(elements[i], <Component {...props} />)
           |}
           |
           |if (module.hot) {
@@ -27,7 +27,7 @@ function createClientCode({ importPath, id }) {
           |  module.hot.accept('./${importPath}', () => {
           |    for (let i = 0; i < elements.length; i++) {
           |      const props = JSON.parse(elements[i].dataset.props)
-          |      hydrate(<Component {...props} />, elements[i])
+          |      hydrateRoot(elements[i], <Component {...props} />)
           |    }
           |  })
           |}

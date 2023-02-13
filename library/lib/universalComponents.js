@@ -1,4 +1,4 @@
-import ReactDom from 'react-dom'
+import { hydrateRoot } from 'react-dom/client'
 import { safeJsonStringify } from '@kaliber/safe-json-stringify'
 
 const containerMarker = 'data-kaliber-component-container'
@@ -48,13 +48,15 @@ export function hydrate(
   // Move the rendered nodes to a container before hydrating
   nodes.forEach((x) => { container.appendChild(x) })
 
-  ReactDom.hydrate(component, container)
+  const containerProxy = new Proxy(container, {
+    get(target, prop) {
+      return prop === 'firstChild' ? nodes[0] : target[prop]
+    }
+  })
+  hydrateRoot(containerProxy, component)
 
-  // Capture the rendered nodes before they are moved by inserting the container
-  const renderedNodes = Array.from(container.childNodes)
   insertBefore.parentNode.insertBefore(container, insertBefore)
-
-  return { container, renderedNodes }
+  return { container, renderedNodes: nodes }
 }
 
 function createContainer({ eventTarget }) {
