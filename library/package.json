@@ -86,7 +86,7 @@
     "stylelint": "^13.7.1",
     "stylelint-use-nesting": "^3.0.0",
     "tapable": "^2.0.0",
-    "terser-webpack-plugin": "^4.2.2",
+    "terser-webpack-plugin": "^5.3.6",
     "time-fix-plugin": "^2.0.7",
     "url-loader": "^4.1.0",
     "uuid": "^8.3.2",

@@ -1,6 +1,6 @@
 const { findEntries } = require('./findEntries')
 
-module.exports = ({ mode, srcDir, log }) => ({
+module.exports = ({ mode, srcDir, cwd, log, outputPath, publicPath }) => ({
   name: 'browser-compiler',
   mode,
   context: srcDir,
@@ -23,5 +23,8 @@ module.exports = ({ mode, srcDir, log }) => ({
   output: {
     filename: '[id].[contenthash].js',
     chunkFilename: '[id].[contenthash].js',
-  }
+    path: outputPath,
+    publicPath,
+  },
+  plugins: []
 })

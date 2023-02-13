@@ -17,12 +17,12 @@ const {
 } = config.kaliber || {}
 const outputPath = path.join(targetDir, publicPath)
 
-const nodeConfig = require('./lib/webpack/webpack.node.config')
-const browserConfig = require('./lib/webpack/webpack.browser.config')
+const createNodeConfig = require('./lib/webpack/webpack.node.config')
+const createBrowserConfig = require('./lib/webpack/webpack.browser.config')
 
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-module.exports = [
-  nodeConfig({ mode, srcDir, log, cwd, publicPath, outputPath }),
-  browserConfig({ mode, srcDir, log, cwd, publicPath, outputPath }),
-]
+const browserConfig = createBrowserConfig({ mode, srcDir, log, cwd, publicPath, outputPath })
+const nodeConfig = createNodeConfig({ mode, srcDir, log, cwd, publicPath, outputPath, browserConfig })
+
+module.exports = [nodeConfig, browserConfig]

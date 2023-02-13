@@ -6,6 +6,7 @@ const { TemplatePlugin } = require('./plugins/TemplatePlugin')
 const { AbsolutePathResolverPlugin } = require('./resolver/AbsolutePathResolverPlugin')
 const webpack = require('webpack')
 const { SourceMapPlugin } = require('./plugins/SourceMapPlugin')
+const { UniversalPlugin } = require('./plugins/UniversalPlugin')
 
 const templateRenderers = Object.assign({
   html: '@kaliber/build/lib/html-react-renderer',
@@ -14,7 +15,20 @@ const templateRenderers = Object.assign({
 }, configuredTemplateRenderers)
 const recognizedTemplates = Object.keys(templateRenderers)
 
-module.exports = ({ mode, srcDir, log, cwd, publicPath, outputPath }) => ({
+const babelLoader = {
+  loader: 'babel-loader',
+  options: {
+    babelrc: false, // not sure if the following comment is true: // this needs to be false, any other value will cause .babelrc to interfere with these settings
+    presets: [
+      '@babel/preset-react'
+    ],
+    plugins: [
+      ['@babel/plugin-proposal-decorators', { legacy: true }],
+    ],
+  }
+}
+
+module.exports = ({ mode, srcDir, log, cwd, publicPath, outputPath, browserConfig }) => ({
   name: 'node-compiler',
   mode,
   context: srcDir,
@@ -62,21 +76,49 @@ module.exports = ({ mode, srcDir, log, cwd, publicPath, outputPath }) => ({
   },
   module: {
     rules: [
+      // .entry.js should be ignored, but the {javascript} magic should include it as a script tag if it is imported (in for example index.html.js)
+      // {
+      //   test: /\.universal\.js$/,
+      //   resourceQuery: /^$/,
+      //   use: [
+      //     babelLoader,
+      //     {
+      //       loader: 'containerless-universal-server-loader',
+      //       options: {
+      //         outputOptions: browserConfig.output,
+      //         plugins: browserConfig.plugins,
+      //       }
+      //     }
+      //   ]
+      // },
+      // {
+      //   test: /\.universal\.js$/,
+      //   resourceQuery: /^containerless-universal-client$/,
+      //   use: [babelLoader, 'containerless-universal-client-loader']
+      // },
+      // {
+      //   test: /\.js$/,
+      //   resourceQuery: /^universal$/,
+      //   use: [
+      //     babelLoader,
+      //     {
+      //       loader: 'universal-server-loader',
+      //       options: {
+      //         outputOptions: browserConfig.output,
+      //         plugins: browserConfig.plugins,
+      //       }
+      //     }
+      //   ]
+      // },
+      // {
+      //   test: /\.js$/,
+      //   resourceQuery: /^universal-client$/,
+      //   use: [babelLoader, 'universal-client-loader']
+      // },
       {
         test: /\.m?js$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            babelrc: false, // not sure if the following comment is true: // this needs to be false, any other value will cause .babelrc to interfere with these settings
-            presets: [
-              '@babel/preset-react'
-            ],
-            plugins: [
-              ['@babel/plugin-proposal-decorators', { legacy: true }],
-            ],
-          }
-        }
+        use: babelLoader
       },
       {
         test: /\.raw\.[^.]+$/,
@@ -100,5 +142,6 @@ module.exports = ({ mode, srcDir, log, cwd, publicPath, outputPath }) => ({
       Component: ['react', 'Component'],
       cx: 'classnames',
     }),
+    UniversalPlugin()
   ]
 })

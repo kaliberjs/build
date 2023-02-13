@@ -3,6 +3,7 @@ const path = require('path')
 const fs = require('fs-extra')
 const { appendSourceMap, evalInFork } = require('../../node-utils')
 const webpack = require('webpack')
+const { dynamicEntries } = require('../utils/dynamicEntries')
 
 const p = 'kaliber.TemplatePlugin'
 
@@ -23,7 +24,7 @@ function TemplatePlugin({ templateRenderers }) {
     apply(compiler) {
 
       // Add the renderers as entries
-      new webpack.DynamicEntryPlugin(compiler.context, async () => rendererEntries).apply(compiler)
+      dynamicEntries(async () => rendererEntries, { compiler })
 
       compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
         const templateAssets = []
