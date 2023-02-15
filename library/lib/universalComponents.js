@@ -2,19 +2,25 @@ import { hydrateRoot } from 'react-dom/client'
 import { safeJsonStringify } from '@kaliber/safe-json-stringify'
 
 const containerMarker = 'data-kaliber-component-container'
+const E = /** @type {any} */ ('kaliber-component-container')
 
+// eslint-disable-next-line @kaliber/naming-policy
 export function ComponentServerWrapper({ componentName, props, renderedComponent }) {
-  const componentInfo = JSON.stringify({ componentName, props })
+  const scriptContent = restructureDomNodes()
+  const safeComponentInfo = safeJsonStringify({ componentName, props })
+
   return (
     <>
       {/* It is not possible to render the html of a React-rendered component without a container
           because dangerouslySetInnerHTML is the only route to get raw html into the resulting html */}
-      <kaliber-component-container dangerouslySetInnerHTML={{ __html: renderedComponent }} />
+      <E dangerouslySetInnerHTML={{ __html:
+        `</${E}><!--start--><!--${safeComponentInfo}-->${renderedComponent}<!--end--><${E}>`
+      }} />
 
       {/* Use render blocking script to remove the container and supply the correct  comment nodes.
           This ensures the page is never rendered with the intermediate structure */}
       <script dangerouslySetInnerHTML={{
-        __html: restructureDomNodes(componentInfo).replace(/<\/?script>/gi, '')
+        __html: scriptContent
       }} />
     </>
   )
@@ -85,14 +91,11 @@ function groupComponentsByName(allComponents) {
   )
 }
 
-function restructureDomNodes(componentInfo) {
-  const safeComponentInfo = safeJsonStringify(componentInfo)
-  return `|var d=document,s=d.currentScript,p=s.parentNode,c=s.previousSibling;
+function restructureDomNodes() {
+  return `|var d=document,s=d.currentScript,p=s.parentNode;
           |p.setAttribute('${containerMarker}','');                             // set marker on container so we can retrieve nodes that contain components
-          |p.replaceChild(d.createComment('start'),c);                          // replace kaliber-component-container element with a 'start' comment
-          |p.insertBefore(d.createComment(${safeComponentInfo}),s);             // create a comment containing the component info
-          |Array.from(c.childNodes).forEach(x=>{p.insertBefore(x,s)});          // insert all children from the kaliber-component-container element
-          |p.replaceChild(d.createComment('end'),s);                            // create an 'end' comment
+          |Array.from(p.querySelectorAll('${E}')).forEach(x=>p.removeChild(x)); // all (empty) container tags
+          |p.removeChild(s);                                                    // remove the script tag itself
           |`.replace(/^\s*\|/gm, '').replace(/\s*\/\/[^;]*?$/gm, '').replace(/\n/g, '')
 }
 
