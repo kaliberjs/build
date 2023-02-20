@@ -17,11 +17,9 @@ export function ComponentServerWrapper({ componentName, props, renderedComponent
         `</${E}><!--start--><!--${safeComponentInfo}-->${renderedComponent}<!--end--><${E}>`
       }} />
 
-      {/* Use render blocking script to remove the container and supply the correct  comment nodes.
+      {/* Use render blocking script to set a container marker and remove the custom components.
           This ensures the page is never rendered with the intermediate structure */}
-      <script dangerouslySetInnerHTML={{
-        __html: scriptContent
-      }} />
+      <script dangerouslySetInnerHTML={{ __html: scriptContent }} />
     </>
   )
 }
@@ -43,36 +41,45 @@ export function findComponents({ componentName }) {
   }
 }
 
-export function hydrate(
-  component,
-  {
-    nodes,
-    endNode: insertBefore,
-    container = createContainer({ eventTarget: insertBefore.parentNode }),
-  },
-) {
-  // Move the rendered nodes to a container before hydrating
-  nodes.forEach((x) => { container.appendChild(x) })
+export function hydrate(component, { nodes: initialNodes, startNode, endNode }) {
+  const container = createVirtualReactContainer({ initialNodes, startNode, endNode })
+  const root = hydrateRoot(container, component)
 
-  const containerProxy = new Proxy(container, {
-    get(target, prop) {
-      return prop === 'firstChild' ? nodes[0] : target[prop]
-    }
-  })
-  hydrateRoot(containerProxy, component)
-
-  insertBefore.parentNode.insertBefore(container, insertBefore)
-  return { container, renderedNodes: nodes }
+  return { update: x => root.render(x) }
 }
 
-function createContainer({ eventTarget }) {
-  // React attaches event listeners to the container on hydrate or render. This does not make
-  // sense for document fragments, so we forward all EventTarget methods.
-  const container = document.createDocumentFragment()
-  container.addEventListener = (...args) => eventTarget.addEventListener(...args)
-  container.removeEventListener = (...args) => eventTarget.removeEventListener(...args)
-  container.dispatchEvent = (...args) => eventTarget.dispatchEvent(...args)
-  return container
+function createVirtualReactContainer({ initialNodes, startNode, endNode }) {
+  const parent = startNode.parentNode
+  let nodes = initialNodes.slice() // we could derive initialNodes from startNode and endNode
+
+  const container = {
+    addEventListener: (...args) => parent.addEventListener(...args),
+    removeEventListener: (...args) => parent.removeEventListener(...args),
+    dispatchEvent: (...args) => parent.dispatchEvent(...args),
+    get firstChild() { return nodes[0] || null },
+    get nodeType() { return parent.DOCUMENT_FRAGMENT_NODE },
+    get ownerDocument() { return parent.ownerDocument },
+    get nodeName() { return 'virtualized container' },
+    removeChild(child) {
+      const result = parent.removeChild(child)
+      nodes = nodes.filter(x => x !== child)
+      return result
+    },
+    appendChild(child) {
+      endNode.before(child)
+      nodes = nodes.concat([child])
+      return child
+    },
+    // root updates:
+    insertBefore(node, child) {
+      const childIndex = nodes.findIndex(x => x === child)
+      const result = parent.insertBefore(node, child)
+      nodes.splice(childIndex, 0, result)
+      return result
+    },
+  }
+  // The statement below is a lie. We supply an object that has all methods that React calls on it
+  return /** @type {Element} */ (container)
 }
 
 function findAllComponents() {
@@ -82,9 +89,9 @@ function findAllComponents() {
 
 function groupComponentsByName(allComponents) {
   return allComponents.reduce(
-    (result, { info: { componentName, props }, nodes, endNode }) => {
+    (result, { info: { componentName, props }, nodes, startNode, endNode }) => {
       const components = result[componentName] || (result[componentName] = [])
-      components.push({ componentName, nodes, endNode, props })
+      components.push({ componentName, nodes, startNode, endNode, props })
       return result
     },
     {}
@@ -92,18 +99,22 @@ function groupComponentsByName(allComponents) {
 }
 
 function restructureDomNodes() {
-  return `|var d=document,s=d.currentScript,p=s.parentNode;
-          |p.setAttribute('${containerMarker}','');                             // set marker on container so we can retrieve nodes that contain components
-          |Array.from(p.querySelectorAll('${E}')).forEach(x=>p.removeChild(x)); // all (empty) container tags
-          |p.removeChild(s);                                                    // remove the script tag itself
-          |`.replace(/^\s*\|/gm, '').replace(/\s*\/\/[^;]*?$/gm, '').replace(/\n/g, '')
+  return `
+    var d=document,s=d.currentScript,p=s.parentNode;
+    ${/* set marker on container so we can retrieve nodes that contain components */''}
+    p.setAttribute('${containerMarker}','');
+    ${/* remove all (empty) container tags */''}
+    Array.from(p.querySelectorAll('${E}')).forEach(x=>p.removeChild(x));
+    ${/* remove the script tag itself */''}
+    p.removeChild(s);
+  `.replace(/(^\s*|\n)/gm, '')
 }
 
 function extractServerRenderedComponents(container) {
   // These steps work with the DOM structure created by the render blocking script
   const steps = [
     [not(isStart), ignore, repeat],
-    [isStart, ignore, nextStep],
+    [isStart, addNode('startNode'), nextStep],
     [isComment, dataAsJson('info'), nextStep],
     [not(isEnd), addNodeToCollection('nodes'), repeat],
     [isEnd, addNode('endNode'), commitAndRestart]
