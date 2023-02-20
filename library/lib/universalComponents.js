@@ -70,7 +70,6 @@ function createVirtualReactContainer({ initialNodes, startNode, endNode }) {
       nodes = nodes.concat([child])
       return child
     },
-    // root updates:
     insertBefore(node, child) {
       const childIndex = nodes.findIndex(x => x === child)
       const result = parent.insertBefore(node, child)
