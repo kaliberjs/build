@@ -4,6 +4,7 @@
 
 ### Breaking changes
 
+- v0.0.137 - Some babel plugins related to the use of `async`/`await` have been removed. Also, `babel-preset-env` was replaced by plugins enabling some specific functionality. For the complete list of additions and removals please refer to https://github.com/kaliberjs/build/pull/242/files.
 - v0.0.77 - css `color()` function is now `color-mod()`
 - v0.0.71 - server side rendered polyfills (`withPolyfill`) have been removed
 - v0.0.63 - `raw` is no longer accepted as a template type
