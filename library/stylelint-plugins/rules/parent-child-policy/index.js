@@ -1,6 +1,7 @@
 const {
   findDecls,
   parseSelector,
+  withRootRules,
   withNestedRules,
   isRoot, declMatches,
   getRootRules,
@@ -32,6 +33,9 @@ const messages = {
     `\`${prop}\` can only be used when the containing root rule has \`display: flex;\` or \`display: grid;\` - ` +
     `add \`display: flex;\` or \`display: grid;\` to the containing root rule or, if this is caused by a media query ` +
     `that overrides \`display: flex;\` or \`display: grid;\`, use \`${prop}: unset\``,
+  'layoutClassname - must be nested in a parent selector':
+    `layoutClassNames (classes ending with the \`Layout\` suffix) can only be targetted by a parent selector, using the direct child selector. ` + 
+    `Consequentially, you can only use layout related properties in layoutClassNames.`,
   'invalid pointer events':
     `Incorrect pointer events combination\n` +
     `you can only set pointer events in a child if the parent disables pointer events - ` +
@@ -40,10 +44,6 @@ const messages = {
     'Missing `position: relative;` in parent\n' +
     '`position: static` is only allowed when the containing root rule is set to `position: relative` - ' +
     'add `position-relative` to the containing root rule',
-  'missing relativeToParent className':
-    'Missing `.relativeToParent` className\n' +
-    '`position: static` can only be used when selecting on `.relativeToParent` - ' +
-    'add the `.relativeToParent` className',
 }
 
 // TODO: move errors into the different relations (would allows us to simplify the actual checks)
@@ -123,6 +123,7 @@ module.exports = {
       requireDisplayFlexOrGridInParent({ root: modifiedRoot, report })
       validPointerEvents({ root: modifiedRoot, report })
       relativeToParent({ root: modifiedRoot, report })
+      requireLayoutClassNameToBeDirectChild({ root: modifiedRoot, report })
     }
   }
 }
@@ -192,14 +193,17 @@ function relativeToParent({ root, report }) {
     result.forEach(({ result, prop, triggerDecl, rootDecl, value, expectedValue }) => {
       report(triggerDecl, messages['missing position relative'])
     })
-    const triggerDecls = findDecls(rule, childParentRelations.relativeToParent.nestedHasOneOf)
-    triggerDecls.forEach(decl => {
-      const selectors = parseSelector(rule)
-      const hasValidSelectors = selectors.every(selector =>
-        selector.some(x => x.type === 'class' && x.value === 'relativeToParent')
-      )
-      if (hasValidSelectors) return
-      report(decl, messages['missing relativeToParent className'])
+  })
+}
+
+function requireLayoutClassNameToBeDirectChild({ root, report }) {
+  withRootRules(root, rule => {
+    if (!rule.selector.includes('Layout')) return
+    parseSelector(rule).nodes.forEach(node => {
+      const className = node.nodes.find(x => x.type === 'class')
+      if (className && className.toString().endsWith('Layout')) {
+        report(rule, messages['layoutClassname - must be nested in a parent selector'])
+      }
     })
   })
 }

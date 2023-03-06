@@ -3,7 +3,7 @@
   "scripts": {
     "test": "mocha '**/test.js'"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "devDependencies": {
     "eslint": "^7.9.0",
     "eslint-plugin-import": "^2.22.0",

@@ -17,6 +17,8 @@ test('layout-class-name', {
     `<div className='test' />`,
     `<div className={styles.test} />`,
     `<div {...{ className }} />`,
+    `<Test layoutClassName={styles.testLayout} />`,
+    `<Test layoutClassName='testLayout' />`,
     `<TestBase className='test' />`,
     `<TestBase className={styles.test} />`,
     `<TestBase {...{ className }} />`,
@@ -57,6 +59,18 @@ test('layout-class-name', {
     {
       code: `<Test {...{ className }} />`,
       errors: [{ message: messages['no className on custom component'], type: 'Property' }]
+    },
+    {
+      code: `<Test layoutClassName={styles.test} />`,
+      errors: [{ message: messages['invalid layoutClassName']('test', 'testLayout'), type: 'Identifier' }]
+    },
+    {
+      code: `<Test layoutClassName={cx(styles.test, styles.testLayout)} />`,
+      errors: [{ message: messages['invalid layoutClassName']('test', 'testLayout'), type: 'Identifier' }]
+    },
+    {
+      code: `<Test layoutClassName='test' />`,
+      errors: [{ message: messages['invalid layoutClassName']('test', 'testLayout'), type: 'Literal' }]
     },
     {
       code: `export function TestBase() {}`,
