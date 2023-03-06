@@ -63,6 +63,8 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   if (!err) return next()
+  if (err.status && err.status >= 400 && err.status < 500)
+    return res.status(err.status).send()
 
   console.error(err)
   if (reportError) reportError(err, req)
