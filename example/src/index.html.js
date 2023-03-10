@@ -23,11 +23,12 @@ import FunctionComponentC from './test/FunctionComponent.universal'
 import FunctionComponentU from '/test/FunctionComponentApp?universal'
 
 main.routes = {
-  match: ({ pathname }, request) =>
-    pathname === '/' ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } })) :
-    pathname === '/error' ? Promise.reject(new Error('fake error')) :
-    pathname === '/redirect' ? { status: 302, headers: { 'Location': '/redirect-target' } } :
-    { status: 404, data: { message: 'missing' } }
+  match: async ({ pathname }, request) => {
+    return pathname === '/' ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } })) :
+      pathname === '/error' ? Promise.reject(new Error('fake error')) :
+      pathname === '/redirect' ? { status: 302, headers: { 'Location': '/redirect-target' } } :
+      { status: 404, data: { message: 'missing' } }
+  }
 }
 
 function getMessage() {
