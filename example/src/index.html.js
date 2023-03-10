@@ -1,4 +1,5 @@
 import './global.css'
+/* When kaliber.cssNativeCustomProperties: false, remove the cssGlobal imports */
 import './cssGlobal/colors.css'
 import './cssGlobal/media.css'
 import 'normalize.css'
