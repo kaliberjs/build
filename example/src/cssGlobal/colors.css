@@ -1,0 +1,7 @@
+/* When kaliber.cssNativeCustomProperties: false, explicitly import this file in your entry point */
+
+:root {
+  --color-peach: peachpuff;
+  --color-green: green;
+  --color-red: rgba(200, 0, 0, 0.5);
+}

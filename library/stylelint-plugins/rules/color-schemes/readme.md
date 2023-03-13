@@ -8,15 +8,15 @@ Color schemes are defined by creating files in a `colorScheme` directory or `col
   color: var(--color-white);
 
   & .color-scheme-icon {
-    color: color-mod(var(--color-red-dark) alpha(0.4));
+    color: var(--color-red-700);
   }
 
   & .color-scheme-exclusion {
-    color: var(--color-red-light);
+    color: var(--color-red-300);
   }
 
   & ::selection {
-    background-color: var(--color-red-light);
+    background-color: var(--color-red-300);
   }
 }
 ```
@@ -68,7 +68,7 @@ Examples of *incorrect* code for this rule:
 Before:
 ```css
 .abc {
-  color: #AABBCC;
+  color: #aabbcc;
   opacity: 0.5;
 }
 ```
@@ -76,8 +76,8 @@ Before:
 After:
 ```css
 .abc {
-  color: #AABBCC80;
+  color: #aabbcc80;
   /* or */
-  color: color-mod(#AABBCC alpha(50%));
+  color: rgba(170, 187, 204, 0.5);
 }
 ```
