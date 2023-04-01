@@ -54,6 +54,7 @@ const {
     publicPath = '/',
     symlinks = true,
     webpackLoaders: userDefinedWebpackLoaders = [],
+    cssNativeCustomProperties = false,
   } = {}
 } = require('@kaliber/config')
 
@@ -85,11 +86,12 @@ const babelLoader = {
 
 const cssLoaderGlobalScope = {
   loader: 'css-loader',
-  options: { globalScopeBehaviour: true }
+  options: { globalScopeBehaviour: true, nativeCustomProperties: cssNativeCustomProperties }
 }
 
 const cssLoader = {
-  loader: 'css-loader'
+  loader: 'css-loader',
+  options: { nativeCustomProperties: cssNativeCustomProperties }
 }
 
 const cssLoaderMinifyOnly = {
@@ -254,7 +256,7 @@ module.exports = function build({ watch }) {
 
   function resolveOptions() {
     return {
-      extensions: ['.js', '.mjs'],
+      extensions: ['.js', '.mjs', '.cjs'],
       modules: ['node_modules'],
       plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()],
       symlinks,
@@ -313,14 +315,14 @@ module.exports = function build({ watch }) {
 
         {
           resource: {
-            test: /(\.html\.js|\.js|\.mjs)$/,
+            test: /(\.html\.js|\.js|\.mjs|\.cjs)$/,
             or: [{ exclude: /node_modules/ }, ...compileWithBabel],
           },
           loaders: [babelLoader]
         },
 
         {
-          test: /(\.js|\.mjs)$/,
+          test: /(\.js|\.mjs|\.cjs)$/,
           type: 'javascript/auto',
         },
 

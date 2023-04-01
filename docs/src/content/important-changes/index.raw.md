@@ -4,6 +4,9 @@
 
 ### Breaking changes
 
+- v0.0.139 - 
+  - When `kaliber.cssNativeCustomProperties` is `true`, custom properties are no longer automatically picked up, but need to be imported.
+  - Support for the `color-mod()` function is dropped ([it was dropped from the spec](https://github.com/w3c/csswg-drafts/commit/034b063697c3dadf144504f52e0858a79cd84414)). This gap will be filled by [CSS Color Module Level 5](https://www.w3.org/TR/css-color-5/).
 - v0.0.137 - Some babel plugins related to the use of `async`/`await` have been removed. Also, `babel-preset-env` was replaced by plugins enabling some specific functionality. For the complete list of additions and removals please refer to https://github.com/kaliberjs/build/pull/242/files.
 - v0.0.77 - css `color()` function is now `color-mod()`
 - v0.0.71 - server side rendered polyfills (`withPolyfill`) have been removed
@@ -23,6 +26,7 @@
 
 ### New features
 
+- v0.0.133 - Introduced `kaliber.cssNativeCustomProperties` to enable native custom property behavior
 - v0.0.116 - Introduced `*.universal.js` and context handling across client/server boundary
 - ? - `*.raw.*` sources are now loaded using the `raw-loader`
 - v0.0.58 - `ExtendedAPIPlugin` is now also used in the web compiler

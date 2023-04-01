@@ -8,7 +8,7 @@ const vm = require('vm')
 const isProduction = process.env.NODE_ENV === 'production'
 
 function createPlugins(
-  { minifyOnly, globalScopeBehaviour, cssGlobalFiles },
+  { minifyOnly, globalScopeBehaviour, nativeCustomProperties, cssGlobalFiles },
   { resolveForImport, resolveForUrlReplace, resolveForImportExportParser }
 ) {
 
@@ -22,14 +22,13 @@ function createPlugins(
         require('postcss-modules-values'),
         require('postcss-preset-env')({
           features: {
-            'custom-properties': { preserve: false, importFrom: cssGlobalFiles },
+            'custom-properties': !nativeCustomProperties && { preserve: false, importFrom: cssGlobalFiles },
             'custom-media-queries': { preserve: false, importFrom: cssGlobalFiles },
             'custom-selectors': { preserve: false, importFrom: cssGlobalFiles },
             'media-query-ranges': true,
             'nesting-rules': true,
             'hexadecimal-alpha-notation': true,
             'color-functional-notation': true,
-            'color-mod-function': true,
             'font-variant-property': true,
             'all-property': true,
             'any-link-pseudo-class': true,
@@ -60,12 +59,12 @@ module.exports = function CssLoader(source, map) {
   const callback = this.async()
 
   const loaderOptions = loaderUtils.getOptions(this) || {}
-  const { minifyOnly = false, globalScopeBehaviour = false } = loaderOptions
+  const { minifyOnly = false, globalScopeBehaviour = false, nativeCustomProperties = false } = loaderOptions
 
   const cssGlobalFiles = cachedFindCssGlobalFiles(this)
   cssGlobalFiles.forEach(x => this.addDependency(x))
 
-  const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour, cssGlobalFiles })
+  const plugins = getPlugins(this, { minifyOnly, globalScopeBehaviour, nativeCustomProperties, cssGlobalFiles })
   const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
@@ -109,12 +108,12 @@ module.exports = function CssLoader(source, map) {
   }
 }
 
-function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour, cssGlobalFiles }) {
+function getPlugins(loaderContext, { minifyOnly, globalScopeBehaviour, nativeCustomProperties, cssGlobalFiles }) {
   const key = `plugins${minifyOnly ? '-minifyOnly' : ''}${globalScopeBehaviour ? '-globalScope' : ''}`
 
-  return cachedInConmpilation(loaderContext, key, () => {
+  return cachedInCompilation(loaderContext, key, () => {
     const handlers = createHandlers(loaderContext)
-    const plugins = createPlugins({ minifyOnly, globalScopeBehaviour, cssGlobalFiles }, handlers)
+    const plugins = createPlugins({ minifyOnly, globalScopeBehaviour, nativeCustomProperties, cssGlobalFiles }, handlers)
     return plugins
   })
 }
@@ -149,7 +148,7 @@ function createHandlers(loaderContext) {
 
   function executeModuleAt(url, source) {
     const key = `module-${url}`
-    return cachedInConmpilation(loaderContext, key, () => {
+    return cachedInCompilation(loaderContext, key, () => {
 
       const sandbox = {
         module: {},
@@ -162,12 +161,12 @@ function createHandlers(loaderContext) {
 }
 
 function cachedFindCssGlobalFiles(loaderContext) {
-  return cachedInConmpilation(loaderContext, 'global-css-files', () =>
+  return cachedInCompilation(loaderContext, 'global-css-files', () =>
     findCssGlobalFiles(loaderContext.rootContext)
   )
 }
 
-function cachedInConmpilation(loaderContext, key, f) {
+function cachedInCompilation(loaderContext, key, f) {
   const c = loaderContext._compilation
   const cache = c.kaliberCache || (c.kaliberCache = {})
   if (cache[key]) return cache[key]
