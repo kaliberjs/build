@@ -24,7 +24,6 @@ module.exports = {
         reportSetterProps(node)
       },
       [`JSXSpreadAttribute`](node) {
-        console.log('JSXSpreadAttribute')
         reportDestructuredSetterProps(node)
       }
     }
