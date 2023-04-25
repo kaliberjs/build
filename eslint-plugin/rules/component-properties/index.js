@@ -24,7 +24,6 @@ module.exports = {
         reportSetterProps(node)
       },
       [`JSXSpreadAttribute`](node) {
-        console.log('JSXSpreadAttribute')
         reportDestructuredSetterProps(node)
       }
     }
@@ -50,6 +49,8 @@ module.exports = {
     }
 
     function reportDestructuredSetterProps(node) {
+      if (!node.argument.properties) return
+
       node.argument.properties.forEach(x => {
         if (isSetter(x.value.name)) {
           context.report({
