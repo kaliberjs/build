@@ -255,3 +255,17 @@ module.exports = {
 ```
 
 Note that these loaders are loaded after the `raw` loader and before all other loaders.
+
+#### cssNativeCustomProperties
+
+@kaliber/build uses `postcss-preset-env`'s `custom-properties` to enable custom properties for all browsers, but this limits their usability and isn't really needed anymore for modern browsers. You can use this setting to disable this plugin and thus enable native custom properties.
+
+```js
+module.exports = {
+  kaliber: {
+    cssNativeCustomProperties: true
+  }
+}
+```
+
+This means custom properties are no longer automatically picked up, but need to be imported.

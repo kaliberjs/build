@@ -10,7 +10,8 @@ module.exports = {
     universal: {
       clientWrapper: '/wrapper/Client',
       serverWrapper: '/wrapper/Server',
-    }
+    },
+    cssNativeCustomProperties: true
   },
   client: {
     someConfigKey: true

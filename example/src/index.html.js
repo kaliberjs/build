@@ -1,4 +1,7 @@
 import './global.css'
+/* When kaliber.cssNativeCustomProperties: false, remove the cssGlobal imports */
+import './cssGlobal/colors.css'
+import './cssGlobal/media.css'
 import 'normalize.css'
 import head from '/partials/head'
 import Test from './partials/Test?universal'
@@ -20,11 +23,12 @@ import FunctionComponentC from './test/FunctionComponent.universal'
 import FunctionComponentU from '/test/FunctionComponentApp?universal'
 
 main.routes = {
-  match: ({ pathname }, request) =>
-    pathname === '/' ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } })) :
-    pathname === '/error' ? Promise.reject(new Error('fake error')) :
-    pathname === '/redirect' ? { status: 302, headers: { 'Location': '/redirect-target' } } :
-    { status: 404, data: { message: 'missing' } }
+  match: async ({ pathname }, request) => {
+    return pathname === '/' ? getMessage().then(message => ({ status: 200, data: { message, hostname: request.hostname } })) :
+      pathname === '/error' ? Promise.reject(new Error('fake error')) :
+      pathname === '/redirect' ? { status: 302, headers: { 'Location': '/redirect-target' } } :
+      { status: 404, data: { message: 'missing' } }
+  }
 }
 
 function getMessage() {
