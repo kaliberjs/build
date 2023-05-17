@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "build": "NODE_ENV=production kaliber-build",
-    "watch": "CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-watch",
+    "watch": "CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps --trace-deprecation' webpack --stats-children",
     "serve": "kaliber-serve",
     "serve.dev": "PORT=8000 CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-serve",
     "lint": "kaliber-lint",
