@@ -1,81 +1,131 @@
 const webpack = require('webpack')
 const { makePathsRelative } = require('webpack/lib/util/identifier')
 
-module.exports = { createChildCompiler, runAsChild }
-// Copied from createChildCompiler in Compilation and Compiler combined with info from
 /**
+ * Idealy we would use the `createChildCompiler` function from webpack.Compilation. This however
+ * creates a compiler based on the current compiler (it's plugins and options) with only different
+ * output options.
+ *
+ * The `target` option (which can not be set with `createChildCompiler`) is the most problematic
+ * option as this branches into a multitude of other options that may or may not be used by plugins.
+ *
+ * In order to have a somewhat maintainable version we will combine code from the following
+ * locations:
+ * - Compilation.js#createChildCompiler
+ * - Compiler.js#createChildCompiler
+ * - webpack.js
+ */
+
+
+module.exports = { createChildCompiler }
+/**
+ * Creates a child compiler (similar to compilation.createChildCompiler). The difference is that it
+ * expects a full webpack configuration allowing for a different target for example.
+ *
+ * IMPORTANT: run this compiler with the `compiler.runAsChild(callback)` function.
+ *
  * @param {{
  *   configuration: webpack.Configuration,
  *   compiler: webpack.Compiler,
+ *   compilation: webpack.Compilation,
  * }} props
  */
-function createChildCompiler({ configuration, compiler }) {
-  const childCompiler = webpack(configuration)
+function createChildCompiler({
+  configuration,
+  compiler: parentCompiler,
+  compilation: parentCompilation,
+}) {
+  if (!configuration.name) throw new Error('Configuration should have a name')
+  const { name } = configuration
 
-  const compilerName = childCompiler.name
-
-  childCompiler.outputPath = compiler.outputPath
-  childCompiler.inputFileSystem = compiler.inputFileSystem
-  childCompiler.outputFileSystem = null
-  childCompiler.resolverFactory = compiler.resolverFactory
-  childCompiler.modifiedFiles = compiler.modifiedFiles
-  childCompiler.removedFiles = compiler.removedFiles
-  childCompiler.fileTimestamps = compiler.fileTimestamps
-  childCompiler.contextTimestamps = compiler.contextTimestamps
-  childCompiler.fsStartTime = compiler.fsStartTime
-  childCompiler.cache = compiler.cache
-  childCompiler.compilerPath = `${compiler.compilerPath}${compilerName}|`
-
-  const relativeCompilerName = makePathsRelative(
-    compiler.context,
-    compilerName,
-    compiler.root
-  )
-
-  if (compiler.records[relativeCompilerName]) {
-    childCompiler.records = this.records[relativeCompilerName]
-  } else {
-    this.records[relativeCompilerName] = childCompiler.records = {}
+  const options = {
+    ...configuration,
+    plugins: [
+      // read the comment at these plugins for more information
+      ReplaceNodeEnvironmentPluginEffectsPlugin({ parentCompiler }),
+      ApplyChildCompilerEffectsPlugin({ name, parentCompiler, parentCompilation }),
+    ].concat(configuration.plugins || [])
   }
 
-  // childCompiler.parentCompilation = compilation
-  childCompiler.root = compiler.root
+  const childCompiler = webpack(options)
 
   return childCompiler
 }
 
-// Copied from runAsChild from Compiler
-function runAsChild({ parentCompilation, childCompiler, callback }) {
-  const startTime = Date.now()
-
-  childCompiler.compile((err, compilation) => {
-    if (err) return finalCallback(err)
-
-    parentCompilation.children.push(compilation)
-    for (const { name, source, info } of compilation.getAssets()) {
-      parentCompilation.emitAsset(name, source, info)
+/**
+ * This plugin replaces the effect of the NodeEnvironmentPlugin. These effect should only be applied
+ * to the root compiler. This module copies the properties that are normally (in webpack.js) set by
+ * the NodeEnvironmentPlugin from the parent compiler.
+ */
+function ReplaceNodeEnvironmentPluginEffectsPlugin({ parentCompiler }) {
+  return {
+    /** @param {webpack.Compiler} compiler */
+    apply(compiler) {
+      compiler.infrastructureLogger = parentCompiler.infrastructureLogger
+      compiler.inputFileSystem = parentCompiler.inputFileSystem
+      compiler.outputFileSystem = parentCompiler.outputFileSystem
+      compiler.intermediateFileSystem = parentCompiler.intermediateFileSystem
+      compiler.watchFileSystem = parentCompiler.watchFileSystem
     }
+  }
+}
 
-    const entries = []
-    for (const ep of compilation.entrypoints.values()) {
-      entries.push(...ep.chunks)
-    }
+/**
+ * This plugin copies the logic from `Compilation.createChildCompiler` and
+ * `Compiler.createChildCompiler` that should be applied directly after compiler creation
+ */
+const childCounters = new WeakMap()
+function ApplyChildCompilerEffectsPlugin({ name, parentCompiler, parentCompilation }) {
+  const childrenCounters = childCounters.get(parentCompilation) ||
+    childCounters.set(parentCompilation, {}).get(parentCompilation)
 
-    compilation.startTime = startTime
-    compilation.endTime = Date.now()
+  return {
+    /** @param {webpack.Compiler} compiler */
+    apply(compiler) {
+      // from Compilation.createChildCompiler
+      const compilerIndex = childrenCounters[name] || 0
+      childrenCounters[name] = compilerIndex + 1
 
-    return finalCallback(null, entries, compilation)
-  })
+      // from Compiler.createChildCompiler
+      compiler.outputPath = parentCompiler.outputPath
+      compiler.inputFileSystem = parentCompiler.inputFileSystem
+      compiler.outputFileSystem = null
+      compiler.resolverFactory = parentCompiler.resolverFactory
+      compiler.modifiedFiles = parentCompiler.modifiedFiles
+      compiler.removedFiles = parentCompiler.removedFiles
+      compiler.fileTimestamps = parentCompiler.fileTimestamps
+      compiler.contextTimestamps = parentCompiler.contextTimestamps
+      compiler.fsStartTime = parentCompiler.fsStartTime
+      compiler.cache = parentCompiler.cache
+      compiler.compilerPath = `${parentCompiler.compilerPath}${name}|${compilerIndex}|`
+      compiler._backCompat = parentCompiler._backCompat
 
-  function finalCallback(err, entries, compilation) {
-    try {
-      callback(err, entries, compilation)
-    } catch (e) {
-      const err = new webpack.WebpackError(
-        `compiler.runAsChild callback error: ${e}`
+      const relativeCompilerName = makePathsRelative(
+        parentCompiler.context,
+        name,
+        parentCompiler.root
       )
-      err.details = e.stack
-      parentCompilation.errors.push(err)
+      if (!parentCompiler.records[relativeCompilerName]) {
+        parentCompiler.records[relativeCompilerName] = []
+      }
+      if (parentCompiler.records[relativeCompilerName][compilerIndex]) {
+        compiler.records = parentCompiler.records[relativeCompilerName][compilerIndex]
+      } else {
+        parentCompiler.records[relativeCompilerName].push((compiler.records = {}))
+      }
+
+      compiler.parentCompilation = parentCompilation
+      compiler.root = parentCompiler.root
+
+      /*
+        Skipping the following sections from Compiler.createChildCompiler:
+
+        - Applying plugins -- this will already be done after this plugin is executed)
+        - Nullifying certain hooks (removing the taps), this is done by removing the taps of
+          certain hooks -- we do not apply the plugins from the parent compiler so we don't have to
+          remove the taps.
+        - Calling the 'childCompiler' hook -- this is not used by any of the internal plugins
+      */
     }
-  };
+  }
 }
