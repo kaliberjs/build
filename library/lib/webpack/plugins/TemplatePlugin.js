@@ -8,7 +8,6 @@ const { dynamicEntries } = require('../utils/dynamicEntries')
 const p = 'kaliber.TemplatePlugin'
 
 const templatePattern = /\.([^.]+)\.js$/
-const hasFunctionExportKey = '_kaliber_hasFunctionExport'
 
 module.exports = { TemplatePlugin }
 
@@ -28,6 +27,7 @@ function TemplatePlugin({ templateRenderers }) {
 
       compiler.hooks.thisCompilation.tap(p, (compilation, { normalModuleFactory }) => {
         const templateAssets = []
+        const modulesWithFunctionExport = new Set()
 
         // Add hasFunctionExport to module build meta
         normalModuleFactory.hooks.parser.for('javascript/auto').tap(p, addExportHook)
@@ -38,7 +38,7 @@ function TemplatePlugin({ templateRenderers }) {
           parser.hooks.export.tap(p, statement => {
             if (statement?.declaration?.type !== 'FunctionDeclaration') return
 
-            parser.state.module.buildMeta[hasFunctionExportKey] = true
+            modulesWithFunctionExport.add(parser.state.module)
           })
         }
 
@@ -47,8 +47,12 @@ function TemplatePlugin({ templateRenderers }) {
           const [, type] = filename.match(templatePattern) || []
           if (!type || !templateRenderers[type]) return
 
-          const hasFunctionExport = Boolean(chunk.entryModule.buildMeta[hasFunctionExportKey])
+          const [entryModule, ...otherEntryModules] =
+            compilation.chunkGraph.getChunkEntryModulesIterable(chunk)
 
+          if (otherEntryModules.length) throw new Error(`Do no know how to deal with more than ane entry module`)
+
+          const hasFunctionExport = modulesWithFunctionExport.has(entryModule)
           templateAssets.push({ filename, hasFunctionExport, type })
         })
 
