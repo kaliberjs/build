@@ -6,6 +6,7 @@ module.exports = {
     `<div onChange={() => setState(test1)} />`,
     `<div {...{ settings }} />`,
     `<div settings={test1} />`,
+    `<div {...someProps} />`,
   ],
   invalid: [
     {

@@ -54,6 +54,7 @@ const {
     publicPath = '/',
     symlinks = true,
     webpackLoaders: userDefinedWebpackLoaders = [],
+    cssNativeCustomProperties = false,
   } = {}
 } = require('@kaliber/config')
 
@@ -68,29 +69,29 @@ const babelLoader = {
     cacheDirectory: './.babelcache/',
     cacheCompression: false,
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: [['@babel/preset-env', { modules: false }], '@babel/preset-react'],
+    presets: ['@babel/preset-react'],
     plugins: [
+      ['@babel/plugin-proposal-decorators', { legacy: true }],
+      ['@babel/plugin-proposal-class-properties', { loose: true }],
+      '@babel/plugin-proposal-export-namespace-from',
+      '@babel/plugin-proposal-nullish-coalescing-operator',
+      '@babel/plugin-proposal-object-rest-spread',
+      '@babel/plugin-proposal-optional-chaining',
       '@babel/syntax-dynamic-import',
-      '@babel/syntax-optional-chaining',
-      ['@babel/proposal-decorators', { legacy: true }],
-      '@babel/proposal-class-properties',
-      '@babel/proposal-object-rest-spread',
-      '@babel/transform-async-to-generator',
-      ['@babel/transform-runtime', {
-        'helpers': false,
-        'regenerator': true
-      }]
+      '@babel/plugin-transform-named-capturing-groups-regex',
+      '@babel/plugin-transform-template-literals',
     ]
   }
 }
 
 const cssLoaderGlobalScope = {
   loader: 'css-loader',
-  options: { globalScopeBehaviour: true }
+  options: { globalScopeBehaviour: true, nativeCustomProperties: cssNativeCustomProperties }
 }
 
 const cssLoader = {
-  loader: 'css-loader'
+  loader: 'css-loader',
+  options: { nativeCustomProperties: cssNativeCustomProperties }
 }
 
 const cssLoaderMinifyOnly = {
@@ -255,7 +256,7 @@ module.exports = function build({ watch }) {
 
   function resolveOptions() {
     return {
-      extensions: ['.js', '.mjs'],
+      extensions: ['.js', '.mjs', '.cjs'],
       modules: ['node_modules'],
       plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()],
       symlinks,
@@ -314,14 +315,14 @@ module.exports = function build({ watch }) {
 
         {
           resource: {
-            test: /(\.html\.js|\.js|\.mjs)$/,
+            test: /(\.html\.js|\.js|\.mjs|\.cjs)$/,
             or: [{ exclude: /node_modules/ }, ...compileWithBabel],
           },
           loaders: [babelLoader]
         },
 
         {
-          test: /(\.js|\.mjs)$/,
+          test: /(\.js|\.mjs|\.cjs)$/,
           type: 'javascript/auto',
         },
 
