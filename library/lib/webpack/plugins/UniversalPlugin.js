@@ -101,7 +101,7 @@ function UniversalPlugin({ browserConfig }) {
           })
         })
 
-        console.log(entries.map(x => ({ name: x.name, id: x.id, files: x.files })))
+        // console.log(entries.map(x => ({ name: x.name, id: x.id, files: x.files })))
       })
     }
   }

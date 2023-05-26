@@ -11,7 +11,7 @@ module.exports = {
       clientWrapper: '/wrapper/Client',
       serverWrapper: '/wrapper/Server',
     },
-    cssNativeCustomProperties: true
+    // cssNativeCustomProperties: true
   },
   client: {
     someConfigKey: true
