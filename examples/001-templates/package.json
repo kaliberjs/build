@@ -1,0 +1,12 @@
+{
+  "name": "001-templates",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "kaliber-build"
+  },
+  "dependencies": {
+    "@kaliber/build": "*"
+  }
+}

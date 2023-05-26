@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/build",
+    "examples/001-templates",
+    "tests"
+  ]
+}

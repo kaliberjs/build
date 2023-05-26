@@ -1,0 +1,7 @@
+{
+  "name": "@kaliber/build",
+  "version": "0.0.501",
+  "bin": {
+    "kaliber-build": "bin/build.js"
+  }
+}
