@@ -1,0 +1,13 @@
+{
+  "include": ["**/*.js"],
+  "exclude": [],
+  "compilerOptions": {
+    "target": "ESNext",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "moduleResolution": "nodenext",
+    "allowSyntheticDefaultImports": true,
+    "module": "NodeNext"
+  },
+}
