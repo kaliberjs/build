@@ -60,9 +60,13 @@ function TemplatePlugin({ templateRenderers }) {
         compilation.hooks.processAssets.tapPromise(
           { name: p, stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
           async assets => {
-            for (const { filename, hasFunctionExport, type } of templateAssets) {
-              if (hasFunctionExport) handleDynamicTemplate({ compilation, filename, type })
-              else await handleStaticTemplate({ compilation, filename, type })
+            try {
+              for (const { filename, hasFunctionExport, type } of templateAssets) {
+                if (hasFunctionExport) handleDynamicTemplate({ compilation, filename, type })
+                else await handleStaticTemplate({ compilation, filename, type })
+              }
+            } catch (e) {
+              console.error('problem here:\n' + e)
             }
           }
         )
