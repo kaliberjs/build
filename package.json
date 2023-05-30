@@ -1,8 +1,11 @@
 {
   "private": true,
-  "workspaces": [
-    "packages/build",
-    "examples/*",
-    "tests"
-  ]
+  "workspaces": {
+    "packages": [
+      "packages/build",
+      "examples/*",
+      "tests"
+    ],
+    "nohoist": ["**"]
+  }
 }
