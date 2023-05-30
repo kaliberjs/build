@@ -3,6 +3,7 @@ import log from 'loglevel'
 import { findEntries } from './webpack/utils/findEntries.js'
 import { templatePlugin } from './webpack/plugins/templatePlugin.js'
 import { babelLoader } from './webpack.loaders.config.js'
+import { sourceMapPlugin } from './webpack/plugins/sourceMapPlugin.js'
 
 const logLevel = log.levels[process.env.LOG_LEVEL || '']
 if (logLevel !== undefined) log.setDefaultLevel(logLevel)
@@ -39,6 +40,7 @@ export default {
     rules: getRules()
   },
   plugins: [
+    sourceMapPlugin(),
     templatePlugin({ templateRenderers }),
   ]
 }

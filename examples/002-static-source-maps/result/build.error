@@ -1,0 +1,2 @@
+Error: This error is thrown from source code at build time
+    at TestError (/.../webpack://error.html.js:4:9)

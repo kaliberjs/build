@@ -10,7 +10,7 @@ import { appendSourceMap } from '../utils/appendSourceMap.js'
 import { dynamicEntries } from '../utils/dynamicEntries.js'
 
 const { RawSource } = sources
-const p = 'kaliber.TemplatePlugin'
+const p = 'kaliber.templatePlugin'
 
 const templatePattern = /\.([^.]+)\.js$/
 
@@ -102,7 +102,6 @@ function processTemplates({ compilation, templateAssets }) {
     { name: p, stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
     async assets => {
       for (const { filename, hasFunctionExport, type } of templateAssets) {
-        console.log('process template')
           try {
             if (hasFunctionExport) handleDynamicTemplate({ compilation, filename, type })
             else await handleStaticTemplate({ compilation, filename, type })

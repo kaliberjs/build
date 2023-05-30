@@ -1,0 +1,15 @@
+{
+  "include": ["cases/**/*.js"],
+  "typeAcquisition": {
+    "enable": true
+  },
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "target": "ESNext",
+    "moduleResolution": "nodenext",
+    "allowSyntheticDefaultImports": true,
+    "module": "NodeNext"
+  }
+}
