@@ -2,6 +2,7 @@ import path from 'node:path'
 import log from 'loglevel'
 import { findEntries } from './webpack/utils/findEntries.js'
 import { templatePlugin } from './webpack/plugins/templatePlugin.js'
+import { babelLoader } from './webpack.loaders.config.js'
 
 const logLevel = log.levels[process.env.LOG_LEVEL || '']
 if (logLevel !== undefined) log.setDefaultLevel(logLevel)
@@ -34,6 +35,9 @@ export default {
   experiments: {
     outputModule: true // TODO: check if we really want this
   },
+  module: {
+    rules: getRules()
+  },
   plugins: [
     templatePlugin({ templateRenderers }),
   ]
@@ -43,6 +47,7 @@ function getTemplateRenderers() {
   const templateRenderers = {
     txt: '@kaliber/build/lib/templateRenderers/txt-renderer',
     json: '@kaliber/build/lib/templateRenderers/json-renderer',
+    html: '@kaliber/build/lib/templateRenderers/html-react-renderer',
   }
   const recognizedTemplates = Object.keys(templateRenderers)
   // if (templateRenderers['raw']) throw new Error(`Can not define a renderer with the type 'raw' as it is a reserved type`)
@@ -60,4 +65,14 @@ async function collectEntries() {
   Object.keys(entries).forEach(entry => log.info(`  - ${entry}`))
 
   return entries
+}
+
+function getRules() {
+  return [
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      use: babelLoader,
+    }
+  ]
 }

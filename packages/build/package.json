@@ -6,8 +6,13 @@
     "kaliber-build": "bin/build.js"
   },
   "dependencies": {
+    "@babel/core": "^7.22.1",
+    "@babel/preset-react": "^7.22.3",
+    "babel-loader": "^9.1.2",
     "fast-glob": "^3.2.12",
     "loglevel": "^1.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "webpack": "^5.84.1"
   }
 }
