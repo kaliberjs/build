@@ -10,8 +10,7 @@ Index.routes = {
   },
 
   async match({ pathname }, request) {
-    return { status: 200, data: { hostname: request.hostname, pathname }
-    }
+    return { status: 200, data: { hostname: request.hostname, pathname } }
   }
 }
 
