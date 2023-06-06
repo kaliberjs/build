@@ -1,7 +1,8 @@
 import head from '/partials/head'
 
 Index.routes = {
-  resolveIndex({ pathname }) {
+  resolveIndex(location, req) {
+    const { pathname } = location
     return (
       pathname === '/routeBasedTemplate/test1' ? 'routeBasedTemplate/template1' :
       pathname === '/routeBasedTemplate/test2' ? 'routeBasedTemplate/template2' :
