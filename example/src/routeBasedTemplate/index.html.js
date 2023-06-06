@@ -5,7 +5,7 @@ Index.routes = {
     return (
       pathname === '/routeBasedTemplate/test1' ? 'routeBasedTemplate/template1' :
       pathname === '/routeBasedTemplate/test2' ? 'routeBasedTemplate/template2' :
-      'routeBasedTemplate'
+     null
     )
   },
 

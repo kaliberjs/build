@@ -151,6 +151,8 @@ function serveIndexWithRouting(req, res, file) {
       if (!routes || !routes.resolveIndex) return [data, routeTemplate]
 
       const indexLocation = routes.resolveIndex(location, req)
+      if (!indexLocation) return [data, routeTemplate]
+
       const indexPath = resolve(target, publicPathDir, indexLocation, indexWithRouting)
       return [data, envRequire(indexPath)]
     })
