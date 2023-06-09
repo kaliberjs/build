@@ -151,7 +151,8 @@ async function handleStaticTemplate({ compilation, filename, type }) {
     })
 
     compilation.deleteAsset(filename)
-    compilation.emitAsset(filename.replace(templatePattern, `.${type}`), new RawSource(result))
+    const newFilename = path.join('public', filename.replace(templatePattern, `.${type}`))
+    compilation.emitAsset(newFilename, new RawSource(result))
   } finally {
     await fs.rm(template)
     await fs.rm(renderer)
