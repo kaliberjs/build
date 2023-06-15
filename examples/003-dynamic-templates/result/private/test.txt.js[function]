@@ -1,0 +1,5 @@
+input
+{ a: 1, b: 'test' }
+
+output
+This is a generated file with input {"a":1,"b":"test"}

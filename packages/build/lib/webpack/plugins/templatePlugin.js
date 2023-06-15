@@ -118,26 +118,22 @@ function processTemplates({ compilation, templateAssets }) {
 }
 
 function handleDynamicTemplate({ compilation, filename, type }) {
-  // const templateFilename = filename.replace(templatePattern, `.${type}.template.js`)
+  const templateFilename = filename.replace(templatePattern, `.${type}.template.js`)
 
-  // compilation.renameAsset(filename, templateFilename)
-  // compilation.emitAsset(filename,
-  //   new RawSource(`
-  //     const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
-  //     const templateModule = envRequire('./${templateFilename}')
-  //     const rendererModule = envRequire('./renderers/${type}')
-  //     const template = templateModule.default || templateModule
-  //     const renderer = rendererModule.default || rendererModule
+  compilation.renameAsset(filename, path.join('private', templateFilename))
+  // TODO: the code below will most likely not pick up changes in watch mode because of the import - we previously used the 'import-fresh' package in combination with require
+  compilation.emitAsset(path.join('private', filename),
+    new RawSource(`
+      import template from './${templateFilename}'
+      import renderer from './renderers/${type}.js'
 
-  //     Object.assign(render, template)
+      Object.assign(render, template)
 
-  //     module.exports = render
-
-  //     function render(props) {
-  //       return renderer(template(props))
-  //     }
-  //   `)
-  // )
+      export default function render(props) {
+        return renderer(template(props))
+      }
+    `)
+  )
 }
 
 async function handleStaticTemplate({ compilation, filename, type }) {

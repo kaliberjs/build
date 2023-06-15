@@ -1,0 +1,12 @@
+{
+  "name": "003-dynamic-templates",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "NODE_OPTIONS='--enable-source-maps' kaliber-build"
+  },
+  "dependencies": {
+    "@kaliber/build": "*"
+  }
+}

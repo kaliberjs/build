@@ -1,0 +1,6 @@
+input
+{ a: 1, b: 'test' }
+
+output
+<!DOCTYPE html>
+<div><h1>Hello</h1><p>world</p><strong>1</strong>test</div>

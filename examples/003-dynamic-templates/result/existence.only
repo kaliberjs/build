@@ -1,0 +1,6 @@
+private/renderers/json.js
+private/renderers/html.js
+private/renderers/txt.js
+private/test.txt.template.js
+private/test.json.template.js
+private/test.html.template.js

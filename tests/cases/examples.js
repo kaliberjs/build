@@ -8,6 +8,7 @@ const [,, pattern, testPattern] = process.argv
 
 const buildFailureFilename = 'build.error'
 const existenceOnlyFilename = 'existence.only'
+const functionMarker = '[function]'
 
 describe(`Examples (${exampleDir})`, () => {
 
@@ -15,7 +16,10 @@ describe(`Examples (${exampleDir})`, () => {
     .filter(x => x.isDirectory())
 
   examples.forEach(dir => {
-    if (pattern && (!pattern.startsWith('example') || !dir.name.includes(testPattern))) return
+    if (pattern && testPattern && (
+      !pattern.startsWith('example') ||
+      !dir.name.includes(testPattern))
+    ) return
 
     describe(dir.name, () => {
       const examplePath = path.join(exampleDir, dir.name)
@@ -38,41 +42,41 @@ function testBuildSuccess({ examplePath, resultPath, expectedEntries }) {
 
   describe(`produce the expected files and directories`, () => {
     const targetPath = path.join(examplePath, 'target')
-    const entriesInTarget = gatherEntriesRecursively({ targetPath })
     const existenceOnlyPath = path.join(resultPath, existenceOnlyFilename)
     const existenceOnly = fs.existsSync(existenceOnlyPath)
       ? fs.readFileSync(existenceOnlyPath, { encoding: 'utf8' }).split('\n').filter(Boolean)
       : []
 
     expectedEntries.forEach(({ dir, entry }) => {
-      describe(`${path.join(dir, entry.name)}`, () => {
-        const filePath = path.join(targetPath, dir, entry.name)
+      describe(`${entry.isDirectory() ? 'directory' : 'file'} ${path.join(dir, entry.name)}`, () => {
+        const isFunction = entry.name.endsWith(functionMarker)
+        const actualName = entry.name.replace(functionMarker, '')
+        const targetFilePath = path.join(targetPath, dir, actualName)
 
         it('exists', () => {
-          const exists = fs.existsSync(filePath)
+          const exists = fs.existsSync(targetFilePath)
           expect(exists).toEqual(true)
         })
 
         if (entry.isDirectory() || existenceOnly.includes(path.join(dir, entry.name))) return
 
         const expectedFilePath = path.join(resultPath, dir, entry.name)
-        it('has expected content', () => {
-          const expectedContent = fs.readFileSync(expectedFilePath, { encoding: 'utf8' })
-          const content = fs.readFileSync(filePath, { encoding: 'utf8' })
-
-          expect(content).toEqual(expectedContent)
+        it(`${isFunction ? 'returns' : 'has'} expected content`, async () => {
+          if (isFunction)
+            await checkFunctionContent({ expectedFilePath, targetFilePath, cwd: examplePath })
+          else
+            checkStaticContent({ expectedFilePath, targetFilePath })
         })
       })
     })
 
     it(`has not produced additional files`, () => {
-
-      const result = entriesInTarget
+      const expectedFiles = expectedEntries.map(x => path.join(x.dir, x.entry.name))
+      const entriesInTarget = gatherEntriesRecursively({ targetPath })
+      const filesInTarget = entriesInTarget.map(x => path.join(x.dir, x.entry.name))
+      const result = filesInTarget
         .filter(found =>
-          !expectedEntries.some(expected =>
-            expected.dir === found.dir &&
-            expected.entry.name === found.entry.name
-          )
+          !expectedFiles.includes(found) && !expectedFiles.includes(`${found}${functionMarker}`)
         )
         .map(x => path.join(x.dir, x.entry.name))
 
@@ -103,9 +107,24 @@ function execCommand({ command, cwd, logOutputOn }) {
       }
 
       if (e) reject(e)
-      else resolve(undefined)
+      else resolve(stdout)
     })
   )
+}
+
+async function executeFunction({ targetFilePath, input, cwd }) {
+  const stdout = await execCommand({
+    command: [
+      'node' ,
+      '--input-type=module',
+      '--eval',
+      `"import f from '${targetFilePath}'; process.stdout.write(f(${input}))"`,
+    ].join(' '),
+    cwd,
+    logOutputOn: 'failure'
+  })
+
+  return stdout
 }
 
 function gatherEntriesRecursively({ targetPath, dir = '' }) {
@@ -118,4 +137,46 @@ function gatherEntriesRecursively({ targetPath, dir = '' }) {
         : []
       )
     )
+}
+
+function checkStaticContent({ expectedFilePath, targetFilePath }) {
+  const expectedContent = fs.readFileSync(expectedFilePath, { encoding: 'utf8' })
+  const content = fs.readFileSync(targetFilePath, { encoding: 'utf8' })
+
+  expect(content).toEqual(expectedContent)
+}
+
+async function checkFunctionContent({ expectedFilePath, targetFilePath, cwd }) {
+  const functionInstructions = fs.readFileSync(expectedFilePath, { encoding: 'utf8' })
+  const { input, output } = extractInputAndOutput(functionInstructions)
+
+  const content = await executeFunction({ targetFilePath, input, cwd })
+
+  expect(content).toEqual(output)
+}
+
+function extractInputAndOutput(functionInstructions) {
+  const { result } = functionInstructions.split('\n')
+    .reduce(
+      ({ result, mode }, line) => {
+        if (mode === 'search-input' && line === 'input')
+          return { result, mode: 'input' }
+
+        if (mode === 'input')
+          return { result: { ...result, input: line }, mode: 'search-output'}
+
+        if (mode === 'search-output' && line === 'output')
+          return { result, mode: 'output' }
+
+        if (mode === 'output')
+          return { result: { ...result, output: result.output.concat(line) }, mode: 'output'}
+
+        return { result, mode }
+      },
+      { result: { input: null, output: [] }, mode: 'search-input' }
+    )
+
+  const { input, output } = result
+
+  return { input, output: output.join('\n') }
 }
