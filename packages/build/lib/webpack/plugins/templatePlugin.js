@@ -17,7 +17,7 @@ const templatePattern = /\.([^.]+)\.js$/
 export function templatePlugin({ templateRenderers }) {
   const rendererEntries = Object.fromEntries(
     Object.entries(templateRenderers).map(
-      ([type, path]) => [`renderers/${type}.js`, { import: [path] }]
+      ([type, path]) => [`private/renderers/${type}.js`, { import: [path] }]
     )
   )
 
@@ -142,7 +142,7 @@ function handleDynamicTemplate({ compilation, filename, type }) {
 
 async function handleStaticTemplate({ compilation, filename, type }) {
   const template = await createEvalFile(filename)
-  const renderer = await createEvalFile(`renderers/${type}.js`)
+  const renderer = await createEvalFile(`private/renderers/${type}.js`)
 
   try {
     const result = await evalInFork({
