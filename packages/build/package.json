@@ -8,6 +8,7 @@
   "dependencies": {
     "@babel/core": "^7.22.1",
     "@babel/preset-react": "^7.22.3",
+    "@kaliber/config": "^0.0.8",
     "babel-loader": "^9.1.2",
     "fast-glob": "^3.2.12",
     "loglevel": "^1.8.1",

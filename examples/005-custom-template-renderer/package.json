@@ -1,0 +1,13 @@
+{
+  "name": "005-custom-template-renderer",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-build"
+  },
+  "dependencies": {
+    "@kaliber/build": "*",
+    "xml": "^1.0.1"
+  }
+}

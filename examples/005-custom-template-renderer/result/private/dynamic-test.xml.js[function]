@@ -1,0 +1,5 @@
+input
+{ a: 1, b: 'test' }
+
+output
+<?xml version="1.0" encoding="UTF-8"?><props><a>1</a><b>test</b></props>

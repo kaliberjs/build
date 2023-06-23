@@ -4,6 +4,7 @@ import { findEntries } from './webpack/utils/findEntries.js'
 import { templatePlugin } from './webpack/plugins/templatePlugin.js'
 import { babelLoader } from './webpack.loaders.config.js'
 import { sourceMapPlugin } from './webpack/plugins/sourceMapPlugin.js'
+import config from '@kaliber/config'
 
 const logLevel = log.levels[process.env.LOG_LEVEL || '']
 if (logLevel !== undefined) log.setDefaultLevel(logLevel)
@@ -50,6 +51,7 @@ function getTemplateRenderers() {
     txt: '@kaliber/build/lib/templateRenderers/txt-renderer',
     json: '@kaliber/build/lib/templateRenderers/json-renderer',
     html: '@kaliber/build/lib/templateRenderers/html-react-renderer',
+    ...config.kaliber.templateRenderers,
   }
   const recognizedTemplates = Object.keys(templateRenderers)
   // if (templateRenderers['raw']) throw new Error(`Can not define a renderer with the type 'raw' as it is a reserved type`)
