@@ -1,0 +1,7 @@
+input
+{ a: 1, b: 'test' }
+
+error
+Error: This error is thrown from source code at run time with props:
+{"a":1,"b":"test"}
+    at TestError (webpack://./error.html.js:3:9)

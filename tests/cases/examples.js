@@ -78,7 +78,6 @@ function testBuildSuccess({ examplePath, resultPath, expectedEntries }) {
         .filter(found =>
           !expectedFiles.includes(found) && !expectedFiles.includes(`${found}${functionMarker}`)
         )
-        .map(x => path.join(x.dir, x.entry.name))
 
       expect(result).toHaveLength(0)
     })
@@ -95,7 +94,7 @@ function testBuildFailure({ examplePath, resultPath }) {
   })
 }
 
-function execCommand({ command, cwd, logOutputOn }) {
+async function execCommand({ command, cwd, logOutputOn }) {
   return new Promise((resolve, reject) =>
     exec(command, { cwd }, (e, stdout, stderr) => {
       const success = !e
@@ -106,25 +105,26 @@ function execCommand({ command, cwd, logOutputOn }) {
         if (stderr) console.error(stderr)
       }
 
-      if (e) reject(e)
-      else resolve(stdout)
+      if (success) resolve(stdout || stderr)
+      else reject(e)
     })
   )
 }
 
-async function executeFunction({ targetFilePath, input, cwd }) {
-  const stdout = await execCommand({
+async function executeFunction({ targetFilePath, input, cwd, logOutputOn }) {
+  const output = await execCommand({
     command: [
       'node' ,
       '--input-type=module',
+      '--enable-source-maps',
       '--eval',
       `"import f from '${targetFilePath}'; process.stdout.write(f(${input}))"`,
     ].join(' '),
     cwd,
-    logOutputOn: 'failure'
+    logOutputOn
   })
 
-  return stdout
+  return output
 }
 
 function gatherEntriesRecursively({ targetPath, dir = '' }) {
@@ -148,11 +148,15 @@ function checkStaticContent({ expectedFilePath, targetFilePath }) {
 
 async function checkFunctionContent({ expectedFilePath, targetFilePath, cwd }) {
   const functionInstructions = fs.readFileSync(expectedFilePath, { encoding: 'utf8' })
-  const { input, output } = extractInputAndOutput(functionInstructions)
+  const { input, output, error } = extractInputAndOutput(functionInstructions)
 
-  const content = await executeFunction({ targetFilePath, input, cwd })
+  const resultPromise = executeFunction({
+    targetFilePath, input, cwd,
+    logOutputOn: error ? 'success' : 'failure'
+  })
 
-  expect(content).toEqual(output)
+  if (error) await expect(resultPromise).rejects.toThrowError(error)
+  if (output) await expect(resultPromise).resolves.toEqual(output)
 }
 
 function extractInputAndOutput(functionInstructions) {
@@ -163,20 +167,24 @@ function extractInputAndOutput(functionInstructions) {
           return { result, mode: 'input' }
 
         if (mode === 'input')
-          return { result: { ...result, input: line }, mode: 'search-output'}
+          return { result: { ...result, input: line }, mode: 'search-output-or-error'}
 
-        if (mode === 'search-output' && line === 'output')
-          return { result, mode: 'output' }
+        if (mode === 'search-output-or-error')
+          if (line === 'output') return { result, mode: 'output' }
+          if (line === 'error') return { result, mode: 'error' }
 
         if (mode === 'output')
           return { result: { ...result, output: result.output.concat(line) }, mode: 'output'}
 
+        if (mode === 'error')
+          return { result: { ...result, error: result.error.concat(line) }, mode: 'error'}
+
         return { result, mode }
       },
-      { result: { input: null, output: [] }, mode: 'search-input' }
+      { result: { input: null, output: [], error: [] }, mode: 'search-input' }
     )
 
-  const { input, output } = result
+  const { input, output, error } = result
 
-  return { input, output: output.join('\n') }
+  return { input, output: output.join('\n'), error: error.join('\n') }
 }
