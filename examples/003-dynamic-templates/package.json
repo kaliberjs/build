@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "NODE_OPTIONS='--enable-source-maps' kaliber-build"
+    "build": "CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-build"
   },
   "dependencies": {
     "@kaliber/build": "*"

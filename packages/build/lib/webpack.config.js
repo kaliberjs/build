@@ -51,7 +51,7 @@ function getTemplateRenderers() {
     txt: '@kaliber/build/lib/templateRenderers/txt-renderer',
     json: '@kaliber/build/lib/templateRenderers/json-renderer',
     html: '@kaliber/build/lib/templateRenderers/html-react-renderer',
-    ...config.kaliber.templateRenderers,
+    ...config.kaliber?.templateRenderers,
   }
   const recognizedTemplates = Object.keys(templateRenderers)
   // if (templateRenderers['raw']) throw new Error(`Can not define a renderer with the type 'raw' as it is a reserved type`)

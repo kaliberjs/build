@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "kaliber-build"
+    "build": "CONFIG_ENV=dev kaliber-build"
   },
   "dependencies": {
     "@kaliber/build": "*"
