@@ -1,6 +1,12 @@
 private/renderers/json.js
+private/renderers/json.js.map
 private/renderers/html.js
+private/renderers/html.js.map
 private/renderers/txt.js
+private/renderers/txt.js.map
 private/test.txt.template.js
+private/test.txt.template.js.map
 private/test.json.template.js
+private/test.json.template.js.map
 private/test.html.template.js
+private/test.html.template.js.map
