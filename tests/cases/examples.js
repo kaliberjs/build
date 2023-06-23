@@ -58,6 +58,13 @@ function testBuildSuccess({ examplePath, resultPath, expectedEntries }) {
           expect(exists).toEqual(true)
         })
 
+        // if we need to, we can add exceptions in something like 'existence.only' (probably another file name)
+        const maxSize = 5 * 1000
+        it(`does not exceed ${formatBytes(maxSize)}`, () => {
+          const { size } = fs.statSync(targetFilePath)
+          expect(size).toBeLessThanOrEqual(maxSize)
+        })
+
         if (entry.isDirectory() || existenceOnly.includes(path.join(dir, entry.name))) return
 
         const expectedFilePath = path.join(resultPath, dir, entry.name)
@@ -187,4 +194,14 @@ function extractInputAndOutput(functionInstructions) {
   const { input, output, error } = result
 
   return { input, output: output.join('\n'), error: error.join('\n') }
+}
+
+function formatBytes(bytes) {
+  const byteFormatter = new Intl.NumberFormat([], {
+    style: 'unit',
+    unit: 'byte',
+    notation: "compact",
+    unitDisplay: "narrow",
+  })
+  return byteFormatter.format(bytes)
 }

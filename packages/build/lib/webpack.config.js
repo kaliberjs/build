@@ -30,10 +30,18 @@ export default {
     filename: '[name]',
     path: outputPath,
     library: {
-      type: 'module'
+     type: 'module'
     },
     clean: true,
   },
+  externals: [
+    ({ request }, callback) => {
+      console.log(request)
+      if (/^[./]/.test(request)) return callback()
+      if (/^@kaliber\/build/.test(request)) return callback()
+      return callback(null, `module ${request}`)
+    }
+  ],
   experiments: {
     outputModule: true // TODO: check if we really want this
   },
@@ -48,9 +56,9 @@ export default {
 
 function getTemplateRenderers() {
   const templateRenderers = {
-    txt: '@kaliber/build/lib/templateRenderers/txt-renderer',
-    json: '@kaliber/build/lib/templateRenderers/json-renderer',
-    html: '@kaliber/build/lib/templateRenderers/html-react-renderer',
+    txt: '@kaliber/build/lib/templateRenderers/txt-renderer.js',
+    json: '@kaliber/build/lib/templateRenderers/json-renderer.js',
+    html: '@kaliber/build/lib/templateRenderers/html-react-renderer.js',
     ...config.kaliber?.templateRenderers,
   }
   const recognizedTemplates = Object.keys(templateRenderers)

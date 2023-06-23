@@ -6,6 +6,6 @@
       "examples/*",
       "tests"
     ],
-    "nohoist": ["**"]
+    "nohoist": ["**/*"]
   }
 }
