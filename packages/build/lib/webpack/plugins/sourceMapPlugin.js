@@ -1,6 +1,5 @@
 import webpack from 'webpack'
 import path from 'node:path'
-import webpackSources from 'webpack-sources'
 
 const p = 'kaliber.sourceMapPlugin'
 
@@ -54,13 +53,13 @@ function addSourceMaps({ compilation }) {
 }
 
 function addInlineSourceMapReference({ name, asset }) {
-  const [startComment, endComment] = ['//', '']// TODO: CSS: name.endsWith('.css') ? ['/*', ' */'] : ['//', '']
-  return new webpackSources.ConcatSource(
+  const [startComment, endComment] = name.endsWith('.css') ? ['/*', ' */'] : ['//', '']
+  return new webpack.sources.ConcatSource(
     asset,
     `\n${startComment}# sourceMappingURL=${path.basename(name)}.map${endComment}\n`
   )
 }
 
 function createSourceMapAsset({ map }) {
-  return new webpackSources.RawSource(JSON.stringify(map))
+  return new webpack.sources.RawSource(JSON.stringify(map))
 }

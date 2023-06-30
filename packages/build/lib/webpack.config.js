@@ -2,9 +2,10 @@ import path from 'node:path'
 import log from 'loglevel'
 import { findEntries } from './webpack/utils/findEntries.js'
 import { templatePlugin } from './webpack/plugins/templatePlugin.js'
-import { babelLoader } from './webpack.loaders.config.js'
+import { babelLoader, cssLoader } from './webpack.loaders.config.js'
 import { sourceMapPlugin } from './webpack/plugins/sourceMapPlugin.js'
 import config from '@kaliber/config'
+import { mergeCssPlugin } from './webpack/plugins/mergeCssPlugin.js'
 
 const logLevel = log.levels[process.env.LOG_LEVEL || '']
 if (logLevel !== undefined) log.setDefaultLevel(logLevel)
@@ -36,7 +37,6 @@ export default {
   },
   externals: [
     ({ request }, callback) => {
-      console.log(request)
       if (/^[./]/.test(request)) return callback()
       if (/^@kaliber\/build/.test(request)) return callback()
       return callback(null, `module ${request}`)
@@ -51,7 +51,8 @@ export default {
   plugins: [
     sourceMapPlugin(),
     templatePlugin({ templateRenderers }),
-  ]
+    mergeCssPlugin(),
+  ],
 }
 
 function getTemplateRenderers() {
@@ -85,6 +86,11 @@ function getRules() {
       test: /\.js$/,
       exclude: /node_modules/,
       use: babelLoader,
+    },
+    {
+      test: /\.css$/,
+      exclude: /node_modules/,
+      use: cssLoader,
     }
   ]
 }

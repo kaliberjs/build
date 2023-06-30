@@ -1,0 +1,12 @@
+{
+  "name": "006-css",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-build"
+  },
+  "dependencies": {
+    "@kaliber/build": "*"
+  }
+}

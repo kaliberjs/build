@@ -6,6 +6,8 @@ const exampleDir = path.resolve('../examples')
 
 const [,, pattern, testPattern] = process.argv
 
+const output = process.env.OUTPUT
+
 const buildFailureFilename = 'build.error'
 const existenceOnlyFilename = 'existence.only'
 const functionMarker = '[function]'
@@ -107,7 +109,7 @@ async function execCommand({ command, cwd, logOutputOn }) {
       const success = !e
       const logOutput = success ? logOutputOn === 'success' : logOutputOn === 'failure'
 
-      if (logOutput) {
+      if (logOutput || output) {
         if (stdout) console.log(stdout)
         if (stderr) console.error(stderr)
       }

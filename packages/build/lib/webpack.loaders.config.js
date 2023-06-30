@@ -18,3 +18,9 @@ export const babelLoader = {
     ]
   }
 }
+
+export const cssLoader = {
+  loader: '@kaliber/build/lib/webpack/loaders/css-loader',
+  options: {
+  }
+}

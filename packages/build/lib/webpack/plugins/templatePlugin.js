@@ -3,13 +3,12 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 
 import webpack from 'webpack'
-import sources from 'webpack-sources'
 
 import { evalInFork } from '../utils/evalInFork.js'
 import { appendSourceMap } from '../utils/appendSourceMap.js'
 import { dynamicEntries } from '../utils/dynamicEntries.js'
 
-const { RawSource } = sources
+const { RawSource } = webpack.sources
 const p = 'kaliber.templatePlugin'
 
 const templatePattern = /\.([^.]+)\.js$/
