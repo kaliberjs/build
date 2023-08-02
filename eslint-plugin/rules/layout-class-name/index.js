@@ -97,7 +97,11 @@ module.exports = {
       const jsxElement = getParentJSXElement(node)
       const name = getJSXElementName(jsxElement)
 
-      if (firstLetterLowerCase(name) || name.endsWith('Base')) return
+      if (
+        firstLetterLowerCase(name) 
+        || name.endsWith('Base') 
+        || name === 'FloatingOverlay'
+      ) return
 
       context.report({
         message: messages['no className on custom component'],
