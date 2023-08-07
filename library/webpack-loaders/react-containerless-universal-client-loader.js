@@ -25,24 +25,15 @@ function createClientCode({ importPath, id, wrapper: wrapperPath }) {
           |${wrapper}
           |
           |const components = findComponents({ componentName: '${id}' })
-          |let renderInfo = components.map(componentInfo => {
+          |const renderResults = components.map(componentInfo => {
           |  const { props } = componentInfo
-          |  return {
-          |    componentInfo,
-          |    renderInfo: hydrate(${wrapped}, componentInfo),
-          |  }
+          |  return { props, result: hydrate(${wrapped}, componentInfo) }
           |})
           |
           |if (module.hot) {
           |  require('@kaliber/build/lib/hot-module-replacement-client')
           |  module.hot.accept('./${importPath}', () => {
-          |    renderInfo = renderInfo.map(({ componentInfo, renderInfo }) => {
-          |      const { props, endNode } = componentInfo, { container, renderedNodes } = renderInfo
-          |      return {
-          |        componentInfo,
-          |        renderInfo: hydrate(${wrapped}, { nodes: renderedNodes, endNode, container }),
-          |      }
-          |    })
+          |    renderResults.forEach(({ props, result }) => result.update(${wrapped}))
           |  })
           |}
           |`.split(/^[ \t]*\|/m).join('')

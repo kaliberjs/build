@@ -44,6 +44,9 @@ export default class Test extends Component {
         <br />
         {shared}
         <br />
+        {!Boolean(this.state.counter % 2) && 'blink'}
+        -
+        {Boolean(this.state.counter % 2) && <b>blink</b>}
         <p>Client config:</p>
         <pre>{JSON.stringify(this.props.clientConfig, null, 2)}</pre>
       </>
