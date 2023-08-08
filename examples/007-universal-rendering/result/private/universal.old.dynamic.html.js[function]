@@ -1,0 +1,6 @@
+input
+{ title: 'dynamic with container' }
+
+output
+<!DOCTYPE html>
+<div><div>Default export: dynamic with container</div></div>

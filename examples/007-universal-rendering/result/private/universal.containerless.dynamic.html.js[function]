@@ -1,0 +1,6 @@
+input
+{ title: 'dynamic containerless' }
+
+output
+<!DOCTYPE html>
+<div><div>Named export: dynamic containerless</div></div>

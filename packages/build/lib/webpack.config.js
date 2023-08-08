@@ -48,6 +48,9 @@ export default {
   module: {
     rules: getRules()
   },
+  resolve: {
+    extensions: ['.js', '.mjs', '.cjs'],
+  },
   plugins: [
     sourceMapPlugin(),
     templatePlugin({ templateRenderers }),
@@ -86,6 +89,9 @@ function getRules() {
       test: /\.js$/,
       exclude: /node_modules/,
       use: babelLoader,
+      resolve: {
+        fullySpecified: false,
+      },
     },
     {
       test: /\.css$/,
