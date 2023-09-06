@@ -69,7 +69,7 @@ const babelLoader = {
     cacheDirectory: './.babelcache/',
     cacheCompression: false,
     babelrc: false, // this needs to be false, any other value will cause .babelrc to interfere with these settings
-    presets: [['@babel/preset-react', { 'runtime': 'automatic' }]],
+    presets: ['@babel/preset-react'],
     plugins: [
       ['@babel/plugin-proposal-decorators', { legacy: true }],
       ['@babel/plugin-proposal-class-properties', { loose: true }],
