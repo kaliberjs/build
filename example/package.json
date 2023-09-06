@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "NODE_ENV=production kaliber-build",
-    "watch": "CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-watch",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider NODE_ENV=production kaliber-build",
+    "watch": "CONFIG_ENV=dev NODE_OPTIONS='--openssl-legacy-provider --enable-source-maps' kaliber-watch",
     "serve": "kaliber-serve",
     "serve.dev": "PORT=8000 CONFIG_ENV=dev NODE_OPTIONS='--enable-source-maps' kaliber-serve",
     "lint": "kaliber-lint",
