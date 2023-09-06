@@ -14,7 +14,7 @@ export default function Index({ location }) {
           Non-universal
           <TestUrlAppN initialPath={location.pathname} />
           Universal
-          <TestUrlApp initialPath={location.pathname} />
+          <TestUrlApp initialPath={location.pathname} expectFailure />
           Containerless universal
           <TestUrlAppC initialPath={location.pathname} />
         </ClientConfigProvider>
