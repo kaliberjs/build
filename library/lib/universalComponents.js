@@ -45,7 +45,13 @@ export function hydrate(component, { nodes: initialNodes, startNode, endNode }) 
   const container = createVirtualReactContainer({ initialNodes, startNode, endNode })
   const root = hydrateRoot(container, component)
 
-  return { update: x => root.render(x) }
+  return { 
+    update(newComponent) {
+      root.unmount()
+      root = createRoot(container)
+      root.render(newComponent) 
+    }
+  }
 }
 
 function createVirtualReactContainer({ initialNodes, startNode, endNode }) {
