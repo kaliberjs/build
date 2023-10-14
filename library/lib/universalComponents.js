@@ -1,4 +1,4 @@
-import { hydrateRoot } from 'react-dom/client'
+import { hydrateRoot, createRoot } from 'react-dom/client'
 import { safeJsonStringify } from '@kaliber/safe-json-stringify'
 
 const containerMarker = 'data-kaliber-component-container'
@@ -43,13 +43,13 @@ export function findComponents({ componentName }) {
 
 export function hydrate(component, { nodes: initialNodes, startNode, endNode }) {
   const container = createVirtualReactContainer({ initialNodes, startNode, endNode })
-  const root = hydrateRoot(container, component)
+  let root = hydrateRoot(container, component)
 
-  return { 
+  return {
     update(newComponent) {
       root.unmount()
       root = createRoot(container)
-      root.render(newComponent) 
+      root.render(newComponent)
     }
   }
 }
