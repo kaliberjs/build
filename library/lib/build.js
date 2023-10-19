@@ -22,7 +22,6 @@ const walkSync = require('walk-sync')
 const webpack = require('webpack')
 
 const chunkManifestPlugin = require('../webpack-plugins/chunk-manifest-plugin')
-const configLoaderPlugin = require('../webpack-plugins/config-loader-plugin')
 const copyUnusedFilesPlugin = require('../webpack-plugins/copy-unused-files-plugin')
 const hotCssReplacementPlugin = require('../webpack-plugins/hot-css-replacement-plugin')
 const hotModuleReplacementPlugin = require('../webpack-plugins/hot-module-replacement-plugin')
@@ -378,7 +377,6 @@ module.exports = function build({ watch }) {
         watch && websocketCommunicationPlugin(),
         new TimeFixPlugin(),
         new ExtendedAPIPlugin(),
-        configLoaderPlugin(),
         watchContextPlugin(),
         reactUniversalPlugin(webOptions()),  // claims .entry.js
         templatePlugin(templateRenderers), // does work on .*.js
@@ -404,7 +402,7 @@ module.exports = function build({ watch }) {
   function externalConfForModulesDir(modulesDir) {
     return {
       modulesDir,
-      allowlist: ['@kaliber/config', ...compileWithBabel, /\.css$/]
+      allowlist: [...compileWithBabel, /\.css$/]
     }
   }
 
