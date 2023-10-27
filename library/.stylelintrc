@@ -212,7 +212,11 @@
       "turn",
       "fr",
       "dvh",
-      "dvw"
+      "dvw",
+      "svh",
+      "svw",
+      "lvh",
+      "lvw"
     ],
     "value-list-comma-newline-after": "always-multi-line",
     "value-list-comma-space-after": "always-single-line",
