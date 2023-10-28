@@ -22,7 +22,7 @@ const layoutRelatedProps = [ // only allowed in child
   'top', 'right', 'bottom', 'left', 'inset',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
-  'justify-self', 'align-self',
+  'justify-self', 'align-self', 'place-self',
   ...flexChildProps,
   ...gridChildProps,
   ...flexOrGridChildProps,
