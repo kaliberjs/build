@@ -34,7 +34,7 @@ const messages = {
     `add \`display: flex;\` or \`display: grid;\` to the containing root rule or, if this is caused by a media query ` +
     `that overrides \`display: flex;\` or \`display: grid;\`, use \`${prop}: unset\``,
   'layoutClassname - must be nested in a parent selector':
-    `layoutClassNames (classes ending with the \`Layout\` suffix) can only be targetted by a parent selector, using the direct child selector. ` + 
+    `layoutClassNames (classes ending with the \`Layout\` suffix) can only be targetted by a parent selector, using the direct child selector. ` +
     `Consequentially, you can only use layout related properties in layoutClassNames.`,
   'invalid pointer events':
     `Incorrect pointer events combination\n` +
@@ -72,13 +72,13 @@ const childParentRelations = {
   rootHasDisplayGrid: {
     nestedHasOneOf: gridChildProps,
     requireInRoot: [
-      ['display', 'grid']
+      ['display', ['grid', 'inline-grid']]
     ]
   },
   rootHasDisplayFlexOrGrid: {
     nestedHasOneOf: flexOrGridChildProps,
     requireInRoot: [
-      ['display', ['flex', 'grid']]
+      ['display', ['flex', 'grid', 'inline-grid']]
     ]
   },
   validPointerEvents: {

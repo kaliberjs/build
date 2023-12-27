@@ -36,6 +36,19 @@ test('parent-child-policy', {
         `,
       },
       {
+        title: `don't report when display inline-grid is present`,
+        code: `
+          .good {
+            display: inline-grid;
+
+            & > .test {
+              grid: 0; grid-area: 0; grid-column: 0; grid-row: 0; order: 0;
+              grid-column-start: 0; grid-column-end: 0; grid-row-start: 0; grid-row-end: 0;
+            }
+          }
+        `,
+      },
+      {
         code: '.good { pointer-events: auto; }',
       },
       {

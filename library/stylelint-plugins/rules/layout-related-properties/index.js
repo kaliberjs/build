@@ -6,7 +6,7 @@ const {
 } = require('../../machinery/ast')
 const { flexChildProps, gridChildProps, flexOrGridChildProps } = require('../../machinery/css')
 
-const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh']
+const intrinsicUnits = ['px', 'em', 'rem', 'vw', 'vh', 'dvw', 'dvh', 'svh', 'svw', 'lvh', 'lvw']
 const intrinsicProps = ['width', 'height', 'max-width', 'min-width', 'max-height', 'min-height']
 
 const allowedInRootAndChild = [
@@ -22,7 +22,7 @@ const layoutRelatedProps = [ // only allowed in child
   'top', 'right', 'bottom', 'left', 'inset',
   'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
   'max-width', 'min-width', 'max-height', 'min-height',
-  'justify-self', 'align-self',
+  'justify-self', 'align-self', 'place-self',
   ...flexChildProps,
   ...gridChildProps,
   ...flexOrGridChildProps,
@@ -41,7 +41,7 @@ const messages = {
         `one of \`${intrinsicUnits.join('`, `')}\` and add \`!important\``
         : ''
     ),
-  'nested - only layout related props in nested':  prop =>
+  'nested - only layout related props in nested': prop =>
     `illegal non-layout related prop\n` +
     `\`${prop}\` can only be used by root rules - ` +
     `move to another root rule`,

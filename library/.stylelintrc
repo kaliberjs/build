@@ -195,7 +195,7 @@
     ],
     "string-no-newline": true,
     "unit-case": "lower",
-    "unit-no-unknown": true,
+    "unit-no-unknown": null,
     "unit-whitelist": [
       "em",
       "rem",
@@ -210,7 +210,13 @@
       "vmax",
       "deg",
       "turn",
-      "fr"
+      "fr",
+      "dvh",
+      "dvw",
+      "svh",
+      "svw",
+      "lvh",
+      "lvw"
     ],
     "value-list-comma-newline-after": "always-multi-line",
     "value-list-comma-space-after": "always-single-line",
