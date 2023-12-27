@@ -60,7 +60,23 @@ const {
 const recognizedTemplates = Object.keys(templateRenderers)
 
 const kaliberBuildClientModules = [/(@kaliber\/build\/lib\/(stylesheet|javascript|polyfill|withPolyfill|hot-module-replacement-client|rollbar|universalComponents)|ansi-regex)/]
-const compileWithBabel = kaliberBuildClientModules.concat(userDefinedcompileWithBabel)
+const compileWithBabel = kaliberBuildClientModules.concat(
+  userDefinedcompileWithBabel.map(x => {
+    if (x.source !== '@kaliber\\/') return x
+
+    console.log(
+      '================================================================================\n' +
+      'WARNING, you specified /@kaliber\\// to be compiled with babel, not all @kaliber\n' +
+      'libraries need to be compiled. An example of this is the @kaliber/config. To get\n' +
+      'rid of this warning, exclude them from the regular expression like this:\n' +
+      '  /@kaliber\\/(?|config)\n' +
+      'We replaced /@kaliber\\// with /@kaliber\\/(?|config)/ but this might also cause\n' +
+      'problems with other libraries that dynamically perform requires.\n' +
+      '================================================================================'
+    )
+    return /@kaliber\/(?!config)/
+  })
+)
 
 const babelLoader = {
   loader: 'babel-loader',
