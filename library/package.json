@@ -54,7 +54,7 @@
     "fs-extra": "^10.0.0",
     "generic-names": "^3.0.0",
     "gm": "^1.23.1",
-    "helmet": "^4.1.1",
+    "helmet": "^7.1.0",
     "history": "^5.0.0",
     "hoist-non-react-statics": "^3.3.2",
     "icss-utils": "^4.1.1",
