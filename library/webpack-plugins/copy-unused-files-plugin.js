@@ -56,7 +56,7 @@ module.exports = function copyUnusedFilesPlugin() {
 
 function copy(source, target) {
   return new Promise((resolve, reject) => {
-    fs.copy(source, target, err => { err ? reject(err) : resolve() })
+    fs.copy(source, target, { preserveTimestamps: true }, err => { err ? reject(err) : resolve() })
   })
 }
 
