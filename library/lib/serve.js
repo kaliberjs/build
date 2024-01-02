@@ -1,6 +1,6 @@
 const compression = require('compression')
 const express = require('express')
-const helmet = require('helmet')
+const helmet = require('helmet').default
 const { access } = require('fs')
 const { parsePath } = require('history')
 const { resolve } = require('path')
