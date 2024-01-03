@@ -69,8 +69,8 @@ const compileWithBabel = kaliberBuildClientModules.concat(
       'WARNING, you specified /@kaliber\\// to be compiled with babel, not all @kaliber\n' +
       'libraries need to be compiled. An example of this is the @kaliber/config. To get\n' +
       'rid of this warning, exclude them from the regular expression like this:\n' +
-      '  /@kaliber\\/(?|config)\n' +
-      'We replaced /@kaliber\\// with /@kaliber\\/(?|config)/ but this might also cause\n' +
+      '  /@kaliber\\/(?!config)\n' +
+      'We replaced /@kaliber\\// with /@kaliber\\/(?!config)/ but this might also cause\n' +
       'problems with other libraries that dynamically perform requires.\n' +
       '================================================================================'
     )
