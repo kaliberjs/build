@@ -366,6 +366,11 @@ module.exports = function build({ watch }) {
         },
 
         {
+          test: /\.wasm$/,
+          loaders: [urlLoader]
+        },
+
+        {
           loader: fileLoader
         }
 
