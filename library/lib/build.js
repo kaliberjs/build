@@ -146,6 +146,11 @@ const rawLoader = {
   options: { esModule: false }
 }
 
+const wasmLoader = {
+  loader: 'wasm-loader',
+  options: { esModule: false }
+}
+
 module.exports = function build({ watch }) {
 
   const cwd = process.cwd()
@@ -363,6 +368,11 @@ module.exports = function build({ watch }) {
             isProduction && imageLoader,
             imageSizeLoader
           ].filter(Boolean)
+        },
+
+        {
+          test: /\.wasm$/,
+          loaders: [wasmLoader]
         },
 
         {
