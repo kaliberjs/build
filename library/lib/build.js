@@ -53,6 +53,7 @@ const {
     publicPath = '/',
     symlinks = true,
     webpackLoaders: userDefinedWebpackLoaders = [],
+    webpackResolveAliases: userWebpackResolveAliases = {},
     cssNativeCustomProperties = false,
   } = {}
 } = require('@kaliber/config')
@@ -275,6 +276,7 @@ module.exports = function build({ watch }) {
       modules: ['node_modules'],
       plugins: [absolutePathResolverPlugin(srcDir), fragmentResolverPlugin()],
       symlinks,
+      alias: userWebpackResolveAliases,
     }
   }
 
