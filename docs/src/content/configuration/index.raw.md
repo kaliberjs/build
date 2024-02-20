@@ -256,6 +256,20 @@ module.exports = {
 
 Note that these loaders are loaded after the `raw` loader and before all other loaders.
 
+#### webpackResolveAliases
+
+In certain situations, it becomes necessary to create custom aliases, particularly when utilizing a package that is not compatible with webpack 4. Typically, these are packages that utilize the `export` property within the `package.json` file.
+
+```js
+module.exports = {
+  kaliber: {
+    webpackResolveAliases: {
+      '@sanity/ui/theme': require.resolve('@sanity/ui/theme'),
+    },
+  }
+}
+```
+
 #### cssNativeCustomProperties
 
 @kaliber/build uses `postcss-preset-env`'s `custom-properties` to enable custom properties for all browsers, but this limits their usability and isn't really needed anymore for modern browsers. You can use this setting to disable this plugin and thus enable native custom properties.
