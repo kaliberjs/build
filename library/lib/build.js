@@ -96,6 +96,7 @@ const babelLoader = {
       '@babel/syntax-dynamic-import',
       '@babel/plugin-transform-named-capturing-groups-regex',
       '@babel/plugin-transform-template-literals',
+      '@babel/plugin-transform-logical-assignment-operators',
     ]
   }
 }
