@@ -16,5 +16,11 @@ module.exports = {
   client: {
     someConfigKey: true
   },
+  server: {
+    firebase: {
+      credentials: null,
+      databaseURL: null
+    }
+  },
   thisConfigKeyShouldNotAppearInTheClient: true,
 }

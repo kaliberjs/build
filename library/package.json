@@ -79,8 +79,8 @@
     "postcss-values-parser": "^4.0.0",
     "progress-bar-webpack-plugin": "^2.1.0",
     "raw-loader": "^4.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.0.0-beta-4508873393-20240430",
+    "react-dom": "^19.0.0-beta-4508873393-20240430",
     "rollbar": "^2.19.3",
     "stylelint": "^13.7.1",
     "stylelint-use-nesting": "^3.0.0",
@@ -92,7 +92,13 @@
     "walk-sync": "^3.0.0",
     "webpack": "^4.44.2",
     "webpack-node-externals": "^2.5.2",
-    "ws": "^7.3.1"
+    "ws": "^7.3.1",
+    "@types/react": "npm:types-react@beta",
+    "@types/react-dom": "npm:types-react-dom@beta"
+  },
+  "overrides": {
+    "@types/react": "npm:types-react@beta",
+    "@types/react-dom": "npm:types-react-dom@beta"
   },
   "keywords": [
     "webpack",
