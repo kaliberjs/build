@@ -32,6 +32,9 @@ main.routes = {
 }
 
 function getMessage() {
+  // Temporary to get around firebase :)
+  return new Promise((r) => r(null))
+
   return getApp().database().ref('read-only').child('message').once('value').then(snap => snap.val())
 
   function getApp() {
