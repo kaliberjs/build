@@ -16,6 +16,9 @@
     "kaliber/reset": true,
     "kaliber/root-policy": true,
     "kaliber/selector-policy": true,
+    "kaliber/media-queries": [true, {
+      "mediaConfigPath": "/cssGlobal/media.css"
+    }],
 
     "at-rule-blacklist": [
       'apply',

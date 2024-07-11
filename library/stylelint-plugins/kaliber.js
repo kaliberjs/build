@@ -22,6 +22,7 @@ const postcssCalcResolver = createPostcssCalcResolver()
 */
 
 const rules = toStyleLintPlugins(
+  require('./rules/media-queries'),
   require('./rules/color-schemes'),
   require('./rules/css-global'),
   require('./rules/layout-related-properties'),
