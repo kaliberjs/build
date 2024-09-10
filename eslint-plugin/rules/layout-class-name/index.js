@@ -110,6 +110,7 @@ module.exports = {
     }
 
     function reportInvalidLayoutClassName(node, className) {
+      if (typeof className !== 'string') return
       const expectedClassName = className.endsWith('Layout') ? className : className + 'Layout'
 
       if (className === expectedClassName) return
