@@ -63,9 +63,18 @@ function createVirtualReactContainer({ initialNodes, startNode, endNode }) {
     removeEventListener: (...args) => parent.removeEventListener(...args),
     dispatchEvent: (...args) => parent.dispatchEvent(...args),
     get firstChild() { return nodes[0] || null },
-    get nodeType() { return parent.DOCUMENT_FRAGMENT_NODE },
+    get nodeType() { return parent.ELEMENT_NODE },
     get ownerDocument() { return parent.ownerDocument },
     get nodeName() { return 'virtualized container' },
+    get textContent() { return '' },
+    set textContent(value) {
+      if (value) throw new Error(`Unexpected value set by React: "${value}"`)
+      nodes.forEach(node => parent.removeChild(node))
+      nodes.length = 0
+    },
+    get tagName() { return 'DIV' },
+    get namespaceURI() { return parent.namespaceURI },
+    get onclick() { return undefined }, // this is accessed as part of an obscure fix for bubbling behavior in Safari. By returning undefined we disable that 'fix'
     removeChild(child) {
       const result = parent.removeChild(child)
       nodes = nodes.filter(x => x !== child)
@@ -83,6 +92,7 @@ function createVirtualReactContainer({ initialNodes, startNode, endNode }) {
       return result
     },
   }
+
   // The statement below is a lie. We supply an object that has all methods that React calls on it
   return /** @type {Element} */ (container)
 }
