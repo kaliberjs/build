@@ -140,24 +140,40 @@ function possibleDirectories(path) {
 
 function serveIndexWithRouting(req, res, file) {
   const envRequire = isProduction ? require : require('import-fresh')
+
   const routeTemplate = envRequire(file)
 
-  const routes = routeTemplate.routes
   const location = parsePath(req.url)
 
-  return Promise.resolve(routes)
-    .then(routes => (routes && routes.match(location, req)) || { status: 200, data: null })
-    .then(data => {
-      if (!routes || !routes.resolveIndex) return [data, routeTemplate]
+  const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, { location, req })
 
-      const indexLocation = routes.resolveIndex(location, req)
-      if (!indexLocation) return [data, routeTemplate]
+  if (dataOrPromise.then) {
+    const dataPromise = dataOrPromise
+    dataPromise
+      .then(({ status, headers, data }) => {
+        const html = template({ location, data })
+        res.status(status).set(headers).send(html)
+      })
+  } else {
+    const data = dataOrPromise
+    const html = template({ location, data })
+    res.status(data.status).set(data.headers).send(html)
+  }
+}
 
-      const indexPath = resolve(target, publicPathDir, indexLocation, indexWithRouting)
-      return [data, envRequire(indexPath)]
-    })
-    .then(([{ status, headers, data }, template]) =>
-      Promise.resolve(template({ location, data })).then(html => [status, headers, html])
-    )
-    .then(([ status, headers, html ]) => res.status(status).set(headers).send(html))
+function getDataAndRouteTemplate(routeTemplate, { location, req }) {
+  const envRequire = isProduction ? require : require('import-fresh')
+
+  const routes = routeTemplate.routes
+  const dataOrPromise = (routes && routes.match(location, req)) || { status: 200, data: null }
+
+  if (!routes || !routes.resolveIndex)
+    return [dataOrPromise, routeTemplate]
+
+  const indexLocation = routes.resolveIndex(location, req)
+  if (!indexLocation)
+    return [dataOrPromise, routeTemplate]
+
+  const indexPath = resolve(target, publicPathDir, indexLocation, indexWithRouting)
+  return [dataOrPromise, envRequire(indexPath)]
 }
