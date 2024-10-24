@@ -112,7 +112,7 @@ async function findFile(path, file) {
   return null
 }
 
-async function fileExists(path) {
+function fileExists(path) {
   return isProduction
     ? (!fileExists.cache || fileExists.cache[path] === undefined)
       ? accessFile(path).then(exists => (addPathToCache(path, exists), exists))
@@ -124,7 +124,7 @@ async function fileExists(path) {
   }
 }
 
-async function accessFile(path) {
+function accessFile(path) {
   return new Promise(resolve => access(path, err => resolve(!err)))
 }
 
