@@ -147,17 +147,16 @@ function serveIndexWithRouting(req, res, file) {
 
   const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, { location, req })
 
-  if (dataOrPromise.then) {
+  if (dataOrPromise.then)
     dataOrPromise
       .then(({ status, headers, data }) => {
         const html = renderTemplate(template, location, { data })
         res.status(status).set(headers).send(html)
       })
-
-  } else {
-    const html = renderTemplate(template, location, { data: dataOrPromise })
-
-    res.status(dataOrPromise.status).set(dataOrPromise.headers).send(html)
+  else {
+    const { data, status, headers } = dataOrPromise
+    const html = renderTemplate(template, location, { data })
+    res.status(status).set(headers).send(html)
   }
 }
 
