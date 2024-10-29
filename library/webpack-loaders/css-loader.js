@@ -68,8 +68,8 @@ module.exports = function CssLoader(source, map) {
   const filename = relative(this.rootContext, this.resourcePath)
   const options = {
     from: this.resourcePath,
-    to  : this.resourcePath,
-    map : { prev: map || false, inline: false, annotation: false }
+    to: this.resourcePath,
+    map: { prev: map || false, inline: false, annotation: false }
   }
 
   if (!plugins.length) return emitAndCallback({
