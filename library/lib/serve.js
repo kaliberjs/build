@@ -69,12 +69,7 @@ app.use((err, req, res, next) => {
   console.error(err)
   if (reportError) reportError(err, req)
 
-  const response = res.status(500)
-  if (isProduction) {
-    findFile(req.path, internalServerError)
-      .then(file => file ? response.sendFile(file) : next())
-      .catch(next)
-  } else response.send(`<pre><title style='display: block;'>${err.stack || err.toString()}</title><pre>`)
+  serveInternalServerError(err, { req, res, next })
 })
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))
@@ -84,7 +79,7 @@ async function resolveFile(req, res, next) {
     const { path } = req
     /** @type {Array<[string, (file:any) => any]>} */
     const combinations = [
-      [indexWithRouting, file => serveIndexWithRouting(req, res, file)],
+      [indexWithRouting, file => serveIndexWithRouting(file, { req, res, next })],
       [notFound, file => res.status(404).sendFile(file)],
       [index, file => res.status(200).sendFile(file)],
     ]
@@ -138,7 +133,7 @@ function possibleDirectories(path) {
   return possibleDirectories
 }
 
-function serveIndexWithRouting(req, res, file) {
+function serveIndexWithRouting(file, { req, res, next }) {
   const envRequire = isProduction ? require : require('import-fresh')
 
   const routeTemplate = envRequire(file)
@@ -153,10 +148,15 @@ function serveIndexWithRouting(req, res, file) {
         const html = renderTemplate(template, location, { data })
         res.status(status).set(headers).send(html)
       })
+      .catch(error => serveInternalServerError(error, { req, res, next }))
   else {
-    const { data, status, headers } = dataOrPromise
-    const html = renderTemplate(template, location, { data })
-    res.status(status).set(headers).send(html)
+    try {
+      const { data, status, headers } = dataOrPromise
+      const html = renderTemplate(template, location, { data })
+      res.status(status).set(headers).send(html)
+    } catch (error) {
+      serveInternalServerError(error, { req, res, next })
+    }
   }
 }
 
@@ -180,4 +180,13 @@ function getDataAndRouteTemplate(routeTemplate, { location, req }) {
 function renderTemplate(template, location, { data }) {
   const html = template({ location, data })
   return html
+}
+
+function serveInternalServerError(error, { res, req, next }) {
+  const response = res.status(500)
+  if (isProduction) {
+    findFile(req.path, internalServerError)
+      .then(file => file ? response.sendFile(file) : next())
+      .catch(next)
+  } else response.send(`<pre><title style='display: block;'>${error.stack || error.toString()}</title><pre>`)
 }
