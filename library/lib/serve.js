@@ -66,9 +66,7 @@ app.use((err, req, res, next) => {
   if (err.status && err.status >= 400 && err.status < 500)
     return res.status(err.status).send()
 
-  console.error(err)
-  if (reportError) reportError(err, req)
-
+  reportServerError(err, req)
   serveInternalServerError(err, { req, res, next })
 })
 
@@ -148,13 +146,17 @@ function serveIndexWithRouting(file, { req, res, next }) {
         const html = renderTemplate(template, location, { data })
         res.status(status).set(headers).send(html)
       })
-      .catch(error => serveInternalServerError(error, { req, res, next }))
+      .catch(error => {
+        reportServerError(error, req)
+        serveInternalServerError(error, { req, res, next })
+      })
   else {
     try {
       const { data, status, headers } = dataOrPromise
       const html = renderTemplate(template, location, { data })
       res.status(status).set(headers).send(html)
     } catch (error) {
+      reportServerError(error, req)
       serveInternalServerError(error, { req, res, next })
     }
   }
@@ -189,4 +191,9 @@ function serveInternalServerError(error, { res, req, next }) {
       .then(file => file ? response.sendFile(file) : next())
       .catch(next)
   } else response.send(`<pre><title style='display: block;'>${error.stack || error.toString()}</title><pre>`)
+}
+
+function reportServerError(error, req) {
+  console.error(error)
+  if (reportError) reportError(error, req)
 }
