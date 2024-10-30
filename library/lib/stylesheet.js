@@ -5,6 +5,7 @@
 */
 
 import hotCssReplacementClient from './hot-css-replacement-client?transpiled-javascript-string'
+import { SafeScript } from './SafeScript'
 
 const isWatch = process.env.WATCH
 
@@ -18,10 +19,10 @@ export default __webpack_css_chunk_hashes__
 function createHotReloadClient() {
   const [ port, cssHashes, chunkName, publicPath ] = [ __webpack_websocket_port__, __webpack_css_chunk_hashes__, __webpack_chunkname__, __webpack_public_path__ ]
   return (
-    <script
+    <SafeScript
       key='stylesheet_hotCssReplacementClient'
       dangerouslySetInnerHTML={{
-      __html: `(${hotCssReplacementClient})(${port}, ${JSON.stringify(cssHashes)}, '${chunkName}', '${publicPath}')`
+        __html: `(${hotCssReplacementClient})(${port}, ${JSON.stringify(cssHashes)}, '${chunkName}', '${publicPath}')`
       }}
     />
   )

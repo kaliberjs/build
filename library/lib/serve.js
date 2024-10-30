@@ -31,6 +31,9 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 const notCached = ['html', 'txt', 'json', 'xml']
 
+const { contentSecurityPolicy, ...helmetOptionsToUse } = helmetOptions || {}
+const cspMiddleware = contentSecurityPolicy && createCspMiddleware(contentSecurityPolicy)
+
 if (isProduction) app.use(morgan('combined'))
 app.use(helmet(Object.assign(
   {
@@ -38,7 +41,7 @@ app.use(helmet(Object.assign(
     contentSecurityPolicy: false,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   },
-  helmetOptions
+  helmetOptionsToUse
 )))
 app.use(compression())
 app.set('trust proxy', true)
@@ -141,7 +144,6 @@ function possibleDirectories(path) {
 function serveIndexWithRouting(req, res, file) {
   const envRequire = isProduction ? require : require('import-fresh')
   const routeTemplate = envRequire(file)
-
   const routes = routeTemplate.routes
   const location = parsePath(req.url)
 
@@ -156,8 +158,36 @@ function serveIndexWithRouting(req, res, file) {
       const indexPath = resolve(target, publicPathDir, indexLocation, indexWithRouting)
       return [data, envRequire(indexPath)]
     })
-    .then(([{ status, headers, data }, template]) =>
-      Promise.resolve(template({ location, data })).then(html => [status, headers, html])
-    )
-    .then(([ status, headers, html ]) => res.status(status).set(headers).send(html))
+    .then(([{ status, headers, data }, template]) => {
+      const scriptHashes = new Set()
+      const html = template({ location, data }, scriptHashes)
+
+      if (!cspMiddleware)
+        return res.status(status).set(headers).send(html)
+      else
+        return new Promise((resolve, reject) => { // TODO: remove promises
+          res.locals.scriptHashes = Array.from(scriptHashes).map(hash => `'sha256-${hash}'`)
+
+          cspMiddleware(req, res, (e) => {
+            if (e) reject(e)
+            res.status(status).set(headers).send(html)
+            resolve(undefined)
+          })
+        })
+    })
+}
+
+function createCspMiddleware(contentSecurityPolicy) {
+  console.log('create middleware')
+  const contentSecurityPolicyWithHashes = {
+    ...contentSecurityPolicy,
+    directives: {
+      ...contentSecurityPolicy.directives,
+      'script-src-elem': [
+        ...contentSecurityPolicy.directives['script-src-elem'],
+        (req, res) => res.locals.scriptHashes.join(' '),
+      ]
+    }
+  }
+  return helmet.contentSecurityPolicy(contentSecurityPolicyWithHashes)
 }

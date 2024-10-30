@@ -177,14 +177,16 @@ async function createStaticTemplate(name, source, map) {
 function createDynamicTemplate(name, ext) {
   return new RawSource(
     `|const envRequire = process.env.NODE_ENV === 'production' ? require : require('import-fresh')
-     |const { template, renderer } = envRequire('./${name}${ext}')
+     |const { template, renderer, recordScriptHashes } = envRequire('./${name}${ext}')
      |
      |Object.assign(render, template)
      |
      |module.exports = render
      |
-     |function render(props) {
-     |  return renderer(template(props))
+     |function render(props, scriptHashes) {
+     |  return recordScriptHashes(scriptHashes, () =>
+     |    renderer(template(props))
+     |  )
      |}
      |`.replace(/^[ \t]*\|/gm, '')
   )

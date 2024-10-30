@@ -1,5 +1,6 @@
 import fs from 'fs'
 import merge from 'rollbar/src/merge'
+import { SafeScript } from './SafeScript'
 
 const snippet = fs.readFileSync(__non_webpack_require__.resolve('rollbar/dist/rollbar.snippet.js'), 'utf8')
 
@@ -15,5 +16,5 @@ const defaultOptions = {
 export default function rollbar(options, nonSerializableRollbarConfig = '/* no non-serializable config */') {
   const config = JSON.stringify(merge(defaultOptions, options))
   const __html = `var _rollbarConfig = ${config};${nonSerializableRollbarConfig};${snippet}`
-  return <script dangerouslySetInnerHTML={{ __html }} />
+  return <SafeScript dangerouslySetInnerHTML={{ __html }} />
 }
