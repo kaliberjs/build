@@ -29,6 +29,8 @@ const internalServerError = '500.html'
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
 
+const envRequire = isProduction ? require : require('import-fresh')
+
 const notCached = ['html', 'txt', 'json', 'xml']
 
 if (isProduction) app.use(morgan('combined'))
@@ -77,7 +79,7 @@ async function resolveFile(req, res, next) {
     const { path } = req
     /** @type {Array<[string, (file:any) => any]>} */
     const combinations = [
-      [indexWithRouting, file => serveIndexWithRouting(file, { req, res, next })],
+      [indexWithRouting, file => serveIndexWithRouting(file, req, res, next)],
       [notFound, file => res.status(404).sendFile(file)],
       [index, file => res.status(200).sendFile(file)],
     ]
@@ -131,39 +133,36 @@ function possibleDirectories(path) {
   return possibleDirectories
 }
 
-function serveIndexWithRouting(file, { req, res, next }) {
-  const envRequire = isProduction ? require : require('import-fresh')
-
+function serveIndexWithRouting(file, req, res, next) {
   const routeTemplate = envRequire(file)
 
   const location = parsePath(req.url)
 
-  const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, { location, req })
+  const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, location, req)
 
   if (dataOrPromise.then)
     dataOrPromise
       .then(({ status, headers, data }) => {
-        const html = renderTemplate(template, location, { data })
+        const html = template({ location, data })
         res.status(status).set(headers).send(html)
       })
       .catch(error => {
         reportServerError(error, req)
-        serveInternalServerError(error, { req, res, next })
+        serveInternalServerError(error, req, res, next)
       })
   else {
     try {
       const { data, status, headers } = dataOrPromise
-      const html = renderTemplate(template, location, { data })
+      const html = template({ location, data })
       res.status(status).set(headers).send(html)
     } catch (error) {
       reportServerError(error, req)
-      serveInternalServerError(error, { req, res, next })
+      serveInternalServerError(error, req, res, next)
     }
   }
 }
 
-function getDataAndRouteTemplate(routeTemplate, { location, req }) {
-  const envRequire = isProduction ? require : require('import-fresh')
+function getDataAndRouteTemplate(routeTemplate, location, req) {
 
   const routes = routeTemplate.routes
   const dataOrPromise = (routes && routes.match(location, req)) || { status: 200, data: null }
@@ -179,12 +178,7 @@ function getDataAndRouteTemplate(routeTemplate, { location, req }) {
   return [dataOrPromise, envRequire(indexPath)]
 }
 
-function renderTemplate(template, location, { data }) {
-  const html = template({ location, data })
-  return html
-}
-
-function serveInternalServerError(error, { res, req, next }) {
+function serveInternalServerError(error, res, req, next) {
   const response = res.status(500)
   if (isProduction) {
     findFile(req.path, internalServerError)
