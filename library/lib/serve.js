@@ -29,6 +29,8 @@ const internalServerError = '500.html'
 const port = process.env.PORT
 const isProduction = process.env.NODE_ENV === 'production'
 
+const envRequire = isProduction ? require : require('import-fresh')
+
 const notCached = ['html', 'txt', 'json', 'xml']
 
 if (isProduction) app.use(morgan('combined'))
@@ -66,15 +68,8 @@ app.use((err, req, res, next) => {
   if (err.status && err.status >= 400 && err.status < 500)
     return res.status(err.status).send()
 
-  console.error(err)
-  if (reportError) reportError(err, req)
-
-  const response = res.status(500)
-  if (isProduction) {
-    findFile(req.path, internalServerError)
-      .then(file => file ? response.sendFile(file) : next())
-      .catch(next)
-  } else response.send(`<pre><title style='display: block;'>${err.stack || err.toString()}</title><pre>`)
+  reportServerError(err, req)
+  serveInternalServerError(err, { req, res, next })
 })
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))
@@ -84,7 +79,7 @@ async function resolveFile(req, res, next) {
     const { path } = req
     /** @type {Array<[string, (file:any) => any]>} */
     const combinations = [
-      [indexWithRouting, file => serveIndexWithRouting(req, res, file)],
+      [indexWithRouting, file => serveIndexWithRouting(file, req, res, next)],
       [notFound, file => res.status(404).sendFile(file)],
       [index, file => res.status(200).sendFile(file)],
     ]
@@ -112,7 +107,7 @@ async function findFile(path, file) {
   return null
 }
 
-async function fileExists(path) {
+function fileExists(path) {
   return isProduction
     ? (!fileExists.cache || fileExists.cache[path] === undefined)
       ? accessFile(path).then(exists => (addPathToCache(path, exists), exists))
@@ -124,7 +119,7 @@ async function fileExists(path) {
   }
 }
 
-async function accessFile(path) {
+function accessFile(path) {
   return new Promise(resolve => access(path, err => resolve(!err)))
 }
 
@@ -138,26 +133,61 @@ function possibleDirectories(path) {
   return possibleDirectories
 }
 
-function serveIndexWithRouting(req, res, file) {
-  const envRequire = isProduction ? require : require('import-fresh')
+function serveIndexWithRouting(file, req, res, next) {
   const routeTemplate = envRequire(file)
 
-  const routes = routeTemplate.routes
   const location = parsePath(req.url)
 
-  return Promise.resolve(routes)
-    .then(routes => (routes && routes.match(location, req)) || { status: 200, data: null })
-    .then(data => {
-      if (!routes || !routes.resolveIndex) return [data, routeTemplate]
+  const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, location, req)
 
-      const indexLocation = routes.resolveIndex(location, req)
-      if (!indexLocation) return [data, routeTemplate]
+  if (dataOrPromise.then)
+    dataOrPromise
+      .then(({ status, headers, data }) => {
+        const html = template({ location, data })
+        res.status(status).set(headers).send(html)
+      })
+      .catch(error => {
+        reportServerError(error, req)
+        serveInternalServerError(error, req, res, next)
+      })
+  else {
+    try {
+      const { data, status, headers } = dataOrPromise
+      const html = template({ location, data })
+      res.status(status).set(headers).send(html)
+    } catch (error) {
+      reportServerError(error, req)
+      serveInternalServerError(error, req, res, next)
+    }
+  }
+}
 
-      const indexPath = resolve(target, publicPathDir, indexLocation, indexWithRouting)
-      return [data, envRequire(indexPath)]
-    })
-    .then(([{ status, headers, data }, template]) =>
-      Promise.resolve(template({ location, data })).then(html => [status, headers, html])
-    )
-    .then(([ status, headers, html ]) => res.status(status).set(headers).send(html))
+function getDataAndRouteTemplate(routeTemplate, location, req) {
+
+  const routes = routeTemplate.routes
+  const dataOrPromise = (routes && routes.match(location, req)) || { status: 200, data: null }
+
+  if (!routes || !routes.resolveIndex)
+    return [dataOrPromise, routeTemplate]
+
+  const indexLocation = routes.resolveIndex(location, req)
+  if (!indexLocation)
+    return [dataOrPromise, routeTemplate]
+
+  const indexPath = resolve(target, publicPathDir, indexLocation, indexWithRouting)
+  return [dataOrPromise, envRequire(indexPath)]
+}
+
+function serveInternalServerError(error, res, req, next) {
+  const response = res.status(500)
+  if (isProduction) {
+    findFile(req.path, internalServerError)
+      .then(file => file ? response.sendFile(file) : next())
+      .catch(next)
+  } else response.send(`<pre><title style='display: block;'>${error.stack || error.toString()}</title><pre>`)
+}
+
+function reportServerError(error, req) {
+  console.error(error)
+  if (reportError) reportError(error, req)
 }
