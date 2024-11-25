@@ -33,6 +33,12 @@ const envRequire = isProduction ? require : require('import-fresh')
 
 const notCached = ['html', 'txt', 'json', 'xml']
 
+const { contentSecurityPolicy, ...helmetOptionsToUse } = helmetOptions || {}
+const cspMiddleware = contentSecurityPolicy && createCspMiddleware(contentSecurityPolicy)
+const [sendHtmlFunction, sendHtmlFunctionIsAsync] = cspMiddleware
+  ? [sendHtmlWithCspHeaders, true]
+  : [sendHtml, false]
+
 if (isProduction) app.use(morgan('combined'))
 app.use(helmet(Object.assign(
   {
@@ -40,7 +46,7 @@ app.use(helmet(Object.assign(
     contentSecurityPolicy: false,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   },
-  helmetOptions
+  helmetOptionsToUse
 )))
 app.use(compression())
 app.set('trust proxy', true)
@@ -138,28 +144,27 @@ function serveIndexWithRouting(file, req, res, next) {
 
   const location = parsePath(req.url)
 
-  const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, location, req)
+  const [dataOrPromiseFromTemplate, template] = getDataAndRouteTemplate(routeTemplate, location, req)
+
+  const dataOrPromise =
+    dataOrPromiseFromTemplate.then ? dataOrPromiseFromTemplate :
+    sendHtmlFunctionIsAsync ? Promise.resolve(dataOrPromiseFromTemplate) :
+    dataOrPromiseFromTemplate
 
   if (dataOrPromise.then)
     dataOrPromise
-      .then(({ status, headers, data }) => {
-        const html = template({ location, data })
-        res.status(status).set(headers).send(html)
-      })
+      .then(data => sendHtmlFunction(req, res, template, location, data))
       .catch(error => {
         reportServerError(error, req)
         serveInternalServerError(error, req, res, next)
       })
-  else {
+  else
     try {
-      const { data, status, headers } = dataOrPromise
-      const html = template({ location, data })
-      res.status(status).set(headers).send(html)
+      sendHtmlFunction(req, res, template, location, dataOrPromise)
     } catch (error) {
       reportServerError(error, req)
       serveInternalServerError(error, req, res, next)
     }
-  }
 }
 
 function getDataAndRouteTemplate(routeTemplate, location, req) {
@@ -191,3 +196,45 @@ function reportServerError(error, req) {
   console.error(error)
   if (reportError) reportError(error, req)
 }
+
+
+async function sendHtml(req, res, template, location, { status, headers, data }) {
+  const scriptHashes = new Set()
+  const html = template({ location, data }, scriptHashes)
+  res.status(status).set(headers).send(html)
+}
+
+async function sendHtmlWithCspHeaders(req, res, template, location, { status, headers, data }) {
+  const scriptHashes = new Set()
+  const html = template({ location, data }, scriptHashes)
+
+  // make script hashes available for CSP middleware
+  res.locals.scriptHashes = Array.from(scriptHashes).map(hash => `'sha256-${hash}'`)
+  await addCspHeaders(req, res)
+
+  res.status(status).set(headers).send(html)
+}
+
+function createCspMiddleware(contentSecurityPolicy) {
+  const contentSecurityPolicyWithHashes = {
+    ...contentSecurityPolicy,
+    directives: {
+      ...contentSecurityPolicy.directives,
+      'script-src-elem': [
+        ...contentSecurityPolicy.directives['script-src-elem'],
+        (req, res) => res.locals.scriptHashes.join(' '),
+      ]
+    }
+  }
+  return helmet.contentSecurityPolicy(contentSecurityPolicyWithHashes)
+}
+
+function addCspHeaders(req, res) {
+  return new Promise((resolve, reject) => {
+    cspMiddleware(req, res, (e) => {
+      if (e) reject(e)
+      else resolve(undefined)
+    })
+  })
+}
+

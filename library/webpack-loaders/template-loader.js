@@ -15,5 +15,6 @@ TemplateLoader.pitch = function TemplateLoaderPitch(remainingRequest, precedingR
   // This should tell us what we need to use: https://webpack.js.org/configuration/module/#rule-enforce
   return `|export { default as template } from '-!${precedingRequest}!${remainingRequest}?template-source'
           |export { default as renderer } from '${rendererPath}'
+          |export { recordScriptHashes } from '@kaliber/build/lib/SafeScript'
           |`.split(/^[ \t]*\|/m).join('')
 }

@@ -1,5 +1,6 @@
 import { hydrateRoot, createRoot } from 'react-dom/client'
 import { safeJsonStringify } from '@kaliber/safe-json-stringify'
+import { SafeScript } from './SafeScript'
 
 const containerMarker = 'data-kaliber-component-container'
 const E = /** @type {any} */ ('kaliber-component-container')
@@ -19,7 +20,7 @@ export function ComponentServerWrapper({ componentName, props, renderedComponent
 
       {/* Use render blocking script to set a container marker and remove the custom components.
           This ensures the page is never rendered with the intermediate structure */}
-      <script dangerouslySetInnerHTML={{ __html: scriptContent }} />
+      <SafeScript dangerouslySetInnerHTML={{ __html: scriptContent }} />
     </>
   )
 }

@@ -8,8 +8,14 @@ attempt(() => {
   function handleMessage(source) {
     attempt(() => {
       process.off('message', handleMessage)
-      const { template, renderer } = evalSource(source)
-      const result = renderer(template)
+
+      const { template, renderer, recordScriptHashes } = evalSource(source)
+      const scriptHashes = new Set()
+      const result = recordScriptHashes(scriptHashes, () =>
+        renderer(template)
+      )
+      if (scriptHashes.size)
+        console.log('[Warning]: generating a static template with inline scripts, if you want to use a CSP header, make it a dynamic template by exporting a function')
 
       process.send(result, e =>
         attempt(() => {
