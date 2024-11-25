@@ -178,7 +178,7 @@ function getDataAndRouteTemplate(routeTemplate, location, req) {
   return [dataOrPromise, envRequire(indexPath)]
 }
 
-function serveInternalServerError(error, res, req, next) {
+function serveInternalServerError(error, req, res, next) {
   const response = res.status(500)
   if (isProduction) {
     findFile(req.path, internalServerError)
