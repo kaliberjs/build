@@ -69,7 +69,7 @@ app.use((err, req, res, next) => {
     return res.status(err.status).send()
 
   reportServerError(err, req)
-  serveInternalServerError(err, { req, res, next })
+  serveInternalServerError(err, req, res, next)
 })
 
 app.listen(port, () => console.log(`Server listening at port ${port}`))
@@ -88,7 +88,9 @@ async function resolveFile(req, res, next) {
     for (const dir of dirs) {
       for (const [file, handler] of combinations) {
         const filePath = resolve(dir, file)
-        if (await fileExists(filePath)) return handler(filePath)
+        if (await fileExists(filePath)) {
+          return handler(filePath)
+        }
       }
     }
 
@@ -135,8 +137,13 @@ function possibleDirectories(path) {
 
 function serveIndexWithRouting(file, req, res, next) {
   const routeTemplate = envRequire(file)
-
   const location = parsePath(req.url)
+
+  if (routeTemplate.handleRequest)
+    return routeTemplate.handleRequest(req, res, location).catch(error => {
+      reportServerError(error, req)
+      serveInternalServerError(error, req, res, next)
+    })
 
   const [dataOrPromise, template] = getDataAndRouteTemplate(routeTemplate, location, req)
 
