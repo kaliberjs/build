@@ -140,7 +140,7 @@ function serveIndexWithRouting(file, req, res, next) {
   const location = parsePath(req.url)
 
   if (routeTemplate.handleRequest)
-    return routeTemplate.handleRequest(req, res, location).catch(error => {
+    return routeTemplate.handleRequest(location, req, res).catch(error => {
       reportServerError(error, req)
       serveInternalServerError(error, req, res, next)
     })
