@@ -8,7 +8,7 @@ const morgan = require('morgan')
 
 const templateRenderers = require('./getTemplateRenderers')
 
-const { kaliber: { serveMiddleware, helmetOptions, publicPath = '/', reportError } = {} } = require('@kaliber/config')
+const { kaliber: { serveMiddleware, compressionOptions = {}, helmetOptions, publicPath = '/', reportError } = {} } = require('@kaliber/config')
 
 const recognizedTemplates = Object.keys(templateRenderers)
 const blockedTemplateFiles = recognizedTemplates.reduce(
@@ -42,7 +42,12 @@ app.use(helmet(Object.assign(
   },
   helmetOptions
 )))
-app.use(compression())
+app.use(compression({
+  ...compressionOptions,
+  filter(req, res) {
+    return compression.filter(req, res) && (compressionOptions?.filter ? compressionOptions.filter(req, res) : true)
+  }
+}))
 app.set('trust proxy', true)
 serveMiddleware && app.use(...[].concat(serveMiddleware))
 app.use((req, res, next) => {
